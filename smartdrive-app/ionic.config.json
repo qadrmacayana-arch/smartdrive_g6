@@ -1,0 +1,7 @@
+{
+  "name": "smartdrive-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

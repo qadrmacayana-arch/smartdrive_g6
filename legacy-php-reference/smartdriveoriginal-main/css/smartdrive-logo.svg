@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">SmartDrive car and motorcycle logo</title>
+  <desc id="logo-desc">A pale car and motorcycle on a turquoise and blue rounded hexagon.</desc>
+  <defs>
+    <linearGradient id="logo-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#51e1b2"/>
+      <stop offset="0.48" stop-color="#20c5d1"/>
+      <stop offset="1" stop-color="#1594dc"/>
+    </linearGradient>
+    <linearGradient id="vehicle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff9a9"/>
+      <stop offset="1" stop-color="#b7f2a2"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="9"/>
+      <feOffset dx="0" dy="13" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <path fill="url(#logo-bg)" d="M256 7c14 0 28 4 40 11l169 98c25 14 40 41 40 70v140c0 29-15 56-40 70L296 494c-25 14-55 14-80 0L47 396c-25-14-40-41-40-70V186c0-29 15-56 40-70L216 18c12-7 26-11 40-11Z"/>
+  <g filter="url(#shadow)" stroke="#13a6d8" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path fill="url(#vehicle)" d="M91 286v-39c0-12 5-23 14-31l66-58c12-11 28-17 44-17h84c14 0 28 5 39 13l55 42c10 8 17 19 19 32l8 58H91Z"/>
+    <path fill="#20aeda" d="m166 189 57-35c9-6 20-9 31-9h35l-28 69-95-25Z"/>
+    <path fill="#20aeda" d="m271 145h27c10 0 20 3 28 9l49 38-82 22-22-69Z"/>
+    <path fill="none" d="M91 286h-8c-8 0-14 6-14 14v18c0 8 6 14 14 14h28m289-46h15c9 0 16 7 16 16v16c0 8-6 14-14 14h-20"/>
+    <path fill="#168bd5" d="M112 303h43c8 0 13 9 8 16l-8 10h-43v-26Z"/>
+    <path fill="#168bd5" d="M327 303h46c8 0 13 9 8 16l-8 10h-46v-26Z"/>
+    <circle fill="#dcf6a2" cx="145" cy="338" r="31"/>
+    <circle fill="#dcf6a2" cx="350" cy="338" r="31"/>
+    <path fill="none" d="M275 276c-4 19-15 31-32 39l-16 8m45-47 27-1"/>
+    <path fill="none" stroke="#19a3dc" d="M286 303c-16 0-29 13-29 29s13 29 29 29h12"/>
+    <path fill="url(#vehicle)" d="M277 300c1-20 12-38 29-49l35-23c12-8 28-8 39 0l10 7-13 18-40 23-18 31-42-7Z"/>
+    <path fill="url(#vehicle)" d="m356 238 53-7 17 15-9 18-55 5-17-15 11-16Z"/>
+    <path fill="none" d="M323 302h-29m91-13 24 1m-70-7 17 44m42-45 18 45"/>
+    <circle fill="#dcf6a2" cx="317" cy="360" r="28"/>
+    <circle fill="#dcf6a2" cx="405" cy="360" r="28"/>
+  </g>
+</svg>

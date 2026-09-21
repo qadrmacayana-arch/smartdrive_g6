@@ -1,0 +1,70 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Your Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (draft(); as d) {
+    <form [formGroup]="form" (ngSubmit)="continue()">
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="person-outline"></ion-icon>
+        <ion-input label="Full Name" labelPlacement="floating" formControlName="name"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="mail-outline"></ion-icon>
+        <ion-input type="email" label="Email" labelPlacement="floating" formControlName="email"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="call-outline"></ion-icon>
+        <ion-input type="tel" label="Phone Number" labelPlacement="floating" formControlName="phone"></ion-input>
+      </ion-item>
+
+      <div class="pwd-block sd-card">
+        <div class="pwd-header">
+          <ion-icon name="accessibility-outline"></ion-icon>
+          <div>
+            <h4>PWD / Senior Citizen Discount</h4>
+            <p class="sd-muted">Get 20% off your rental. Present your ID upon vehicle pick-up.</p>
+          </div>
+        </div>
+        <ion-segment [value]="isPwdSenior() ? 'yes' : 'no'" (ionChange)="isPwdSenior.set($any($event.detail.value) === 'yes')">
+          <ion-segment-button value="no">
+            <ion-label>No</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="yes">
+            <ion-label>Yes</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <div class="sd-card summary-card">
+        <div class="summary-row">
+          <span class="sd-muted">Subtotal ({{ d.rentalDays }} days)</span>
+          <strong>₱{{ subtotal() | number }}</strong>
+        </div>
+        <div class="summary-row">
+          <span class="sd-muted">Insurance</span>
+          <strong>₱{{ insurance | number }}</strong>
+        </div>
+        @if (discount() > 0) {
+          <div class="summary-row discount">
+            <span>PWD/Senior Discount</span>
+            <strong>-₱{{ discount() | number }}</strong>
+          </div>
+        }
+        <div class="summary-row total">
+          <span>Estimated Total</span>
+          <strong>₱{{ total() | number }}</strong>
+        </div>
+      </div>
+
+      <ion-button expand="block" type="submit" class="sd-gradient-btn continue-btn">Continue to Payment</ion-button>
+    </form>
+  }
+</ion-content>

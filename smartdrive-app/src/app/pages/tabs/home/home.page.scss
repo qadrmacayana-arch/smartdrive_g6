@@ -1,0 +1,154 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+  padding: 0.25rem 0.75rem 0.5rem;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.25rem 0.25rem;
+}
+
+.greeting {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.brand {
+  margin: 0.1rem 0 0;
+  font-size: 1.3rem;
+}
+
+.header-login {
+  color: var(--sd-primary);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--sd-primary);
+}
+
+.chip-row {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding: 0.5rem 1rem;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.sub {
+    padding-top: 0;
+  }
+
+  ion-chip {
+    --background: var(--sd-card);
+    border: 1px solid var(--sd-border);
+    color: var(--sd-muted-foreground);
+    font-weight: 600;
+    flex-shrink: 0;
+
+    &.active {
+      background: var(--sd-gradient-primary);
+      color: #fff;
+      border-color: transparent;
+
+      ion-label {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.vehicle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+  padding: 0.75rem 1rem 2rem;
+}
+
+.vehicle-card {
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.vehicle-image {
+  height: 110px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--sd-muted);
+  position: relative;
+}
+
+.featured-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+}
+
+.vehicle-info {
+  padding: 0.75rem;
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--sd-heading);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.vehicle-type {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 0.78rem;
+}
+
+.vehicle-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price {
+  font-weight: 800;
+  color: var(--sd-primary);
+  font-size: 0.95rem;
+
+  small {
+    font-weight: 500;
+    color: var(--sd-muted-foreground);
+    font-size: 0.7rem;
+  }
+}
+
+.points {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+
+  ion-icon {
+    font-size: 0.75rem;
+  }
+}
+
+.skeleton-card {
+  padding: 0.75rem;
+}
+
+.skeleton-img {
+  height: 110px;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+}

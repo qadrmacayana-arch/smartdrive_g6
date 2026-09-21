@@ -1,0 +1,68 @@
+.auth-wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.auth-brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--sd-gradient-primary);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  box-shadow: var(--sd-shadow-md);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.auth-item {
+  --background: var(--sd-card);
+  --border-radius: var(--sd-radius);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+}
+
+.auth-alert {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.875rem;
+
+  &.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--sd-destructive);
+  }
+
+  &.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--sd-success);
+  }
+}
+
+.auth-link {
+  color: var(--sd-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+}

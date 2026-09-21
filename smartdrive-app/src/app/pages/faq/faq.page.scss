@@ -1,0 +1,61 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.intro {
+  margin-bottom: 1.25rem;
+}
+
+.faq-item {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+
+.faq-question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: var(--sd-heading);
+  font-size: 0.9rem;
+
+  ion-icon {
+    color: var(--sd-primary);
+    flex-shrink: 0;
+  }
+}
+
+.faq-answer {
+  margin: 0.75rem 0 0;
+  color: var(--sd-muted-foreground);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.contact-card {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  ion-icon {
+    font-size: 1.8rem;
+    color: var(--sd-primary);
+    flex-shrink: 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--sd-heading);
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    font-size: 0.8rem;
+  }
+}

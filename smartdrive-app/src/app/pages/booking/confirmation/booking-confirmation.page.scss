@@ -1,0 +1,64 @@
+.success-icon {
+  text-align: center;
+  margin-top: 2rem;
+
+  ion-icon {
+    font-size: 5rem;
+    color: var(--sd-success);
+  }
+}
+
+.confirm-title {
+  text-align: center;
+  margin: 1rem 0 0.25rem;
+}
+
+.confirm-sub {
+  text-align: center;
+  margin: 0 0 1.5rem;
+}
+
+.ref-card {
+  text-align: center;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+
+  span {
+    font-size: 0.78rem;
+  }
+
+  h2 {
+    margin: 0.35rem 0 0;
+    font-family: monospace;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    color: var(--sd-primary);
+  }
+}
+
+.detail-card {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+
+  &.total {
+    border-top: 1px dashed var(--sd-border);
+    margin-top: 0.4rem;
+    padding-top: 0.85rem;
+    font-weight: 800;
+    color: var(--sd-primary);
+  }
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+ion-button {
+  margin-bottom: 0.5rem;
+}

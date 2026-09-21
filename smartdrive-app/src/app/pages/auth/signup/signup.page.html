@@ -1,0 +1,94 @@
+<ion-content [fullscreen]="true" class="ion-padding">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="auth-logo">SD</div>
+      <h1 class="sd-section-title">Create your account</h1>
+      <p class="sd-muted">Join SmartDrive™ and start renting in minutes</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+      @if (errorMessage()) {
+        <div class="auth-alert error">{{ errorMessage() }}</div>
+      }
+      @if (successMessage()) {
+        <div class="auth-alert success">{{ successMessage() }}</div>
+      }
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="person-outline"></ion-icon>
+        <ion-input label="Full name" labelPlacement="floating" formControlName="fullName" autocomplete="name"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        <ion-label>Birthday</ion-label>
+        <ion-datetime-button datetime="birthday-picker" slot="end"></ion-datetime-button>
+      </ion-item>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="birthday-picker"
+            presentation="date"
+            formControlName="birthday"
+            [showDefaultButtons]="true"
+            max="2020-01-01"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="location-outline"></ion-icon>
+        <ion-input label="Address" labelPlacement="floating" formControlName="address" autocomplete="street-address"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+        <ion-select label="Gender" labelPlacement="floating" formControlName="gender" interface="popover">
+          <ion-select-option value="male">Male</ion-select-option>
+          <ion-select-option value="female">Female</ion-select-option>
+          <ion-select-option value="other">Other</ion-select-option>
+          <ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="mail-outline"></ion-icon>
+        <ion-input type="email" label="Email" labelPlacement="floating" formControlName="email" autocomplete="email"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="call-outline"></ion-icon>
+        <ion-input type="tel" label="Phone number" labelPlacement="floating" formControlName="phone" autocomplete="tel"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+        <ion-input type="password" label="Password" labelPlacement="floating" formControlName="password" autocomplete="new-password"></ion-input>
+      </ion-item>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+        <ion-input
+          type="password"
+          label="Confirm password"
+          labelPlacement="floating"
+          formControlName="confirmPassword"
+          autocomplete="new-password"
+        ></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" type="submit" class="sd-gradient-btn" [disabled]="submitting()">
+        @if (submitting()) {
+          <ion-spinner name="dots"></ion-spinner>
+        } @else {
+          Sign Up
+        }
+      </ion-button>
+    </form>
+
+    <p class="auth-footer sd-muted">
+      Already have an account?
+      <a routerLink="/login" class="auth-link">Log in</a>
+    </p>
+  </div>
+</ion-content>

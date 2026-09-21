@@ -1,0 +1,55 @@
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (loading()) {
+    <p class="sd-muted">Loading...</p>
+  } @else if (errorMessage()) {
+    <div class="sd-empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (booking(); as b) {
+    <div class="success-icon">
+      <ion-icon name="checkmark-circle"></ion-icon>
+    </div>
+    <h1 class="sd-section-title confirm-title">Booking Confirmed!</h1>
+    <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
+
+    <div class="sd-card ref-card">
+      <span class="sd-muted">Reference Number</span>
+      <h2>{{ b.reference_number }}</h2>
+    </div>
+
+    <div class="sd-card detail-card">
+      <div class="detail-row">
+        <span class="sd-muted">Vehicle</span>
+        <strong>{{ b.vehicle_name }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Pick-up</span>
+        <strong>{{ b.pickup_date }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Return</span>
+        <strong>{{ b.return_date }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Location</span>
+        <strong>{{ b.pickup_location }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Payment Method</span>
+        <strong class="capitalize">{{ b.payment_method }}</strong>
+      </div>
+      <div class="detail-row total">
+        <span>Total Paid</span>
+        <strong>₱{{ b.total_price | number }}</strong>
+      </div>
+    </div>
+
+    <ion-button expand="block" class="sd-gradient-btn" (click)="share()">
+      <ion-icon slot="start" name="share-social-outline"></ion-icon>
+      Share Receipt
+    </ion-button>
+    <ion-button expand="block" fill="outline" (click)="viewBookings()">View My Bookings</ion-button>
+    <ion-button expand="block" fill="clear" (click)="goHome()">Back to Home</ion-button>
+  }
+</ion-content>

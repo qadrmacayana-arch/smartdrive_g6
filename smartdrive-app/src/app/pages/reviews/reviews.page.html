@@ -1,0 +1,74 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reviews & Ratings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (currentUser()) {
+    <div class="sd-card write-review">
+      <h3>Leave a Review</h3>
+      <div class="stars">
+        @for (star of stars; track star) {
+          <ion-icon
+            [name]="star <= rating() ? 'star' : 'star-outline'"
+            (click)="rating.set(star)"
+          ></ion-icon>
+        }
+      </div>
+      <ion-textarea
+        placeholder="Tell us about your SmartDrive™ experience..."
+        [ngModel]="comment()"
+        (ngModelChange)="comment.set($event)"
+        [autoGrow]="true"
+        rows="3"
+      ></ion-textarea>
+      <ion-button
+        expand="block"
+        class="sd-gradient-btn"
+        [disabled]="submitting() || !comment().trim()"
+        (click)="submit()"
+      >
+        @if (submitting()) {
+          <ion-spinner name="dots"></ion-spinner>
+        } @else {
+          Submit Review
+        }
+      </ion-button>
+    </div>
+  }
+
+  <h3 class="section-title">What our customers say</h3>
+
+  @if (loading()) {
+    <p class="sd-muted">Loading reviews...</p>
+  } @else if (reviews().length === 0) {
+    <div class="sd-empty-state">
+      <ion-icon name="star-outline"></ion-icon>
+      <p>No reviews yet. Be the first to share your experience!</p>
+    </div>
+  } @else {
+    @for (review of reviews(); track review.id) {
+      <div class="sd-card review-card">
+        <div class="review-top">
+          <div class="review-avatar">{{ review.customer_name.charAt(0) }}</div>
+          <div>
+            <strong>{{ review.customer_name }}</strong>
+            <p class="sd-muted review-date">{{ review.created_at | date: 'MMM d, y' }}</p>
+          </div>
+        </div>
+        <div class="stars small">
+          @for (star of stars; track star) {
+            <ion-icon [name]="star <= review.rating ? 'star' : 'star-outline'"></ion-icon>
+          }
+        </div>
+        @if (review.comment) {
+          <p class="review-comment">{{ review.comment }}</p>
+        }
+      </div>
+    }
+  }
+</ion-content>

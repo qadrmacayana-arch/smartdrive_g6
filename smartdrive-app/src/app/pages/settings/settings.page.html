@@ -1,0 +1,83 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Settings</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (message()) {
+    <div class="auth-alert" [class.error]="isError()" [class.success]="!isError()">{{ message() }}</div>
+  }
+
+  <h3 class="section-title">Profile Information</h3>
+  <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="person-outline"></ion-icon>
+      <ion-input label="Full name" labelPlacement="floating" formControlName="fullName"></ion-input>
+    </ion-item>
+
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="calendar-outline"></ion-icon>
+      <ion-label>Birthday</ion-label>
+      <ion-datetime-button datetime="settings-birthday" slot="end"></ion-datetime-button>
+    </ion-item>
+    <ion-modal [keepContentsMounted]="true">
+      <ng-template>
+        <ion-datetime id="settings-birthday" presentation="date" formControlName="birthday" max="2020-01-01"></ion-datetime>
+      </ng-template>
+    </ion-modal>
+
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="location-outline"></ion-icon>
+      <ion-input label="Address" labelPlacement="floating" formControlName="address"></ion-input>
+    </ion-item>
+
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="person-circle-outline"></ion-icon>
+      <ion-select label="Gender" labelPlacement="floating" formControlName="gender" interface="popover">
+        <ion-select-option value="male">Male</ion-select-option>
+        <ion-select-option value="female">Female</ion-select-option>
+        <ion-select-option value="other">Other</ion-select-option>
+        <ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="call-outline"></ion-icon>
+      <ion-input type="tel" label="Phone number" labelPlacement="floating" formControlName="phone"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" type="submit" class="sd-gradient-btn" [disabled]="savingProfile()">
+      @if (savingProfile()) {
+        <ion-spinner name="dots"></ion-spinner>
+      } @else {
+        Save Profile
+      }
+    </ion-button>
+  </form>
+
+  <h3 class="section-title">Change Password</h3>
+  <form [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+      <ion-input type="password" label="New password" labelPlacement="floating" formControlName="newPassword"></ion-input>
+    </ion-item>
+    <ion-item class="auth-item" lines="none">
+      <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
+      <ion-input type="password" label="Confirm new password" labelPlacement="floating" formControlName="confirmPassword"></ion-input>
+    </ion-item>
+
+    <ion-button expand="block" fill="outline" type="submit" [disabled]="savingPassword()">
+      @if (savingPassword()) {
+        <ion-spinner name="dots"></ion-spinner>
+      } @else {
+        Update Password
+      }
+    </ion-button>
+  </form>
+
+  <button type="button" class="delete-account-btn" (click)="deleteAccount()">Delete My Account</button>
+</ion-content>

@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <div class="header-row">
+      <div>
+        <p class="greeting sd-muted">{{ currentUser() ? 'Welcome back,' : 'Welcome to' }}</p>
+        <h1 class="sd-section-title brand">{{ currentUser() ? (currentUser()!.fullName) : 'SmartDrive™' }}</h1>
+      </div>
+      @if (!currentUser()) {
+        <a routerLink="/login" class="header-login">Log In</a>
+      }
+    </div>
+    <ion-searchbar
+      placeholder="Search vehicles..."
+      [debounce]="200"
+      (ionInput)="searchQuery.set($any($event.target).value ?? '')"
+    ></ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadVehicles($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="chip-row">
+    @for (category of categories; track category.key) {
+      <ion-chip
+        [class.active]="mainCategory() === category.key"
+        (click)="selectMainCategory(category.key)"
+      >
+        <ion-label>{{ category.label }}</ion-label>
+      </ion-chip>
+    }
+  </div>
+
+  @if (activeSubTypes().length) {
+    <div class="chip-row sub">
+      <ion-chip [class.active]="subFilter() === 'All'" (click)="selectSubFilter('All')">
+        <ion-label>All</ion-label>
+      </ion-chip>
+      @for (type of activeSubTypes(); track type) {
+        <ion-chip [class.active]="subFilter() === type" (click)="selectSubFilter(type)">
+          <ion-label>{{ type }}</ion-label>
+        </ion-chip>
+      }
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="vehicle-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="sd-card skeleton-card">
+          <ion-skeleton-text [animated]="true" class="skeleton-img"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 70%"></ion-skeleton-text>
+          <ion-skeleton-text [animated]="true" style="width: 40%"></ion-skeleton-text>
+        </div>
+      }
+    </div>
+  } @else if (errorMessage()) {
+    <div class="sd-empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (filteredVehicles().length === 0) {
+    <div class="sd-empty-state">
+      <ion-icon name="car-sport-outline"></ion-icon>
+      <p>No vehicles match your search right now.</p>
+    </div>
+  } @else {
+    <div class="vehicle-grid">
+      @for (vehicle of filteredVehicles(); track vehicle.id) {
+        <div class="sd-card vehicle-card" (click)="openVehicle(vehicle)">
+          <div class="vehicle-image" [style.background-image]="'url(' + vehicle.image + ')'">
+            @if (vehicle.is_featured) {
+              <span class="sd-badge featured-badge">
+                <ion-icon name="sparkles-outline"></ion-icon>
+                Featured
+              </span>
+            }
+          </div>
+          <div class="vehicle-info">
+            <h3>{{ vehicle.name }}</h3>
+            <p class="sd-muted vehicle-type">{{ vehicle.type }}</p>
+            <div class="vehicle-meta">
+              <span class="price">₱{{ vehicle.price | number }}<small>/day</small></span>
+              <span class="sd-badge points">
+                <ion-icon name="star"></ion-icon>
+                {{ vehicle.sr_points }} pts
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

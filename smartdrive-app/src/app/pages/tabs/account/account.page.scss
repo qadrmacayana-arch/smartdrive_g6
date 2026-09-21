@@ -1,0 +1,62 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--sd-heading);
+  }
+
+  p {
+    margin: 0.1rem 0 0.4rem;
+    font-size: 0.82rem;
+  }
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--sd-gradient-primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.4rem;
+  font-family: 'Sora', sans-serif;
+  flex-shrink: 0;
+}
+
+.menu-list {
+  background: transparent;
+  border-radius: var(--sd-radius);
+  overflow: hidden;
+
+  ion-item {
+    --background: var(--sd-card);
+    --padding-start: 1rem;
+
+    ion-icon {
+      color: var(--sd-primary);
+      margin-inline-end: 0.75rem;
+    }
+  }
+
+  .logout-item {
+    ion-icon,
+    ion-label {
+      color: var(--sd-destructive);
+    }
+  }
+}

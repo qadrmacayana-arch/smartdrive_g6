@@ -1,0 +1,99 @@
+// SmartDrive™ "Amethyst Fresh" theme, ported from the original web app's design tokens.
+
+:root {
+  --sd-primary: #7c3aed;
+  --sd-primary-hover: #6d28d9;
+  --sd-primary-soft: #ede9fe;
+  --sd-secondary: #c026d3;
+  --sd-accent: #a855f7;
+  --sd-background: #f7f5fc;
+  --sd-background-alt: #efeafb;
+  --sd-foreground: #241b38;
+  --sd-heading: #1c1430;
+  --sd-card: #ffffff;
+  --sd-muted: #ece8f7;
+  --sd-muted-foreground: #6b6384;
+  --sd-border: #e3ddf2;
+  --sd-destructive: #ef4444;
+  --sd-success: #10b981;
+  --sd-warning: #f59e0b;
+  --sd-radius: 1.1rem;
+  --sd-gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 55%, #c026d3 100%);
+  --sd-shadow-md: 0 10px 30px -8px rgba(76, 29, 149, 0.14);
+
+  --ion-color-primary: #7c3aed;
+  --ion-color-primary-rgb: 124, 58, 237;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #6d28d9;
+  --ion-color-primary-tint: #8b53ef;
+
+  --ion-color-secondary: #c026d3;
+  --ion-color-secondary-rgb: 192, 38, 211;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #a921ba;
+  --ion-color-secondary-tint: #c73bd7;
+
+  --ion-color-tertiary: #a855f7;
+  --ion-color-tertiary-rgb: 168, 85, 247;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #944be1;
+  --ion-color-tertiary-tint: #b166f8;
+
+  --ion-color-success: #10b981;
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0ea372;
+  --ion-color-success-tint: #28c08e;
+
+  --ion-color-warning: #f59e0b;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #1c1430;
+  --ion-color-warning-contrast-rgb: 28, 20, 48;
+  --ion-color-warning-shade: #d88b0a;
+  --ion-color-warning-tint: #f6a824;
+
+  --ion-color-danger: #ef4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f15757;
+
+  --ion-background-color: #f7f5fc;
+  --ion-background-color-rgb: 247, 245, 252;
+  --ion-text-color: #241b38;
+  --ion-text-color-rgb: 36, 27, 56;
+
+  --ion-toolbar-background: #ffffff;
+  --ion-item-background: #ffffff;
+  --ion-card-background: #ffffff;
+
+  --ion-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sd-background: #16101f;
+    --sd-background-alt: #1c1428;
+    --sd-foreground: #f1ecfb;
+    --sd-heading: #ffffff;
+    --sd-card: #1f1730;
+    --sd-muted: #241b38;
+    --sd-muted-foreground: #b7abd6;
+    --sd-border: #322449;
+
+    --ion-background-color: #16101f;
+    --ion-background-color-rgb: 22, 16, 31;
+    --ion-text-color: #f1ecfb;
+    --ion-text-color-rgb: 241, 236, 251;
+
+    --ion-toolbar-background: #1f1730;
+    --ion-item-background: #1f1730;
+    --ion-card-background: #1f1730;
+    --ion-border-color: #322449;
+  }
+}

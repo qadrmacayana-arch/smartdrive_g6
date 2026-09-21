@@ -1,0 +1,132 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Payment</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (draft(); as d) {
+    <div class="sd-card vehicle-summary">
+      <div class="thumb" [style.background-image]="'url(' + d.vehicle.image + ')'"></div>
+      <div>
+        <h3>{{ d.vehicle.name }}</h3>
+        <p class="sd-muted">{{ d.pickupDate }} → {{ d.returnDate }} · {{ d.rentalDays }} day(s)</p>
+      </div>
+    </div>
+
+    <div class="promo-row">
+      <ion-item class="auth-item promo-input" lines="none">
+        <ion-icon slot="start" name="ticket-outline"></ion-icon>
+        <ion-input
+          label="Promo code"
+          labelPlacement="floating"
+          [ngModel]="promoInput()"
+          (ngModelChange)="promoInput.set($event)"
+          [disabled]="!!d.promoCode"
+        ></ion-input>
+      </ion-item>
+      @if (d.promoCode) {
+        <ion-button fill="outline" color="danger" (click)="removePromo()">Remove</ion-button>
+      } @else {
+        <ion-button class="sd-gradient-btn" [disabled]="promoApplying() || !promoInput().trim()" (click)="applyPromo()">
+          @if (promoApplying()) {
+            <ion-spinner name="dots"></ion-spinner>
+          } @else {
+            Apply
+          }
+        </ion-button>
+      }
+    </div>
+    @if (promoError()) {
+      <p class="promo-error">{{ promoError() }}</p>
+    }
+    @if (d.promoCode) {
+      <p class="promo-success">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        {{ d.promoCode.description }} applied
+      </p>
+    }
+
+    <h3 class="section-title">Payment Method</h3>
+    <ion-radio-group [value]="paymentMethod()" (ionChange)="paymentMethod.set($any($event.detail.value))">
+      <div class="method-option sd-card">
+        <ion-radio value="credit-card" justify="space-between">
+          <div class="method-label">
+            <ion-icon name="card-outline"></ion-icon>
+            Credit / Debit Card
+          </div>
+        </ion-radio>
+      </div>
+      <div class="method-option sd-card">
+        <ion-radio value="gcash" justify="space-between">
+          <div class="method-label">
+            <ion-icon name="cash-outline"></ion-icon>
+            GCash
+          </div>
+        </ion-radio>
+      </div>
+      <div class="method-option sd-card">
+        <ion-radio value="maya" justify="space-between">
+          <div class="method-label">
+            <ion-icon name="cash-outline"></ion-icon>
+            Maya
+          </div>
+        </ion-radio>
+      </div>
+      <div class="method-option sd-card" [class.insufficient]="insufficientPoints">
+        <ion-radio value="srpoints" justify="space-between">
+          <div class="method-label">
+            <ion-icon name="wallet-outline"></ion-icon>
+            SR Points ({{ (walletBalance()?.balance ?? 0) | number }} pts available)
+          </div>
+        </ion-radio>
+      </div>
+    </ion-radio-group>
+    @if (insufficientPoints) {
+      <p class="promo-error">Insufficient SR Points for this total. Choose another payment method.</p>
+    }
+
+    @if (pricing(); as p) {
+      <div class="sd-card summary-card">
+        <div class="summary-row">
+          <span class="sd-muted">Subtotal</span>
+          <strong>₱{{ p.subtotal | number }}</strong>
+        </div>
+        <div class="summary-row">
+          <span class="sd-muted">Insurance</span>
+          <strong>₱{{ p.insurance | number }}</strong>
+        </div>
+        @if (p.discount > 0) {
+          <div class="summary-row discount">
+            <span>{{ p.discountLabel }}</span>
+            <strong>-₱{{ p.discount | number }}</strong>
+          </div>
+        }
+        <div class="summary-row total">
+          <span>Total Due</span>
+          <strong>₱{{ p.total | number }}</strong>
+        </div>
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <p class="promo-error">{{ errorMessage() }}</p>
+    }
+
+    <ion-button
+      expand="block"
+      class="sd-gradient-btn continue-btn"
+      [disabled]="submitting() || insufficientPoints"
+      (click)="confirmPayment()"
+    >
+      @if (submitting()) {
+        <ion-spinner name="dots"></ion-spinner>
+      } @else {
+        Confirm & Pay
+      }
+    </ion-button>
+  }
+</ion-content>

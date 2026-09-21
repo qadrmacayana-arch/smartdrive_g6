@@ -1,0 +1,87 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.write-review {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-family: 'Sora', sans-serif;
+    color: var(--sd-heading);
+  }
+}
+
+.stars {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+
+  ion-icon {
+    font-size: 1.6rem;
+    color: var(--sd-warning);
+    cursor: pointer;
+  }
+
+  &.small ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+ion-textarea {
+  --background: var(--sd-muted);
+  --padding-start: 0.75rem;
+  --padding-end: 0.75rem;
+  --padding-top: 0.6rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-family: 'Sora', sans-serif;
+  color: var(--sd-heading);
+  font-size: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.review-card {
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.review-top {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.5rem;
+
+  strong {
+    font-size: 0.9rem;
+    color: var(--sd-heading);
+  }
+}
+
+.review-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--sd-gradient-primary);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.review-date {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+}
+
+.review-comment {
+  margin: 0.5rem 0 0;
+  font-size: 0.88rem;
+  color: var(--sd-foreground);
+  line-height: 1.5;
+}

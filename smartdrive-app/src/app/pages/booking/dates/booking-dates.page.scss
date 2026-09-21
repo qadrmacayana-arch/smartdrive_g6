@@ -1,0 +1,68 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.vehicle-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--sd-heading);
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    font-size: 0.82rem;
+  }
+}
+
+.thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--sd-muted);
+  flex-shrink: 0;
+}
+
+.field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-item {
+  --background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+}
+
+.summary-card {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+
+  &.total {
+    border-top: 1px dashed var(--sd-border);
+    margin-top: 0.4rem;
+    padding-top: 0.75rem;
+    font-weight: 800;
+    color: var(--sd-primary);
+  }
+}
+
+.continue-btn {
+  margin-bottom: 1rem;
+}

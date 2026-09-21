@@ -1,0 +1,238 @@
+/* ============================================================
+   SmartDrive™ - style.css
+   MAIN ENTRY POINT — "AMETHYST FRESH" (Purple) Theme
+   ------------------------------------------------------------
+   A light-purple premium design: soft lavender canvas, deep
+   violet gradient header/footer, vibrant violet→fuchsia accents,
+   crisp white cards, glassmorphism.
+
+   The full design lives in four scoped files:
+
+   style2.css -> Base theme: design tokens + reset + public site
+                 (header, hero, car cards, auth, footer, modals)
+   style3.css -> App / dashboard / admin / booking-flow theme
+                 (dashboard, bookings, offers, wallet, calendar,
+                  payment, confirmation) — loads AFTER style2
+   style4.css -> Legacy inline-style neutralizer (converts old
+                 forced dark-glass inline styles to the light
+                 purple system)
+   style5.css -> Layout overhaul (floating gradient pill header,
+                 split-screen hero, booking-bar search,
+                 horizontal fleet cards, squircle buttons,
+                 gradient table headers, glow effects)
+
+   Linking this single file loads all four automatically.
+   Every class/ID/JS hook is preserved → zero function changes.
+   ============================================================ */
+
+@import url("style2.css");
+@import url("style3.css?v=20260906-wallet3");
+@import url("style4.css");
+@import url("style5.css?v=20260906-settings");
+
+/* Admin screens use the full workspace without a public-site footer. */
+.admin-page .footer {
+  display: none;
+}
+
+.review-form {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 620px;
+  margin: 1.4rem auto 0;
+  text-align: left;
+}
+
+.review-form label {
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.review-form .btn-book-new {
+  justify-self: center;
+  margin-top: 0.2rem;
+}
+
+.review-form-message {
+  min-height: 1.2rem;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.admin-page .dashboard-main {
+  padding: 1.5rem 0 2rem;
+}
+
+.admin-page .dashboard-header {
+  margin-bottom: 1.5rem;
+}
+
+.admin-page .dashboard-title {
+  font-size: clamp(2.7rem, 3vw, 4rem);
+  line-height: 1.1;
+  letter-spacing: -0.06em;
+  margin: 0 0 0.4rem;
+  color: #6f3ec9;
+}
+
+.admin-page .dashboard-subtitle {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #5d5f74;
+}
+
+.admin-page .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 1.6rem;
+}
+
+.admin-page .stat-card {
+  position: relative;
+  background: rgba(255,255,255,0.38);
+  border: 1px solid rgba(123, 92, 177, 0.18);
+  border-radius: 18px;
+  box-shadow: 0 10px 25px rgba(123, 92, 177, 0.06);
+  padding: 1.3rem 1.5rem 1.1rem 1.6rem;
+  min-height: 120px;
+}
+
+.admin-page .stat-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12%;
+  bottom: 12%;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #8b5cf6, #7c3aed);
+}
+
+.admin-page .stat-label {
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #5a5370;
+  margin: 0 0 0.9rem;
+  font-weight: 800;
+}
+
+.admin-page .stat-value {
+  font-size: clamp(2.2rem, 2vw, 3.2rem);
+  font-weight: 900;
+  color: #5a2abb;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.admin-page .bookings-section {
+  background: rgba(255,255,255,0.38);
+  border: 1px solid rgba(123, 92, 177, 0.18);
+  border-radius: 24px;
+  padding: 1.2rem 0 0;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(123, 92, 177, 0.06);
+}
+
+.admin-page .admin-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.4rem 1rem;
+  margin-bottom: 0;
+}
+
+.admin-page .admin-table-title {
+  margin: 0;
+  font-size: clamp(1.8rem, 1.8vw, 2.4rem);
+  color: #272a38;
+  font-weight: 900;
+}
+
+.admin-page .btn-small {
+  border: none;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.85rem 1.4rem;
+  font-weight: 800;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.28);
+}
+
+.admin-page .bookings-table-wrapper {
+  margin: 0;
+}
+
+.admin-page .bookings-table th,
+.admin-page .bookings-table td {
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  line-height: 1.5;
+}
+
+.admin-page .bookings-table th {
+  background: #ead8f8;
+  color: #4d2b7e;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 1rem 1.1rem;
+}
+
+.admin-page .bookings-table tbody tr {
+  height: auto;
+  background: rgba(255,255,255,0.12);
+}
+
+.admin-page .bookings-table tbody tr:hover {
+  background: rgba(160, 120, 255, 0.08);
+}
+
+.admin-page .bookings-table td {
+  background: rgba(255, 255, 255, 0.05);
+  color: #2a2d3c;
+  padding: 1rem 1.1rem;
+  border-bottom: 1px solid rgba(123, 92, 177, 0.12);
+}
+
+.review-stars {
+  color: #f3b531;
+  letter-spacing: 0.08em;
+  font-size: 1.05rem;
+}
+
+.review-score {
+  margin-left: 0.5rem;
+  color: #4d2b7e;
+  font-weight: 800;
+}
+
+/* SR Wallet stays within the viewport on narrow screens. */
+.wallet-page-container .bookings-table {
+  min-width: 0 !important;
+  width: 100%;
+  table-layout: fixed;
+}
+
+@media (max-width: 640px) {
+  .wallet-page-container .quick-amounts {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .wallet-page-container .quick-amounts .btn-small {
+    width: 100%;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  .wallet-page-container .bookings-table th,
+  .wallet-page-container .bookings-table td {
+    padding: 0.8rem 0.55rem;
+    font-size: 0.75rem;
+  }
+}

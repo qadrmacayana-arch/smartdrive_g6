@@ -1,0 +1,66 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>My Bookings</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="sd-toolbar">
+    <ion-segment [value]="filter()" (ionChange)="filter.set($any($event.detail.value))">
+      <ion-segment-button value="all">
+        <ion-label>All</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="active">
+        <ion-label>Active</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="past">
+        <ion-label>Past</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <ion-refresher slot="fixed" (ionRefresh)="load($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (loading()) {
+    @for (i of [1, 2, 3]; track i) {
+      <div class="sd-card booking-card">
+        <ion-skeleton-text [animated]="true" style="width: 60%; height: 20px"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" style="width: 40%"></ion-skeleton-text>
+      </div>
+    }
+  } @else if (errorMessage()) {
+    <div class="sd-empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (filteredBookings.length === 0) {
+    <div class="sd-empty-state">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <p>No bookings here yet.</p>
+    </div>
+  } @else {
+    @for (booking of filteredBookings; track booking.id) {
+      <div class="sd-card booking-card" (click)="viewConfirmation(booking)">
+        <div class="booking-top">
+          <h3>{{ booking.vehicle_name }}</h3>
+          <span class="status-badge" [attr.data-status]="booking.booking_status">{{ booking.booking_status }}</span>
+        </div>
+        <p class="sd-muted ref">{{ booking.reference_number }}</p>
+        <div class="booking-dates">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ booking.pickup_date }} → {{ booking.return_date }}</span>
+        </div>
+        <div class="booking-bottom">
+          <span class="total">₱{{ booking.total_price | number }}</span>
+          @if (booking.booking_status === 'confirmed') {
+            <button class="cancel-btn" (click)="cancel(booking, $event)">Cancel</button>
+          }
+        </div>
+      </div>
+    }
+  }
+</ion-content>

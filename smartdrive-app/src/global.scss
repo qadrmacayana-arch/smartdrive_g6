@@ -1,0 +1,97 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+/* ---------- SmartDrive shared utility classes ---------- */
+ion-content {
+  --background: var(--sd-background);
+}
+
+.sd-gradient-btn {
+  --background: var(--sd-gradient-primary);
+  --background-activated: var(--sd-gradient-primary);
+  --background-hover: var(--sd-gradient-primary);
+  --box-shadow: var(--sd-shadow-md);
+  --border-radius: 999px;
+  font-weight: 700;
+  text-transform: none;
+}
+
+.sd-card {
+  background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+  box-shadow: var(--sd-shadow-md);
+}
+
+.sd-section-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  color: var(--sd-heading);
+}
+
+.sd-muted {
+  color: var(--sd-muted-foreground);
+}
+
+.sd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+}
+
+.sd-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--sd-muted-foreground);
+
+  ion-icon {
+    font-size: 3rem;
+    color: var(--sd-accent);
+    margin-bottom: 0.75rem;
+  }
+}

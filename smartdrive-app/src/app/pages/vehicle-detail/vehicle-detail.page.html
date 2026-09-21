@@ -1,0 +1,75 @@
+<ion-header class="ion-no-border transparent-header">
+  <ion-toolbar class="transparent-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (loading()) {
+    <div class="ion-padding">
+      <p class="sd-muted">Loading vehicle...</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="sd-empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (vehicle(); as v) {
+    <div class="hero-image" [style.background-image]="'url(' + v.image + ')'"></div>
+
+    <div class="detail-body">
+      <ion-chip class="type-chip">
+        <ion-label>{{ v.type }}</ion-label>
+      </ion-chip>
+      <h1>{{ v.name }}</h1>
+
+      <div class="spec-row">
+        <div class="spec">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ v.seats }} Seats</span>
+        </div>
+        <div class="spec">
+          <ion-icon name="speedometer-outline"></ion-icon>
+          <span>{{ v.transmission }}</span>
+        </div>
+        <div class="spec">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>{{ v.fuel }}</span>
+        </div>
+      </div>
+
+      @if (v.description) {
+        <p class="description">{{ v.description }}</p>
+      }
+
+      @if (v.features?.length) {
+        <h3>Features</h3>
+        <div class="features-grid">
+          @for (feature of v.features; track feature) {
+            <div class="feature-pill">
+              <ion-icon name="checkmark-circle"></ion-icon>
+              {{ feature }}
+            </div>
+          }
+        </div>
+      }
+
+      <div class="sr-points-banner">
+        <ion-icon name="star"></ion-icon>
+        Earn {{ v.sr_points }} SR Points when you book this vehicle
+      </div>
+    </div>
+
+    <div class="booking-bar">
+      <div class="price-block">
+        <span class="price">₱{{ v.price | number }}</span>
+        <span class="sd-muted">/ day</span>
+      </div>
+      <ion-button class="sd-gradient-btn" (click)="bookNow()" [disabled]="v.status !== 'available'">
+        {{ v.status === 'available' ? 'Book Now' : (v.status | titlecase) }}
+      </ion-button>
+    </div>
+  }
+</ion-content>

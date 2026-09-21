@@ -1,0 +1,139 @@
+.transparent-toolbar {
+  --background: transparent;
+}
+
+.transparent-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+
+  ion-back-button {
+    --background: rgba(255, 255, 255, 0.85);
+    --border-radius: 50%;
+    --color: var(--sd-foreground);
+  }
+}
+
+.hero-image {
+  height: 280px;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--sd-muted);
+}
+
+.detail-body {
+  padding: 1.25rem 1.25rem 6rem;
+}
+
+.type-chip {
+  --background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font-weight: 700;
+  margin-left: 0;
+}
+
+h1 {
+  margin: 0.5rem 0 1rem;
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  color: var(--sd-heading);
+}
+
+.spec-row {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--sd-border);
+  border-bottom: 1px solid var(--sd-border);
+  margin-bottom: 1.25rem;
+}
+
+.spec {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+  font-size: 0.78rem;
+  color: var(--sd-muted-foreground);
+  font-weight: 600;
+
+  ion-icon {
+    font-size: 1.3rem;
+    color: var(--sd-primary);
+  }
+}
+
+.description {
+  color: var(--sd-muted-foreground);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+h3 {
+  font-family: 'Sora', sans-serif;
+  color: var(--sd-heading);
+  margin-bottom: 0.75rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.feature-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--sd-foreground);
+
+  ion-icon {
+    color: var(--sd-success);
+    flex-shrink: 0;
+  }
+}
+
+.sr-points-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--sd-radius);
+}
+
+.booking-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--sd-card);
+  border-top: 1px solid var(--sd-border);
+  padding: 0.85rem 1.25rem calc(0.85rem + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 5;
+}
+
+.price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.price {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--sd-primary);
+}

@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Select Dates</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  @if (loading()) {
+    <p class="sd-muted">Loading...</p>
+  } @else if (errorMessage()) {
+    <div class="sd-empty-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMessage() }}</p>
+    </div>
+  } @else if (vehicle(); as v) {
+    <div class="sd-card vehicle-summary">
+      <div class="thumb" [style.background-image]="'url(' + v.image + ')'"></div>
+      <div>
+        <h3>{{ v.name }}</h3>
+        <p class="sd-muted">₱{{ v.price | number }} / day</p>
+      </div>
+    </div>
+
+    <div class="field-block">
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        <ion-label>Pick-up Date</ion-label>
+        <ion-datetime-button datetime="pickup-picker" slot="end"></ion-datetime-button>
+      </ion-item>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="pickup-picker"
+            presentation="date"
+            [min]="minDate"
+            [value]="pickupDate()"
+            (ionChange)="pickupDate.set($any($event.detail.value))"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="calendar-outline"></ion-icon>
+        <ion-label>Return Date</ion-label>
+        <ion-datetime-button datetime="return-picker" slot="end"></ion-datetime-button>
+      </ion-item>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="return-picker"
+            presentation="date"
+            [min]="pickupDate()"
+            [value]="returnDate()"
+            (ionChange)="onReturnChange($any($event.detail.value))"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="location-outline"></ion-icon>
+        <ion-input
+          label="Pick-up Location"
+          labelPlacement="floating"
+          [ngModel]="pickupLocation()"
+          (ngModelChange)="pickupLocation.set($event)"
+        ></ion-input>
+      </ion-item>
+    </div>
+
+    <div class="sd-card summary-card">
+      <div class="summary-row">
+        <span class="sd-muted">Duration</span>
+        <strong>{{ rentalDays() }} Day{{ rentalDays() !== 1 ? 's' : '' }}</strong>
+      </div>
+      <div class="summary-row">
+        <span class="sd-muted">Daily Rate</span>
+        <strong>₱{{ v.price | number }}</strong>
+      </div>
+      <div class="summary-row total">
+        <span>Estimated Total</span>
+        <strong>₱{{ totalPrice() | number }}</strong>
+      </div>
+    </div>
+
+    <ion-button expand="block" class="sd-gradient-btn continue-btn" (click)="continue()">Continue</ion-button>
+  }
+</ion-content>

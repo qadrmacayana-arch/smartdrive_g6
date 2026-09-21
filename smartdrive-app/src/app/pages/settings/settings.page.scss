@@ -1,0 +1,48 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.section-title {
+  font-family: 'Sora', sans-serif;
+  color: var(--sd-heading);
+  margin: 1.5rem 0 0.85rem;
+  font-size: 1rem;
+}
+
+.auth-item {
+  --background: var(--sd-card);
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+  margin-bottom: 0.75rem;
+}
+
+.auth-alert {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+
+  &.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--sd-destructive);
+  }
+
+  &.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--sd-success);
+  }
+}
+
+.delete-account-btn {
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--sd-destructive);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+}
