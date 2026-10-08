@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { WalletBalance, WalletTransaction } from '../models/wallet.model';
+import { DemoTrackingService } from './demo-tracking.service';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly demoTracking: DemoTrackingService,
+  ) {}
 
   async getOrCreateBalance(userId: string, email: string): Promise<WalletBalance> {
     const { data, error } = await this.supabase.client
@@ -76,6 +80,7 @@ export class WalletService {
       .select()
       .single();
     if (updateError) throw new Error(updateError.message);
+    this.demoTracking.recordTransaction(userId, description);
     return updated as WalletBalance;
   }
 

@@ -42,9 +42,47 @@ npm install
 ionic serve          # or: ng serve
 ```
 
+### Deploying to Vercel
+
+The repository-root `vercel.json` installs and builds the app from `smartdrive-app`, publishes its Angular output, and sends browser routes to the app shell so refreshing a nested route works.
+
+To deploy, import this GitHub repository into Vercel and keep the project root set to the repository root (do not set it to `smartdrive-app`). The build, install, and output settings are supplied by `vercel.json`. After the first deployment, add the Vercel domain to the Supabase Auth URL configuration if email confirmation, password recovery, or OAuth redirects need to return to the deployed app.
+
+### Mobile experience
+
+- Pull down on Home or the vehicle fleet to refresh the latest available vehicles.
+- Android haptic feedback is used for navigation, filters, refresh, and booking actions.
+- Android uses the SmartDrive launcher icon and branded launch screen. Rebuild the Android project after changing native assets.
+- Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
+- Full-screen Android pages reserve space below the status bar and above the home/gesture bar and app navigation, including vehicle-detail booking controls. Insets use Ionic's content padding variables so they are applied inside the actual scroll area.
+
 ### Profile photos
 
 Before users can save a profile photo, run [`supabase/avatar-storage.sql`](./supabase/avatar-storage.sql) in the Supabase SQL Editor for this project. It creates the public `avatars` bucket and limits authenticated uploads and updates to each user's own folder. Profile images are publicly readable so they can appear in the navigation menu.
+
+### Signup database trigger
+
+If signup shows “Database error saving new user”, run [`supabase/fix-google-auth-profile-trigger.sql`](./supabase/fix-google-auth-profile-trigger.sql) in the Supabase SQL Editor. It synchronizes the Auth-to-profile trigger, permits optional profile fields to remain empty until registration is completed, derives a first name from Google metadata when available, and prevents stale profile conflicts from rolling back new Auth accounts.
+
+### Booking row security
+
+Before customers can submit bookings, run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor. It enables row-level security and allows authenticated customers to read, create, and update only rows whose `user_id` matches their Supabase Auth user ID. Local-only accounts cannot submit cloud bookings.
+
+### Claimable rewards
+
+Run the complete [`supabase/claimable-rewards.sql`](./supabase/claimable-rewards.sql) script in the Supabase SQL Editor for the same Supabase project configured by the app. It creates `public.claimed_reward_codes`, the reward-claim function, and the required row-level security policies, then asks PostgREST to reload its schema cache. If the Offers page reports that `claimed_reward_codes` is missing from the schema cache, run the script, wait for it to finish successfully, and reload the app. The Offers page awards codes for submitting a review, spending ₱5,000 on paid rentals, or completing three paid weekend rentals. Claimed codes are private to the signed-in account and can be applied during checkout. Referral and social-share rewards are not claimable until those activities can be verified by the app.
+
+### Demo transaction tracking
+
+Successful bookings and SmartDrive wallet transactions update a locally stored, synthetic Metro Manila tracking point for the signed-in cloud account. Admin Tracking also includes three fixed sample users in northern provinces: Clark Freeport Zone in Pampanga, Dagupan City in Pangasinan, and San Fernando City in La Union. Google Maps is embedded and centered on the selected user; distinct colors appear beside each user, and straight-line distance is calculated from the selected user. This demo does not request or read device GPS. Transaction demo entries are labeled and remain in that browser's local storage, so they are not shared across browsers or devices.
+
+### Payment demo mode
+
+Until a payment provider is configured, card, GCash, and Maya use demo-only test inputs. Use card number `4242 4242 4242 4242`, any future expiry, CVV `123`, or wallet test number `09170000000`. These methods create a reservation with payment status `pending`; no payment is processed, and test inputs are not sent to Supabase or saved. SR Points continue to use the SmartDrive wallet.
+
+### Prediction prototype
+
+The home page can recommend currently available vehicles using only the signed-in customer's own booking history. The booking calendar can show a conflict check and a historical weekday-demand signal for the selected vehicle and dates. For that date estimate, run [`supabase/vehicle-booking-signal.sql`](./supabase/vehicle-booking-signal.sql) in the Supabase SQL Editor; it returns only an overlap flag and a coarse aggregate, not other customers' booking details. The admin overview also shows a 30-day pickup-demand estimate and a relative vehicle-interest index from recorded bookings. These are transparent, in-app heuristics—not a trained AI model, individual booking probabilities, or guarantees. Estimates are withheld when historical data is too sparse. No external AI provider or customer-data sharing is used.
 
 ## Building for a device
 

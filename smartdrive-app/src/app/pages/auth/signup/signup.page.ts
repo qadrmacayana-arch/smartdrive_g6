@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   IonContent,
   IonItem,
@@ -19,7 +19,7 @@ import {
   IonTitle,
   IonButtons,
 } from '@ionic/angular';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService, type SignupPayload } from '../../../core/services/auth.service';
 import {
   PhilippineBarangay,
   PhilippineCityMunicipality,
@@ -32,6 +32,30 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   const password = control.get('password')?.value;
   const confirmPassword = control.get('confirmPassword')?.value;
   return password && confirmPassword && password !== confirmPassword ? { mismatch: true } : null;
+}
+
+function birthdayFormatValidator(control: AbstractControl): ValidationErrors | null {
+  const value = String(control.value ?? '');
+  if (!value) return null;
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) return { birthdayFormat: true };
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  const year = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date.getFullYear() === year
+    && date.getMonth() === month - 1
+    && date.getDate() === day
+    && date <= today
+    ? null
+    : { birthdayFormat: true };
+}
+
+function toIsoDate(value: string): string {
+  const [month, day, year] = value.split('/');
+  return `${year}-${month}-${day}`;
 }
 
 @Component({
@@ -60,7 +84,7 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   templateUrl: './signup.page.html',
   styleUrl: './signup.page.scss',
 })
-export class SignupPage implements OnInit {
+export class SignupPage implements OnInit, OnDestroy {
   readonly ncrRegionCode = '130000000';
   readonly regions = signal<PhilippineRegion[]>([]);
   readonly provinces = signal<PhilippineProvince[]>([]);
@@ -72,13 +96,18 @@ export class SignupPage implements OnInit {
   readonly barangaysLoading = signal(false);
   readonly locationError = signal<string | null>(null);
   readonly legalOpen = signal<'terms' | 'privacy' | null>(null);
+  readonly googleRegistration = signal(false);
+  readonly googleEmail = signal('');
+  readonly profilePhotoPreview = signal<string | null>(null);
+  private selectedProfilePhoto: File | null = null;
+  private profilePhotoObjectUrl: string | null = null;
   readonly form = this.fb.group(
     {
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       middleName: [''],
       surname: ['', [Validators.required, Validators.minLength(2)]],
       suffix: [''],
-      birthday: ['', [Validators.required]],
+      birthday: ['', [Validators.required, birthdayFormatValidator]],
       address: ['', [Validators.required, Validators.minLength(3)]],
       region: ['', [Validators.required]],
       province: ['', [Validators.required]],
@@ -87,7 +116,7 @@ export class SignupPage implements OnInit {
       gender: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^(?:\+63|0)\d{10}$/)]],
-      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(16), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(16), Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,16}$/)]],
       confirmPassword: ['', [Validators.required, Validators.maxLength(16)]],
       agreeToTerms: [false, [Validators.requiredTrue]],
     },
@@ -104,12 +133,68 @@ export class SignupPage implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly auth: AuthService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly locationService: PhilippineLocationService,
-  ) {}
+  ) {
+    effect(() => {
+      if (!this.googleRegistration() || !this.auth.initialized()) return;
+      const user = this.auth.currentUser();
+      if (!user?.email) {
+        this.googleRegistration.set(false);
+        this.errorMessage.set('Google sign-in did not complete. Please try again.');
+        return;
+      }
+      this.googleEmail.set(user.email);
+      this.form.controls.email.setValue(user.email);
+      this.form.controls.email.disable();
+      this.form.patchValue({
+        firstName: user.firstName ?? '',
+        middleName: user.middleName ?? '',
+        surname: user.surname ?? '',
+      });
+      this.profilePhotoPreview.set(user.avatarUrl ?? null);
+    });
+  }
 
   ngOnInit(): void {
+    this.googleRegistration.set(this.route.snapshot.queryParamMap.get('googleRegistration') === '1');
+    if (this.googleRegistration()) {
+      this.form.controls.password.clearValidators();
+      this.form.controls.confirmPassword.clearValidators();
+      this.form.controls.password.updateValueAndValidity();
+      this.form.controls.confirmPassword.updateValueAndValidity();
+    }
+    if (this.route.snapshot.queryParamMap.get('googleError') === '1') {
+      this.errorMessage.set(
+        sessionStorage.getItem('smartdrive_google_oauth_error')
+          || 'Google sign-in failed before an app session was created. Check the Supabase Google provider and database logs.',
+      );
+      sessionStorage.removeItem('smartdrive_google_oauth_error');
+    }
     void this.loadLocations();
+  }
+
+  ngOnDestroy(): void {
+    if (this.profilePhotoObjectUrl) URL.revokeObjectURL(this.profilePhotoObjectUrl);
+  }
+
+  onProfilePhotoSelected(event: Event): void {
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement)) return;
+    const file = input.files?.[0] ?? null;
+    if (!file) return;
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      this.errorMessage.set('Choose a JPG, PNG, or WebP profile photo smaller than 5 MB.');
+      this.selectedProfilePhoto = null;
+      input.value = '';
+      return;
+    }
+    this.errorMessage.set(null);
+    if (this.profilePhotoObjectUrl) URL.revokeObjectURL(this.profilePhotoObjectUrl);
+    this.selectedProfilePhoto = file;
+    this.profilePhotoObjectUrl = URL.createObjectURL(file);
+    this.profilePhotoPreview.set(this.profilePhotoObjectUrl);
   }
 
   async loadLocations(): Promise<void> {
@@ -211,8 +296,8 @@ export class SignupPage implements OnInit {
     const password = this.form.controls.password.value ?? '';
     if (password.length < 8) return 'Use at least 8 characters.';
     if (password.length > 16) return 'Use no more than 16 characters.';
-    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
-      return 'Add uppercase, lowercase, and a number.';
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9\s]/.test(password)) {
+      return 'Use uppercase, lowercase, a number, and a symbol.';
     }
     return 'Strong password.';
   }
@@ -221,7 +306,7 @@ export class SignupPage implements OnInit {
     this.errorMessage.set(null);
     this.oauthSubmitting.set(true);
     try {
-      await this.auth.signInWithGoogle();
+      await this.auth.signInWithGoogle('registration');
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Google sign-up failed.');
       this.oauthSubmitting.set(false);
@@ -237,7 +322,7 @@ export class SignupPage implements OnInit {
         const invalidFields: string[] = [];
         if (this.form.controls.firstName.invalid) invalidFields.push('First name');
         if (this.form.controls.surname.invalid) invalidFields.push('Surname');
-        if (this.form.controls.birthday.invalid) invalidFields.push('Birthday');
+        if (this.form.controls.birthday.invalid) invalidFields.push('Birthday (MM/DD/YYYY)');
         if (this.form.controls.address.invalid) invalidFields.push('Street / house number');
         if (this.form.controls.region.invalid) invalidFields.push('Region');
         if (this.form.controls.province.invalid) invalidFields.push('Province');
@@ -246,10 +331,12 @@ export class SignupPage implements OnInit {
         if (this.form.controls.gender.invalid) invalidFields.push('Gender');
         if (this.form.controls.email.invalid) invalidFields.push('Valid email address');
         if (this.form.controls.phone.invalid) invalidFields.push('Phone number');
-        if (this.form.controls.password.invalid) {
-          invalidFields.push('Password (8–16 characters, uppercase, lowercase, and a number)');
+        if (!this.googleRegistration() && this.form.controls.password.invalid) {
+          invalidFields.push('Password (8–16 characters, uppercase, lowercase, a number, and a symbol)');
         }
-        if (this.form.controls.confirmPassword.invalid) invalidFields.push('Confirm password');
+        if (!this.googleRegistration() && this.form.controls.confirmPassword.invalid) {
+          invalidFields.push('Confirm password');
+        }
         if (this.form.controls.agreeToTerms.invalid) invalidFields.push('Agree to the Terms and Privacy Policy');
         this.showSignupError(`Please check: ${invalidFields.join('; ')}.`);
       }
@@ -272,7 +359,7 @@ export class SignupPage implements OnInit {
     this.submitting.set(true);
 
     try {
-      const { hasSession } = await this.auth.signup({
+      const payload: SignupPayload = {
         fullName: [value.firstName, value.middleName, value.surname, value.suffix]
           .filter(Boolean)
           .join(' ')
@@ -281,23 +368,38 @@ export class SignupPage implements OnInit {
         middleName: value.middleName?.trim() ?? '',
         surname: value.surname!.trim(),
         suffix: value.suffix ?? '',
-        email: value.email!.trim(),
-        password: value.password!,
-        birthday: value.birthday!,
-        address: [value.address, selectedBarangay.name, selectedCity.name, selectedProvince?.name, selectedRegion.name]
-          .filter(Boolean)
-          .join(', ')
-          .trim(),
+        email: (this.googleRegistration() ? this.googleEmail() : value.email)!.trim(),
+        password: value.password ?? '',
+        birthday: toIsoDate(value.birthday!),
+        address: value.address!.trim(),
+        regionCode: selectedRegion.code,
         region: selectedRegion.name,
+        provinceCode: selectedProvince?.code ?? '',
         province: selectedProvince?.name ?? '',
+        cityCode: selectedCity.code,
         city: selectedCity.name,
+        barangayCode: selectedBarangay.code,
         barangay: selectedBarangay.name,
         gender: value.gender!,
         phone: value.phone!.trim(),
-      });
+      };
+      const hasSession = this.googleRegistration()
+        ? (await this.auth.completeGoogleSignup(payload), true)
+        : (await this.auth.signup(payload)).hasSession;
+      if (this.googleRegistration() && this.selectedProfilePhoto) {
+        try {
+          await this.auth.updateAvatar(this.selectedProfilePhoto);
+        } catch (error) {
+          this.errorMessage.set(error instanceof Error
+            ? `Registration is complete, but the profile photo could not be saved: ${error.message}`
+            : 'Registration is complete, but the profile photo could not be saved.');
+        }
+      }
 
       if (hasSession) {
-        this.successMessage.set('Account created successfully! Redirecting...');
+        this.successMessage.set(this.googleRegistration()
+          ? 'Google account registration completed! Redirecting...'
+          : 'Account created successfully! Redirecting...');
         setTimeout(() => this.router.navigateByUrl('/tabs/home'), 1200);
       } else {
         this.successMessage.set('Account created! Check your email to confirm, then log in.');

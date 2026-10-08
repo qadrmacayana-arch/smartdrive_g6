@@ -49,7 +49,8 @@ export class BookingConfirmationPage implements OnInit {
     const booking = this.booking();
     if (!booking) return;
 
-    const text = `SmartDrive™ Booking Confirmed\nReference: ${booking.reference_number}\nVehicle: ${booking.vehicle_name}\nPick-up: ${booking.pickup_date}\nReturn: ${booking.return_date}\nTotal: ₱${booking.total_price.toLocaleString()}`;
+    const paymentComplete = booking.payment_status === 'completed';
+    const text = `SmartDrive™ ${paymentComplete ? 'Booking Confirmed' : 'Reservation Saved'}\nReference: ${booking.reference_number}\nVehicle: ${booking.vehicle_name}\nPick-up: ${booking.pickup_date}\nReturn: ${booking.return_date}\nPayment status: ${booking.payment_status}\n${paymentComplete ? 'Total paid' : 'Total due'}: ₱${booking.total_price.toLocaleString()}`;
 
     if (navigator.share) {
       try {

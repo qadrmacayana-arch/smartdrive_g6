@@ -3,8 +3,13 @@
     <section class="dashboard-page-main">
       <header class="dashboard-page-heading">
         <p class="eyebrow">SMARTDRIVE ACCOUNT</p>
-        <h1>Account Settings</h1>
-        <p>Manage your personal information and security.</p>
+        <div class="settings-page-title">
+          <div>
+            <h1>Account Settings</h1>
+            <p>Manage your personal information and security.</p>
+          </div>
+          <span class="settings-page-mark" aria-hidden="true"><ion-icon name="settings-outline"></ion-icon></span>
+        </div>
       </header>
 
       @if (message()) {
@@ -58,49 +63,105 @@
           </div>
         </div>
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-          <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="person-outline"></ion-icon>
-            <ion-input label="Full name" labelPlacement="floating" formControlName="fullName"></ion-input>
-          </ion-item>
+          <div class="settings-form-section">
+            <div class="settings-form-heading"><span>01</span><div><h3>Personal details</h3><p>Use your legal name as it appears on your identification.</p></div></div>
+            <div class="settings-field-grid">
+              <ion-item class="auth-item" lines="none">
+                <ion-input label="First name" labelPlacement="floating" formControlName="firstName" autocomplete="given-name"></ion-input>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-input label="Middle name" labelPlacement="floating" formControlName="middleName" autocomplete="additional-name"></ion-input>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-input label="Surname" labelPlacement="floating" formControlName="surname" autocomplete="family-name"></ion-input>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-select label="Suffix (optional)" labelPlacement="floating" formControlName="suffix" interface="popover">
+                  <ion-select-option value="">No suffix</ion-select-option>
+                  <ion-select-option value="Jr.">Jr.</ion-select-option>
+                  <ion-select-option value="Sr.">Sr.</ion-select-option>
+                  <ion-select-option value="II">II</ion-select-option>
+                  <ion-select-option value="III">III</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
+          </div>
 
-          <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="calendar-outline"></ion-icon>
-            <ion-label>Birthday</ion-label>
-            <ion-datetime-button datetime="settings-birthday" slot="end"></ion-datetime-button>
-          </ion-item>
-          <ion-modal [keepContentsMounted]="true">
-            <ng-template>
-              <ion-datetime id="settings-birthday" presentation="date" formControlName="birthday" max="2020-01-01"></ion-datetime>
-            </ng-template>
-          </ion-modal>
-
-          <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="location-outline"></ion-icon>
-            <ion-input label="Address" labelPlacement="floating" formControlName="address"></ion-input>
-          </ion-item>
-
-          <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-            <ion-select label="Gender" labelPlacement="floating" formControlName="gender" interface="popover">
-              <ion-select-option value="male">Male</ion-select-option>
-              <ion-select-option value="female">Female</ion-select-option>
-              <ion-select-option value="other">Other</ion-select-option>
-              <ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option>
-            </ion-select>
-          </ion-item>
-
-          <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="call-outline"></ion-icon>
-            <ion-input type="tel" label="Phone number" labelPlacement="floating" formControlName="phone"></ion-input>
-          </ion-item>
-
-          <ion-button expand="block" type="submit" class="sd-gradient-btn save-profile-btn" [disabled]="savingProfile()">
-            @if (savingProfile()) {
-              <ion-spinner name="dots"></ion-spinner>
-            } @else {
-              Save Profile
+          <div class="settings-form-section">
+            <div class="settings-form-heading"><span>02</span><div><h3>Contact &amp; address</h3><p>Choose your Philippine location to keep your profile details accurate.</p></div></div>
+            @if (locationsLoading()) {
+              <p class="location-status"><ion-spinner name="dots"></ion-spinner>Loading Philippine regions and locations…</p>
             }
-          </ion-button>
+            @if (locationError()) {
+              <div class="location-error" role="alert"><span>{{ locationError() }}</span><button type="button" (click)="loadLocations()">Try again</button></div>
+            }
+            <div class="settings-field-grid">
+              <ion-item class="auth-item" lines="none">
+                <ion-input label="Street / house number" labelPlacement="floating" formControlName="address" autocomplete="street-address"></ion-input>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-input type="tel" label="Phone number" labelPlacement="floating" formControlName="phone" autocomplete="tel"></ion-input>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-icon slot="start" name="calendar-outline"></ion-icon>
+                <ion-label>Birthday</ion-label>
+                <ion-datetime-button datetime="settings-birthday" slot="end"></ion-datetime-button>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-select label="Gender" labelPlacement="floating" formControlName="gender" interface="popover">
+                  <ion-select-option value="male">Male</ion-select-option>
+                  <ion-select-option value="female">Female</ion-select-option>
+                  <ion-select-option value="other">Other</ion-select-option>
+                  <ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </div>
+            <div class="settings-field-grid location-field-grid">
+              <ion-item class="auth-item" lines="none">
+                <ion-select label="Region" labelPlacement="floating" formControlName="region" interface="popover" [disabled]="locationsLoading() || !regions().length" (ionChange)="updateRegion()">
+                  @for (region of regions(); track region.code) {
+                    <ion-select-option [value]="region.code">{{ region.islandGroup }} — {{ region.name }} ({{ region.regionName }})</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              @if (profileForm.controls.region.value !== ncrRegionCode) {
+                <ion-item class="auth-item" lines="none">
+                  <ion-select label="Province" labelPlacement="floating" formControlName="province" interface="popover" [disabled]="provincesLoading() || !provinces().length" (ionChange)="updateProvince()">
+                    @for (province of provinces(); track province.code) {
+                      <ion-select-option [value]="province.code">{{ province.name }}</ion-select-option>
+                    }
+                  </ion-select>
+                </ion-item>
+              }
+              <ion-item class="auth-item" lines="none">
+                <ion-select label="City / municipality" labelPlacement="floating" formControlName="city" interface="popover" [disabled]="citiesLoading() || !cities().length" (ionChange)="updateCity()">
+                  @for (city of cities(); track city.code) {
+                    <ion-select-option [value]="city.code">{{ city.name }} ({{ city.isCity ? 'City' : 'Municipality' }})</ion-select-option>
+                  }
+                </ion-select>
+              </ion-item>
+              <ion-item class="auth-item" lines="none">
+                <ion-select label="Barangay" labelPlacement="floating" formControlName="barangay" interface="popover" [disabled]="barangaysLoading() || !barangays().length">
+                  @for (barangay of barangays(); track barangay.code) {
+                    <ion-select-option [value]="barangay.code">{{ barangay.name }}</ion-select-option>
+                  }
+                </ion-select>
+                @if (barangaysLoading()) { <ion-spinner slot="end" name="dots"></ion-spinner> }
+              </ion-item>
+            </div>
+            <ion-modal [keepContentsMounted]="true">
+              <ng-template>
+                <ion-datetime id="settings-birthday" presentation="date" formControlName="birthday" max="2020-01-01"></ion-datetime>
+              </ng-template>
+            </ion-modal>
+          </div>
+
+          <div class="settings-save-row">
+            <p><ion-icon name="shield-checkmark-outline"></ion-icon>Your information is saved securely to your profile.</p>
+            <ion-button type="submit" class="sd-gradient-btn save-profile-btn" [disabled]="savingProfile() || locationsLoading()">
+              @if (savingProfile()) { <ion-spinner name="dots"></ion-spinner> } @else { Save profile changes }
+            </ion-button>
+          </div>
         </form>
       </section>
 
@@ -128,6 +189,8 @@
           </ion-button>
         </form>
       </section>
+
+      <p class="settings-privacy-note"><ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>Your profile information is used to support your bookings and keep your account up to date.</p>
 
       <div class="danger-zone">
         <div><h2>Delete account</h2><p>This permanently removes your account and cannot be undone.</p></div>

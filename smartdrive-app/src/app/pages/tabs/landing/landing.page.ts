@@ -2,10 +2,12 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { IonContent } from '@ionic/angular';
+import { IonContent, IonIcon, IonRefresher, IonRefresherContent } from '@ionic/angular';
 import { VehicleService } from '../../../core/services/vehicle.service';
 import { Vehicle } from '../../../core/models/vehicle.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { MobileFeedbackService } from '../../../core/services/mobile-feedback.service';
+import { PickupPreferencesService } from '../../../core/services/pickup-preferences.service';
 
 interface CategoryDef {
   key: string;
@@ -28,7 +30,7 @@ const CATEGORIES: CategoryDef[] = [
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, IonContent],
+  imports: [CommonModule, FormsModule, RouterLink, IonContent, IonIcon, IonRefresher, IonRefresherContent],
   templateUrl: './landing.page.html',
   styleUrl: './landing.page.scss',
 })
@@ -72,31 +74,39 @@ export class LandingPage implements OnInit {
     private readonly router: Router,
     private readonly auth: AuthService,
     private readonly route: ActivatedRoute,
+    private readonly mobileFeedback: MobileFeedbackService,
+    private readonly pickupPreferences: PickupPreferencesService,
   ) {}
 
   ngOnInit(): void {
     const params = this.route.snapshot.queryParamMap;
-    this.pickupLocation.set(params.get('location') ?? '');
-    this.pickupDate.set(params.get('date') ?? '');
+    const savedPickup = this.pickupPreferences.get();
+    this.pickupLocation.set(params.get('location') ?? savedPickup.location);
+    this.pickupDate.set(params.get('date') ?? savedPickup.date);
+    this.savePickupPreferences();
     this.favorites.set(this.vehicleService.getFavorites());
     this.loadVehicles();
   }
 
-  async loadVehicles(): Promise<void> {
-    this.loading.set(true);
+  async loadVehicles(event?: CustomEvent): Promise<void> {
+    this.loading.set(this.vehicles().length === 0);
     this.errorMessage.set(null);
+    if (event) this.mobileFeedback.lightImpact();
     try {
       this.vehicles.set(await this.vehicleService.getAvailable());
+      if (event) this.mobileFeedback.success();
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load the fleet right now.');
     } finally {
       this.loading.set(false);
+      (event?.target as HTMLIonRefresherElement | undefined)?.complete();
     }
   }
 
   selectMainCategory(key: string): void {
     this.mainCategory.set(key);
     this.subFilter.set('All');
+    this.mobileFeedback.selection();
   }
 
   selectSubFilter(type: string): void {
@@ -108,8 +118,26 @@ export class LandingPage implements OnInit {
     this.selectMainCategory('All');
   }
 
+  private savePickupPreferences(): void {
+    this.pickupPreferences.save(this.pickupLocation(), this.pickupDate());
+  }
+
   openVehicle(vehicle: Vehicle): void {
+    this.mobileFeedback.lightImpact();
     this.router.navigate(['/vehicle', vehicle.id], {
+      queryParams: {
+        location: this.pickupLocation() || null,
+        date: this.pickupDate() || null,
+      },
+    });
+  }
+
+  bookVehicle(vehicle: Vehicle, event: Event): void {
+    event.stopPropagation();
+    if (vehicle.status !== 'available') return;
+    this.mobileFeedback.mediumImpact();
+
+    this.router.navigate(['/booking', vehicle.id, 'dates'], {
       queryParams: {
         location: this.pickupLocation() || null,
         date: this.pickupDate() || null,
@@ -119,6 +147,7 @@ export class LandingPage implements OnInit {
 
   toggleFavorite(vehicle: Vehicle, event: Event): void {
     event.stopPropagation();
+    this.mobileFeedback.selection();
     const isFavorite = this.vehicleService.toggleFavorite(vehicle.id);
     this.favorites.update((items) => isFavorite ? [...items, String(vehicle.id)] : items.filter((id) => id !== String(vehicle.id)));
   }
@@ -126,4 +155,5 @@ export class LandingPage implements OnInit {
   isFavorite(vehicle: Vehicle): boolean {
     return this.favorites().includes(String(vehicle.id));
   }
+
 }

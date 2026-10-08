@@ -1,41 +1,91 @@
 <ion-content [fullscreen]="true" class="auth-page">
   <main class="auth-shell login-shell">
-    <section class="showcase-panel">
-      <div class="brand-pill">✦ SMARTDRIVE</div>
-      <div class="showcase-icon"><ion-icon name="car-outline"></ion-icon></div>
-      <p class="eyebrow">PREMIUM MOBILITY, SIMPLIFIED</p>
-      <h2>Drive More.<br />Worry Less.</h2>
-      <p class="showcase-copy">Access a curated fleet of premium cars and motorcycles — from electric city cruisers to luxury SUVs — all in one place.</p>
-      <div class="feature-list">
-        <div><ion-icon name="checkmark-circle-outline"></ion-icon><span>Verified premium fleet</span></div>
-        <div><ion-icon name="time-outline"></ion-icon><span>24/7 support &amp; roadside assistance</span></div>
-        <div><ion-icon name="card-outline"></ion-icon><span>Smart wallet &amp; rewards points</span></div>
-        <div><ion-icon name="shield-checkmark-outline"></ion-icon><span>Secure &amp; flexible booking</span></div>
+    <section class="showcase-panel" aria-label="About SmartDrive">
+      <a class="brand-pill" routerLink="/tabs/home">
+        <span class="brand-mark"><ion-icon name="car-outline"></ion-icon></span>
+        <span>SmartDrive<sup>TM</sup></span>
+      </a>
+      <div class="showcase-content">
+        <p class="eyebrow"><span></span> MOTORCYCLE &amp; CAR RENTALS IN THE PHILIPPINES</p>
+        <h2>Ride more.<br />Drive further.</h2>
+        <p class="showcase-copy">Your next journey starts with the right ride. Find a motorcycle for the everyday commute or a car for the road ahead.</p>
+        <div class="feature-list">
+          <div><ion-icon name="checkmark-circle-outline"></ion-icon><span>Find a ride that fits your trip</span></div>
+          <div><ion-icon name="time-outline"></ion-icon><span>Easy booking, from start to finish</span></div>
+          <div><ion-icon name="shield-checkmark-outline"></ion-icon><span>Your bookings in one place</span></div>
+        </div>
       </div>
+      <div class="showcase-footer"><span>SMARTDRIVE</span><span>MADE FOR THE JOURNEY</span></div>
     </section>
 
     <section class="form-panel">
       <div class="form-content">
-        <div class="form-heading">
-          <div class="form-logo"><ion-icon name="car-outline"></ion-icon></div>
-          <div><h1>SmartDrive<span>™</span></h1><p>PREMIUM MEMBER ACCESS</p></div>
-        </div>
+        <header class="form-heading">
+          <p class="eyebrow">WELCOME BACK</p>
+          <h1>Sign in to SmartDrive</h1>
+          <p>Pick up where your next journey begins.</p>
+        </header>
         <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
-          @if (errorMessage()) { <div class="auth-alert">{{ errorMessage() }}</div> }
-          <label>Email Address</label>
-          <ion-item class="field" lines="none"><ion-icon slot="start" name="mail-outline"></ion-icon><ion-input type="email" placeholder="name@example.com" formControlName="email" autocomplete="email" inputmode="email"></ion-input></ion-item>
-          @if (form.controls.email.touched && form.controls.email.invalid) { <small class="field-error">Enter a valid email address.</small> }
-          <div class="password-label"><label>Password</label><a routerLink="/forgot-password">Forgot?</a></div>
-          <ion-item class="field" lines="none"><ion-icon slot="start" name="lock-closed-outline"></ion-icon><ion-input [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="password" autocomplete="current-password"></ion-input><ion-icon slot="end" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword()" class="toggle-icon"></ion-icon></ion-item>
-          @if (form.controls.password.touched && form.controls.password.hasError('required')) { <small class="field-error">Enter your password.</small> }
-          @if (form.controls.password.touched && form.controls.password.hasError('minlength')) { <small class="field-error">Password must be at least 6 characters.</small> }
-          <ion-item lines="none" class="remember-item"><ion-checkbox formControlName="rememberMe" slot="start"></ion-checkbox><ion-text>Remember Me</ion-text></ion-item>
-          <ion-button expand="block" type="submit" class="primary-button" [disabled]="submitting() || oauthSubmitting()">@if (submitting()) { <ion-spinner name="dots"></ion-spinner> } @else { Sign in to Dashboard <span>→</span> }</ion-button>
-          <div class="divider"><span>CONNECT WITH</span></div>
-          <ion-button expand="block" fill="outline" type="button" class="google-button" (click)="continueWithGoogle()" [disabled]="submitting() || oauthSubmitting()"><ion-icon slot="start" name="logo-google"></ion-icon>Continue with Google</ion-button>
+          @if (errorMessage()) {
+            <div class="auth-alert" role="alert">
+              <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <label for="login-email">Email address</label>
+          <ion-item class="field" lines="none">
+            <ion-icon slot="start" name="mail-outline" aria-hidden="true"></ion-icon>
+            <ion-input id="login-email" type="email" placeholder="name@example.com" formControlName="email" autocomplete="email" inputmode="email"></ion-input>
+          </ion-item>
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <small class="field-error">Enter a valid email address.</small>
+          }
+
+          <div class="password-label">
+            <label for="login-password">Password</label>
+            <a routerLink="/forgot-password">Forgot password?</a>
+          </div>
+          <ion-item class="field" lines="none">
+            <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
+            <ion-input id="login-password" [type]="showPassword() ? 'text' : 'password'" placeholder="Enter your password" formControlName="password" autocomplete="current-password"></ion-input>
+            <ion-button type="button" fill="clear" class="password-toggle" [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'" (click)="togglePassword()">
+              <ion-icon slot="icon-only" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            </ion-button>
+          </ion-item>
+          @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+            <small class="field-error">Enter your password.</small>
+          }
+          @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+            <small class="field-error">Password must be at least 6 characters.</small>
+          }
+
+          <ion-item lines="none" class="remember-item">
+            <ion-checkbox formControlName="rememberMe" slot="start"></ion-checkbox>
+            <ion-text>Remember my email</ion-text>
+          </ion-item>
+
+          <ion-button expand="block" type="submit" class="primary-button" [disabled]="submitting() || oauthSubmitting()">
+            @if (submitting()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              Sign in
+              <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+            }
+          </ion-button>
+
+          <div class="divider"><span>OR CONTINUE WITH</span></div>
+          <ion-button expand="block" fill="outline" type="button" class="google-button" (click)="continueWithGoogle()" [disabled]="submitting() || oauthSubmitting()">
+            @if (oauthSubmitting()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" name="logo-google"></ion-icon>
+              Continue with Google
+            }
+          </ion-button>
         </form>
       </div>
-      <div class="form-footer">New to SmartDrive? <a routerLink="/signup">Create Account</a></div>
+      <footer class="form-footer"><span>New to SmartDrive?</span><a routerLink="/signup">Create an account <ion-icon name="arrow-forward-outline"></ion-icon></a></footer>
     </section>
   </main>
 </ion-content>

@@ -23,6 +23,9 @@ export const authGuard: CanActivateFn = async () => {
   await waitForInit(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.needsGoogleProfileCompletion()) {
+    return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
+  }
   if (auth.currentUser()) return true;
   return router.createUrlTree(['/login'], { queryParams: { returnUrl: router.url } });
 };
@@ -34,16 +37,26 @@ export const customerGuard: CanActivateFn = async () => {
   await waitForInit(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.needsGoogleProfileCompletion()) {
+    return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
+  }
   return true;
 };
 
-export const guestGuard: CanActivateFn = async () => {
+export const guestGuard: CanActivateFn = async (route) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
   await waitForInit(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (
+    route.routeConfig?.path === 'signup'
+    && route.queryParamMap.get('googleRegistration') === '1'
+    && auth.currentUser()?.isGoogleAccount
+  ) {
+    return true;
+  }
   if (!auth.currentUser()) return true;
   return router.createUrlTree(['/tabs/home']);
 };

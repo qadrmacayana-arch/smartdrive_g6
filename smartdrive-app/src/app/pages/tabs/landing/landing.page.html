@@ -1,4 +1,7 @@
-<ion-content [fullscreen]="true">
+<ion-content class="fleet-page-theme" [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadVehicles($event)" aria-label="Refresh vehicle fleet">
+    <ion-refresher-content pullingText="Pull to refresh the fleet" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
   <main class="fleet-page">
     <header class="fleet-header">
       <a routerLink="/tabs/home" class="brand">SmartDrive<sup>TM</sup></a>
@@ -8,13 +11,14 @@
     </header>
 
     <section class="page-heading">
-      <p class="eyebrow">SMARTDRIVE FLEET</p>
-      <h1>Our Premium Vehicle Fleet</h1>
-      <p>Carefully curated cars and motorcycles for your Philippine journey.</p>
+      <p class="eyebrow"><span class="heading-dot"></span> FIND YOUR NEXT RIDE</p>
+      <h1>Choose the ride<br class="mobile-break"> for your kind of journey.</h1>
+      <p>Explore a curated collection of cars, motorcycles, and recreational vehicles.</p>
+      <div class="fleet-assurances"><span><ion-icon name="shield-checkmark-outline"></ion-icon> Trusted vehicles</span><span><ion-icon name="pricetag-outline"></ion-icon> Clear daily rates</span><span><ion-icon name="flash-outline"></ion-icon> Easy booking</span></div>
     </section>
 
     <section class="filters">
-      <div class="search-box"><span>⌕</span><input [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Search by vehicle name or model..."></div>
+      <label class="search-box"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Search by vehicle name or model..."></label>
       <div class="category-tabs">
         @for (category of categories; track category.key) {
           <button [class.active]="mainCategory() === category.key" (click)="selectMainCategory(category.key)">{{ category.label }}</button>
@@ -39,7 +43,7 @@
     }
 
     <section class="top-picks">
-      <div class="section-heading"><div><h2>Top 3 Picks</h2><p>A quick shortlist for every kind of journey.</p></div></div>
+      <div class="section-heading"><div><span class="section-kicker">A LITTLE INSPIRATION</span><h2>Popular in every category</h2><p>A quick shortlist for every kind of journey.</p></div></div>
       @if (loading()) {
         <div class="pick-groups"><div class="pick-group loading-group" *ngFor="let item of [1,2,3]"></div></div>
       } @else {
@@ -60,15 +64,53 @@
       }
     </section>
 
-    <div class="results-heading"><div><h2>All Vehicles</h2><p>Browse our entire collection</p></div><span>{{ filteredVehicles().length }} vehicles</span></div>
+    <div class="results-heading"><div><span class="section-kicker">THE SMARTDRIVE COLLECTION</span><h2>All vehicles</h2><p>Find the right fit for your next trip.</p></div><span class="results-count">{{ filteredVehicles().length }} {{ filteredVehicles().length === 1 ? 'vehicle' : 'vehicles' }}</span></div>
     @if (loading()) {
       <div class="vehicle-grid"><div class="vehicle-loading" *ngFor="let item of [1,2,3,4,5,6]"></div></div>
     } @else if (filteredVehicles().length) {
       <div class="vehicle-grid">
         @for (vehicle of filteredVehicles(); track vehicle.id) {
           <article class="vehicle-card" (click)="openVehicle(vehicle)">
-            <div class="vehicle-image"><img [src]="vehicle.image || ''" [alt]="vehicle.name"><span>{{ vehicle.type }}</span><button type="button" class="favorite-button" [class.active]="isFavorite(vehicle)" (click)="toggleFavorite(vehicle, $event)" [attr.aria-label]="isFavorite(vehicle) ? 'Remove from favorites' : 'Add to favorites'">★</button></div>
-            <div class="vehicle-content"><small>{{ vehicle.main_category }}</small><h3>{{ vehicle.name }}</h3><div class="vehicle-specs"><span>{{ vehicle.seats }} seats</span><span>{{ vehicle.transmission }}</span><span>{{ vehicle.fuel }}</span></div><div class="vehicle-footer"><strong>₱{{ vehicle.price | number }}<small>/day</small></strong><button>View details →</button></div></div>
+            <div class="vehicle-image">
+              <img [src]="vehicle.image || ''" [alt]="vehicle.name" loading="lazy">
+              <span class="vehicle-type">{{ vehicle.type }}</span>
+              @if (vehicle.sr_points > 0) {
+                <span class="points-badge">
+                  <ion-icon name="star"></ion-icon>
+                  Earn {{ vehicle.sr_points }} points
+                </span>
+              }
+            </div>
+            <div class="vehicle-content">
+              <div class="vehicle-heading"><small class="vehicle-category">{{ vehicle.main_category }}</small><span class="availability"><i></i>{{ vehicle.status === 'available' ? 'Available' : (vehicle.status | titlecase) }}</span></div>
+              <h3>{{ vehicle.name }}</h3>
+              <p class="vehicle-condition">{{ vehicle.seats }} seats <span>·</span> {{ vehicle.type }}</p>
+              <div class="vehicle-price">₱{{ vehicle.price | number }} <small>/day</small></div>
+              <div class="vehicle-specs">
+                <span><ion-icon name="speedometer-outline"></ion-icon>{{ vehicle.transmission }}</span>
+                <span><ion-icon name="flash-outline"></ion-icon>{{ vehicle.fuel }}</span>
+              </div>
+              <div class="vehicle-footer">
+                <button
+                  type="button"
+                  class="book-vehicle-button"
+                  [disabled]="vehicle.status !== 'available'"
+                  (click)="bookVehicle(vehicle, $event)"
+                >
+                  {{ vehicle.status === 'available' ? 'Book Now' : (vehicle.status | titlecase) }}
+                </button>
+                <button
+                  type="button"
+                  class="favorite-button"
+                  [class.active]="isFavorite(vehicle)"
+                  (click)="toggleFavorite(vehicle, $event)"
+                  [attr.aria-label]="isFavorite(vehicle) ? 'Remove from favorites' : 'Add to favorites'"
+                  [attr.aria-pressed]="isFavorite(vehicle)"
+                >
+                  <ion-icon [name]="isFavorite(vehicle) ? 'heart' : 'heart-outline'"></ion-icon>
+                </button>
+              </div>
+            </div>
           </article>
         }
       </div>

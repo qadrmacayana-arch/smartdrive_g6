@@ -1,5 +1,5 @@
 ion-menu {
-  --width: 260px;
+  --width: min(320px, calc(100vw - 40px));
   --background: var(--sd-background);
   --border: 0;
 }
@@ -12,7 +12,10 @@ ion-menu {
   position: fixed;
   z-index: 1000;
   right: 0.7rem;
-  bottom: calc(0.45rem + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+  bottom: calc(
+    0.45rem
+    + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+  );
   left: 0.7rem;
   display: flex;
   width: auto;
@@ -32,6 +35,7 @@ ion-menu {
 
 .customer-bottom-nav > a,
 .customer-bottom-nav > .customer-nav-menu {
+  position: relative;
   display: flex;
   flex: 1 1 0;
   max-width: 168px;
@@ -46,6 +50,7 @@ ion-menu {
   color: var(--sd-muted-foreground);
   font: 750 0.65rem/1.2 'Plus Jakarta Sans', sans-serif;
   text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
   cursor: pointer;
 }
 
@@ -53,6 +58,8 @@ ion-menu {
 .customer-bottom-nav > .customer-nav-menu ion-icon {
   width: 1.45rem;
   height: 1.45rem;
+  min-width: 1.45rem;
+  min-height: 1.45rem;
   font-size: 1.45rem;
 }
 
@@ -60,6 +67,13 @@ ion-menu {
   padding: 0;
   appearance: none;
   -webkit-appearance: none;
+  outline: none;
+}
+
+.customer-bottom-nav > .customer-nav-menu span {
+  display: block;
+  color: inherit;
+  font: inherit;
 }
 
 .customer-bottom-nav > a.active,
@@ -67,6 +81,30 @@ ion-menu {
 .customer-bottom-nav > .customer-nav-menu:hover {
   background: var(--sd-primary-soft);
   color: var(--sd-primary);
+  --color: var(--sd-primary);
+}
+
+.customer-bottom-nav > a:focus-visible,
+.customer-bottom-nav > .customer-nav-menu:focus-visible {
+  outline: 3px solid #b99be9;
+  outline-offset: -3px;
+}
+
+@media (max-width: 420px) {
+  .customer-bottom-nav {
+    right: 0.45rem;
+    left: 0.45rem;
+    height: 62px;
+    gap: 0.15rem;
+    padding-inline: 0.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-bottom-nav > a,
+  .customer-bottom-nav > .customer-nav-menu {
+    transition: none;
+  }
 }
 
 .menu-content {
@@ -75,7 +113,10 @@ ion-menu {
 
 .menu-content::part(scroll) {
   display: flex;
-  padding: 0.65rem;
+  padding:
+    calc(var(--android-safe-area-top, var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) + 0.75rem)
+    0.75rem
+    calc(var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))) + 0.75rem);
 }
 
 .menu-panel {
@@ -84,7 +125,7 @@ ion-menu {
   flex-direction: column;
   min-height: 100%;
   box-sizing: border-box;
-  padding: 0.7rem;
+  padding: 1rem;
   border: 1px solid var(--sd-border);
   border-radius: 0.9rem;
   background: var(--sd-card);
@@ -95,7 +136,7 @@ ion-menu {
   display: flex;
   align-items: center;
   flex-direction: column;
-  padding: 0.15rem 0 0.8rem;
+  padding: 0.2rem 0 1.2rem;
   text-align: center;
 }
 
@@ -111,11 +152,11 @@ ion-menu {
 .menu-avatar {
   display: grid;
   place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  flex: 0 0 3.25rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  flex: 0 0 3.75rem;
   overflow: hidden;
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.65rem;
   border: 2px solid #fff;
   border-radius: 50%;
   background: var(--sd-gradient-primary);
@@ -138,29 +179,29 @@ ion-menu {
     margin: 0;
     overflow: hidden;
     color: var(--sd-heading);
-    font: 800 0.72rem/1.35 'Sora', sans-serif;
+    font: 800 0.88rem/1.35 'Sora', sans-serif;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   p {
     max-width: 100%;
-    margin: 0.18rem 0 0.4rem;
+    margin: 0.25rem 0 0.55rem;
     overflow: hidden;
     color: var(--sd-muted-foreground);
-    font-size: 0.55rem;
+    font-size: 0.68rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   span {
     display: inline-flex;
-    padding: 0.16rem 0.42rem;
+    padding: 0.22rem 0.55rem;
     border: 1px solid var(--sd-border);
     border-radius: 999px;
     background: var(--sd-primary-soft);
     color: var(--sd-primary);
-    font-size: 0.48rem;
+    font-size: 0.57rem;
     font-weight: 800;
   }
 }
@@ -168,7 +209,7 @@ ion-menu {
 .menu-list {
   flex: 0 0 auto;
   width: 100%;
-  padding: 0.15rem 0 0;
+  padding: 0.2rem 0 0;
   background: transparent;
 
   ion-item {
@@ -176,20 +217,20 @@ ion-menu {
     --background-activated: var(--sd-primary-soft);
     --background-focused: var(--sd-primary-soft);
     --background-hover: var(--sd-background-alt);
-    --border-radius: 0.5rem;
+    --border-radius: 0.65rem;
     --color: var(--sd-foreground);
     --inner-padding-end: 0.4rem;
-    --min-height: 2rem;
-    --padding-start: 0.45rem;
-    margin: 0.12rem 0;
-    border-radius: 0.5rem;
-    font-size: 0.62rem;
+    --min-height: 2.65rem;
+    --padding-start: 0.65rem;
+    margin: 0.18rem 0;
+    border-radius: 0.65rem;
+    font-size: 0.76rem;
     font-weight: 700;
 
     ion-icon {
       color: var(--sd-muted-foreground);
-      font-size: 0.78rem;
-      margin-inline-end: 0.35rem;
+      font-size: 1rem;
+      margin-inline-end: 0.45rem;
     }
 
     &.selected {
@@ -205,26 +246,39 @@ ion-menu {
 
 .menu-divider {
   height: 1px;
-  margin: 0.4rem 0.15rem 0.55rem;
+  margin: 0.65rem 0.2rem 0.8rem;
   background: var(--sd-border);
 }
 
 .menu-footer {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.55rem;
   margin-top: auto;
-  padding: 0.8rem 0 0.1rem;
+  padding: 1rem 0 0.2rem;
+
+  .theme-toggle-item {
+    --background: transparent;
+    --border-radius: 0.65rem;
+    --min-height: 2.8rem;
+    --padding-start: 0.4rem;
+    --padding-end: 0.4rem;
+    margin: 0 0 0.3rem;
+    border-radius: 0.65rem;
+    color: var(--sd-foreground);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
 
   ion-button {
     width: 100%;
-    min-height: 2rem;
+    min-height: 2.5rem;
     margin: 0;
-    --border-radius: 0.5rem;
+    --border-radius: 0.65rem;
     --color: var(--sd-foreground);
-    --padding-start: 0.35rem;
-    --padding-end: 0.35rem;
-    font-size: 0.62rem;
+    --padding-start: 0.6rem;
+    --padding-end: 0.6rem;
+    font-size: 0.75rem;
     font-weight: 800;
     text-transform: none;
   }

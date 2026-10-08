@@ -9,8 +9,6 @@ import {
   IonBackButton,
   IonIcon,
   IonButton,
-  IonChip,
-  IonLabel,
 } from '@ionic/angular';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -28,8 +26,6 @@ import { Vehicle } from '../../core/models/vehicle.model';
     IonBackButton,
     IonIcon,
     IonButton,
-    IonChip,
-    IonLabel,
   ],
   templateUrl: './vehicle-detail.page.html',
   styleUrl: './vehicle-detail.page.scss',
@@ -77,5 +73,26 @@ export class VehicleDetailPage implements OnInit {
         date: this.route.snapshot.queryParamMap.get('date'),
       },
     });
+  }
+
+  getVehicleDescription(vehicle: Vehicle): string {
+    return vehicle.description?.trim() || `Enjoy a comfortable ${vehicle.type.toLowerCase()} experience with the ${vehicle.name}. This vehicle seats ${vehicle.seats} ${vehicle.seats === 1 ? 'passenger' : 'passengers'} and is ready for your next trip.`;
+  }
+
+  getVehicleFeatures(vehicle: Vehicle): string[] {
+    const features = Array.isArray(vehicle.features)
+      ? vehicle.features.filter((feature): feature is string => typeof feature === 'string' && feature.trim().length > 0)
+      : [];
+
+    if (features.length) return features;
+
+    return [
+      `${vehicle.seats}-seat interior`,
+      `${vehicle.transmission} transmission`,
+      `${vehicle.fuel} power`,
+      'Air conditioning',
+      'Clean and well maintained',
+      'Flexible rental support',
+    ];
   }
 }

@@ -1,4 +1,7 @@
 @use './app/pages/admin/admin-theme' as admin;
+@use './app/pages/tabs/account/account-theme' as account;
+@use './app/pages/tabs/home/home-theme' as home;
+@use './app/pages/tabs/landing/landing-theme' as landing;
 
 /*
  * App Global CSS
@@ -51,6 +54,13 @@ body {
   overflow-x: hidden;
 }
 
+body[data-theme='dark'] {
+  background:
+    radial-gradient(1100px 500px at 85% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
+    radial-gradient(900px 480px at -10% 12%, rgba(217, 70, 239, 0.12), transparent 55%),
+    var(--sd-background);
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Sora', 'Plus Jakarta Sans', sans-serif;
   color: var(--sd-heading);
@@ -76,27 +86,36 @@ textarea {
 }
 
 ion-tab-bar {
-  --background: #ffffff;
-  --color: #8b7aa8;
-  --color-selected: #7c3aed;
-  border: 1px solid #e3ddf2;
-  border-radius: 24px;
-  margin: 0.4rem 0.7rem 0.65rem;
-  height: 62px;
-  box-shadow: 0 12px 28px rgba(76, 29, 149, 0.12);
+  --background: rgba(255, 255, 255, 0.96);
+  --color: var(--sd-muted-foreground);
+  --color-selected: var(--sd-primary);
+  border: 1px solid var(--sd-border);
+  border-radius: 22px;
+  margin: 0.35rem 0.7rem max(0.55rem, env(safe-area-inset-bottom));
+  height: 66px;
+  box-shadow: 0 10px 26px rgba(76, 29, 149, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+body[data-theme='dark'] ion-tab-bar {
+  --background: rgba(13, 17, 28, 0.9);
+  box-shadow: 0 10px 26px rgba(12, 16, 28, 0.54);
 }
 
 ion-tab-button {
   --ripple-color: rgba(124, 58, 237, 0.14);
-  font-weight: 700;
+  --padding-top: 7px;
+  --padding-bottom: 6px;
+  font-size: 0.65rem;
+  font-weight: 750;
 }
 
 ion-tab-button.tab-selected {
   border-radius: 16px;
-  background: #f1edff;
+  background: var(--sd-primary-soft);
 }
 
-/* ---------- SmartDrive shared utility classes ---------- */
+ion-tab-button ion-icon { font-size: 1.2rem; }
 
 ion-app.android-native {
   --android-safe-area-top: max(
@@ -122,7 +141,8 @@ ion-app.android-native ion-router-outlet ion-header:not(.transparent-header) + i
   --padding-top: calc(var(--android-safe-area-top) + var(--ion-toolbar-min-height, 56px));
 }
 
-ion-app.android-native ion-router-outlet ion-content.booking-content {
+ion-app.android-native ion-router-outlet ion-content.booking-content:not(.menu-content):not([fullscreen]),
+ion-app:not(.android-native) ion-router-outlet ion-content.booking-content:not(.menu-content):not([fullscreen]) {
   --padding-top: 0;
 }
 
@@ -142,10 +162,6 @@ ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-heade
   --padding-top: calc(env(safe-area-inset-top, 0px) + var(--ion-toolbar-min-height, 56px));
 }
 
-ion-app:not(.android-native) ion-router-outlet ion-content.booking-content {
-  --padding-top: 0;
-}
-
 ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
   --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
 }
@@ -153,6 +169,8 @@ ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-c
 ion-app.android-native .about-subnav {
   top: var(--android-safe-area-top);
 }
+
+/* ---------- SmartDrive shared utility classes ---------- */
 ion-content {
   --background: var(--sd-background);
 }
@@ -359,4 +377,16 @@ ion-content {
 
 .admin-page-theme {
   @include admin.styles;
+}
+
+.customer-account-theme {
+  @include account.styles;
+}
+
+.home-page-theme {
+  @include home.styles;
+}
+
+.fleet-page-theme {
+  @include landing.styles;
 }

@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { Booking, BookingDraft } from '../models/booking.model';
+import { DemoTrackingService } from './demo-tracking.service';
 
 const INSURANCE_FEE = 500;
 const PWD_SENIOR_DISCOUNT_RATE = 0.2;
@@ -19,7 +20,10 @@ export class BookingService {
   /** Carries the in-progress booking across the dates -> details -> payment -> confirmation steps. */
   readonly draft = signal<BookingDraft | null>(this.readStoredDraft());
 
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly demoTracking: DemoTrackingService,
+  ) {}
 
   startDraft(vehicle: BookingDraft['vehicle'], pickupDate: string, returnDate: string, pickupLocation: string): void {
     const rentalDays = this.daysBetween(pickupDate, returnDate);
@@ -64,28 +68,50 @@ export class BookingService {
     return Math.max(1, Math.round(ms / (1000 * 60 * 60 * 24)));
   }
 
-  async findPromoCode(code: string, subtotal: number) {
-    const { data, error } = await this.supabase.client
+  async findPromoCode(code: string, subtotal?: number) {
+    const { data: publicPromo, error } = await this.supabase.client
       .from('discount_codes')
       .select('*')
       .ilike('code', code.trim())
       .eq('is_active', true)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!data) throw new Error('That promo code was not found.');
 
     const now = new Date();
-    if (data.valid_from && now < new Date(data.valid_from)) throw new Error('This promo code is not active yet.');
-    if (data.valid_until && now > new Date(data.valid_until)) throw new Error('This promo code has expired.');
-    if (data.max_uses != null && data.current_uses >= data.max_uses) throw new Error('This promo code has reached its usage limit.');
-    if (subtotal < Number(data.min_spend ?? 0)) {
-      throw new Error(`This promo code requires a minimum spend of ₱${Number(data.min_spend).toLocaleString()}.`);
+    let promo = publicPromo;
+    if (!promo) {
+      const user = await this.supabase.client.auth.getUser();
+      if (user.error) throw new Error(user.error.message);
+      if (!user.data.user) throw new Error('Sign in to validate a claimed reward code.');
+
+      const { data: claimedPromo, error: claimedError } = await this.supabase.client
+        .from('claimed_reward_codes')
+        .select('code,discount_percent,description')
+        .eq('user_id', user.data.user.id)
+        .ilike('code', code.trim())
+        .maybeSingle();
+      if (claimedError) throw new Error(claimedError.message);
+      promo = claimedPromo;
+    }
+    if (!promo) throw new Error('That promo code was not found.');
+
+    if ('valid_from' in promo && promo.valid_from && now < new Date(promo.valid_from)) {
+      throw new Error('This promo code is not active yet.');
+    }
+    if ('valid_until' in promo && promo.valid_until && now > new Date(promo.valid_until)) {
+      throw new Error('This promo code has expired.');
+    }
+    if ('max_uses' in promo && promo.max_uses != null && promo.current_uses >= promo.max_uses) {
+      throw new Error('This promo code has reached its usage limit.');
+    }
+    if (subtotal != null && 'min_spend' in promo && subtotal < Number(promo.min_spend ?? 0)) {
+      throw new Error(`This promo code requires a minimum spend of ₱${Number(promo.min_spend).toLocaleString()}.`);
     }
 
     return {
-      code: data.code as string,
-      discountPercent: Number(data.discount_percent),
-      description: data.description as string,
+      code: promo.code as string,
+      discountPercent: Number(promo.discount_percent),
+      description: promo.description as string,
     };
   }
 
@@ -144,9 +170,18 @@ export class BookingService {
     return `SD-${year}-${random}`;
   }
 
-  async createBooking(userId: string | null, paymentMethod: string): Promise<Booking> {
+  async createBooking(
+    userId: string | null,
+    paymentMethod: string,
+    paymentStatus: Booking['payment_status'] = 'completed',
+  ): Promise<Booking> {
     const draft = this.draft();
     if (!draft?.customer || !draft.pricing) throw new Error('Booking details are incomplete.');
+    const { data: sessionData, error: sessionError } = await this.supabase.client.auth.getSession();
+    if (sessionError) throw new Error(`Your sign-in could not be verified: ${sessionError.message}`);
+    if (!sessionData.session || !userId || sessionData.session.user.id !== userId) {
+      throw new Error('Your account is not connected to a secure booking session. Please sign in with your online account before booking.');
+    }
 
     const booking: Booking = {
       reference_number: this.generateReferenceNumber(),
@@ -167,13 +202,14 @@ export class BookingService {
       discount_label: draft.pricing.discountLabel,
       total_price: draft.pricing.total,
       payment_method: paymentMethod,
-      payment_status: 'completed',
+      payment_status: paymentStatus,
       booking_status: 'confirmed',
       is_pwd_senior: draft.customer.isPwdSenior,
     };
 
     const { data, error } = await this.supabase.client.from('bookings').insert([booking]).select().single();
     if (error) throw new Error(error.message);
+    this.demoTracking.recordTransaction(userId, `Booking ${booking.reference_number}`);
     return data as Booking;
   }
 
@@ -182,6 +218,16 @@ export class BookingService {
       .from('bookings')
       .select('*')
       .eq('customer_email', email)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Booking[];
+  }
+
+  async listMyBookingsForUser(userId: string): Promise<Booking[]> {
+    const { data, error } = await this.supabase.client
+      .from('bookings')
+      .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as Booking[];

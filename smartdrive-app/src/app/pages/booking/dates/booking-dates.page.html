@@ -1,9 +1,8 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="sd-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+      <ion-back-button defaultHref="/tabs/rent-a-car" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Select Dates</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -13,85 +12,157 @@
       <span class="current" aria-current="step"><b>1</b>Dates</span>
       <span><b>2</b>Details</span>
       <span><b>3</b>Payment</span>
+      <span><b>4</b>Confirmation</span>
     </nav>
-  @if (loading()) {
-    <p class="sd-muted">Loading...</p>
-  } @else if (errorMessage()) {
-    <div class="sd-empty-state">
-      <ion-icon name="alert-circle-outline"></ion-icon>
-      <p>{{ errorMessage() }}</p>
-    </div>
-  } @else if (vehicle(); as v) {
-    <div class="sd-card vehicle-summary">
-      <div class="thumb" [style.background-image]="'url(' + v.image + ')'"></div>
-      <div>
-        <h3>{{ v.name }}</h3>
-        <p class="sd-muted">₱{{ v.price | number }} / day</p>
+
+    @if (loading()) {
+      <p class="sd-muted">Loading vehicle...</p>
+    } @else if (errorMessage()) {
+      <div class="sd-empty-state">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ errorMessage() }}</p>
       </div>
-    </div>
+    } @else if (vehicle(); as v) {
+      <header class="page-heading">
+        <p class="eyebrow">BOOK YOUR RIDE</p>
+        <h1>Select your dates</h1>
+        <p>How long do you need the <strong>{{ v.name }}</strong> in {{ pickupLocation() }}?</p>
+      </header>
 
-    <div class="field-block">
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="calendar-outline"></ion-icon>
-        <ion-label>Pick-up Date</ion-label>
-        <ion-datetime-button datetime="pickup-picker" slot="end"></ion-datetime-button>
-      </ion-item>
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime
-            id="pickup-picker"
-            presentation="date"
-            [min]="minDate"
-            [value]="pickupDate()"
-            (ionChange)="pickupDate.set($any($event.detail.value))"
-          ></ion-datetime>
-        </ng-template>
-      </ion-modal>
+      <section class="date-layout" aria-label="Choose rental dates">
+        <div class="calendar-card">
+          <div class="calendar-heading">
+            <h2>{{ displayedMonth() }}</h2>
+            <div class="calendar-navigation">
+              <ion-button
+                fill="clear"
+                class="month-button"
+                aria-label="Previous month"
+                [disabled]="calendarMonth().getMonth() === todayMonth && calendarMonth().getFullYear() === todayYear"
+                (click)="changeMonth(-1)"
+              >
+                <ion-icon name="chevron-back"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" class="month-button" aria-label="Next month" (click)="changeMonth(1)">
+                <ion-icon name="chevron-forward"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
 
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="calendar-outline"></ion-icon>
-        <ion-label>Return Date</ion-label>
-        <ion-datetime-button datetime="return-picker" slot="end"></ion-datetime-button>
-      </ion-item>
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime
-            id="return-picker"
-            presentation="date"
-            [min]="pickupDate()"
-            [value]="returnDate()"
-            (ionChange)="onReturnChange($any($event.detail.value))"
-          ></ion-datetime>
-        </ng-template>
-      </ion-modal>
+          <div class="calendar-grid weekday-row" aria-hidden="true">
+            @for (weekday of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track weekday) {
+              <span>{{ weekday }}</span>
+            }
+          </div>
 
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="location-outline"></ion-icon>
-        <ion-input
-          label="Pick-up Location"
-          labelPlacement="floating"
-          [ngModel]="pickupLocation()"
-          (ngModelChange)="pickupLocation.set($event)"
-        ></ion-input>
-      </ion-item>
-    </div>
+          <div class="calendar-grid day-grid">
+            @for (day of calendarDays(); track $index) {
+              @if (day) {
+                <button
+                  type="button"
+                  class="calendar-day"
+                  [class.selected]="isDateSelected(day)"
+                  [class.in-range]="isDateInRange(day)"
+                  [class.disabled]="isDateDisabled(day)"
+                  [disabled]="isDateDisabled(day)"
+                  [attr.aria-label]="day | date: 'fullDate'"
+                  [attr.aria-pressed]="isDateSelected(day)"
+                  (click)="selectDate(day)"
+                >
+                  {{ day | date: 'd' }}
+                </button>
+              } @else {
+                <span class="calendar-day empty" aria-hidden="true"></span>
+              }
+            }
+          </div>
+        </div>
 
-    <div class="sd-card summary-card">
-      <div class="summary-row">
-        <span class="sd-muted">Duration</span>
-        <strong>{{ rentalDays() }} Day{{ rentalDays() !== 1 ? 's' : '' }}</strong>
-      </div>
-      <div class="summary-row">
-        <span class="sd-muted">Daily Rate</span>
-        <strong>₱{{ v.price | number }}</strong>
-      </div>
-      <div class="summary-row total">
-        <span>Estimated Total</span>
-        <strong>₱{{ totalPrice() | number }}</strong>
-      </div>
-    </div>
+        <div class="date-summary">
+          <button
+            type="button"
+            class="date-choice"
+            [class.active]="selectingDate() === 'pickup'"
+            [attr.aria-pressed]="selectingDate() === 'pickup'"
+            (click)="selectDateField('pickup')"
+          >
+            <span class="date-icon pickup-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+            <span class="date-choice-copy">
+              <small>Pick-up date</small>
+              <strong>{{ pickupDate() ? formatSelectedDate(pickupDate()) : 'Select date' }}</strong>
+              @if (!pickupDate()) { <span class="date-hint">Choose a date on the calendar</span> }
+            </span>
+          </button>
 
-    <ion-button expand="block" class="sd-gradient-btn continue-btn" (click)="continue()">Continue</ion-button>
-  }
+          <button
+            type="button"
+            class="date-choice"
+            [class.active]="selectingDate() === 'return'"
+            [attr.aria-pressed]="selectingDate() === 'return'"
+            (click)="selectDateField('return')"
+          >
+            <span class="date-icon return-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+            <span class="date-choice-copy">
+              <small>Drop-off date</small>
+              <strong>{{ returnDate() ? formatSelectedDate(returnDate()) : 'Select date' }}</strong>
+              @if (!returnDate()) { <span class="date-hint">Must be after pick-up</span> }
+            </span>
+          </button>
+
+          <div class="duration-card">
+            <span class="date-icon duration-icon"><ion-icon name="time-outline"></ion-icon></span>
+            <div class="duration-copy">
+              <small>Total duration</small>
+              <strong>{{ rentalDays() }} {{ rentalDays() === 1 ? 'Day' : 'Days' }}</strong>
+            </div>
+            <div class="estimated-rate">
+              <small>Estimated rate</small>
+              <strong>₱{{ totalPrice() | number }}</strong>
+            </div>
+          </div>
+
+          @if (pickupDate() && returnDate()) {
+            <section class="booking-estimate" aria-live="polite" aria-label="Booking date estimate">
+              <span class="estimate-icon"><ion-icon name="sparkles-outline"></ion-icon></span>
+              <div>
+                <small>SMARTDRIVE DATE INSIGHT</small>
+                @if (bookingEstimateLoading()) {
+                  <strong>Checking these dates…</strong>
+                } @else if (bookingEstimateError()) {
+                  <strong>Estimate unavailable</strong>
+                  <p>{{ bookingEstimateError() }} Booking can continue; this estimate does not reserve the vehicle.</p>
+                } @else if (bookingEstimate(); as estimate) {
+                  @if (estimate.hasConflict) {
+                    <strong>These dates overlap a current reservation</strong>
+                    <p>Choose different dates. This availability check is a guide and does not hold the vehicle.</p>
+                  } @else if (estimate.historicalSignalPercent !== null) {
+                    <strong>{{ estimate.historicalSignalPercent }}% historical booking signal</strong>
+                    <p>Based on past bookings for this vehicle on similar weekdays. This is not a reservation probability or guarantee.</p>
+                  } @else {
+                    <strong>Not enough history for an estimate</strong>
+                    <p>There are not yet enough similar past bookings to estimate demand for these dates.</p>
+                  }
+                }
+              </div>
+            </section>
+          }
+
+          <ion-button
+            expand="block"
+            class="sd-gradient-btn continue-btn"
+            [disabled]="!pickupDate() || !returnDate() || bookingEstimateLoading() || bookingEstimate()?.hasConflict"
+            (click)="continue()"
+          >
+            Confirm &amp; Continue
+            <ion-icon slot="end" name="arrow-forward"></ion-icon>
+          </ion-button>
+
+          <ion-button fill="clear" class="back-to-fleet" (click)="goToFleet()">
+            <ion-icon slot="start" name="chevron-back"></ion-icon>
+            Back to fleet
+          </ion-button>
+        </div>
+      </section>
+    }
   </main>
 </ion-content>

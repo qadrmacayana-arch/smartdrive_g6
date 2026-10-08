@@ -1,7 +1,7 @@
 <ion-app
-  [class.android-native]="isAndroid"
   [class.customer-navigation-visible]="showCustomerNavigation()"
   [class.menu-open]="mainMenuOpen()"
+  [class.android-native]="isAndroid"
 >
   <ion-menu
     contentId="main-content"
@@ -143,6 +143,19 @@
         </ion-list>
 
         <div class="menu-footer">
+          <ion-menu-toggle auto-hide="false">
+            <ion-item lines="none" class="theme-toggle-item" button detail="false">
+              <ion-icon slot="start" name="moon-outline"></ion-icon>
+              <ion-label>Dark mode</ion-label>
+              <ion-toggle
+                slot="end"
+                [checked]="isDarkMode()"
+                (ionChange)="toggleTheme($event)"
+                aria-label="Toggle dark mode"
+              ></ion-toggle>
+            </ion-item>
+          </ion-menu-toggle>
+
           @if (currentUser()) {
             <ion-menu-toggle auto-hide="false">
               <ion-button expand="block" fill="clear" (click)="logout()">
@@ -171,16 +184,16 @@
         <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
         <span>Menu</span>
       </button>
-      <a routerLink="/tabs/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <a routerLink="/tabs/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
         <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
         <span>Home</span>
       </a>
-      <a routerLink="/tabs/rent-a-car" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      <a routerLink="/tabs/rent-a-car" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
         <ion-icon name="car-outline" aria-hidden="true"></ion-icon>
         <span>Rent a Car</span>
       </a>
       @if (currentUser()) {
-        <a routerLink="/about" routerLinkActive="active">
+        <a routerLink="/about" routerLinkActive="active" (click)="tapNavigation()">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <span>About</span>
         </a>

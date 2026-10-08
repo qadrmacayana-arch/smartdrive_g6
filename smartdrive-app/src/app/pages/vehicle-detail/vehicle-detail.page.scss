@@ -137,6 +137,17 @@ h2 {
   font-weight: 800;
 }
 
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  ion-icon {
+    color: var(--sd-primary);
+    font-size: 1.05rem;
+  }
+}
+
 .description {
   max-width: 70ch;
   margin: 0;

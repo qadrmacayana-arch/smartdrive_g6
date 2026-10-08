@@ -1,188 +1,84 @@
 :host {
   display: block;
-  --bg: #ffffff;
-  --panel: #ffffff;
-  --soft: #f7f8fc;
-  --line: #e3e6ee;
-  --purple: #7c3aed;
-  --purple-dark: #5b21b6;
-  --text: #172033;
-  --muted: #667085;
 }
 
-.home {
-  min-height: 100%;
-  padding: 18px max(18px, calc((100% - 1140px) / 2));
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+.recommendations {
+  width: min(1180px, 100%);
+  margin: 0 auto 4rem;
 }
 
-.topbar { height: 42px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.brand { color: var(--text); text-decoration: none; font-size: 20px; font-weight: 800; letter-spacing: -.04em; }
-.brand sup { color: var(--purple); font-size: 9px; }
-.topbar nav { display: flex; gap: 22px; }
-.topbar nav a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 600; }
-.topbar nav a:hover, .section-title a:hover { color: var(--purple); }
-.topbar nav a { padding: 8px 13px; border: 1px solid #c4b5fd; border-radius: 7px; background: #fff; color: var(--purple-dark); }
-.topbar nav a:hover { border-color: var(--purple); background: #faf8ff; color: var(--purple-dark); }
-.topbar nav .sign-in { border-color: var(--purple); background: var(--purple); color: #fff; }
-.topbar nav .sign-in:hover { background: var(--purple-dark); color: #fff; }
-
-.hero-card {
-  padding: 30px 32px 28px;
-  border: 1px solid #ddd1fe;
-  border-radius: 18px;
-  background: linear-gradient(120deg, #faf8ff, #fff 65%);
-  box-shadow: 0 10px 30px rgba(91, 33, 182, .08);
-}
-.hero-kicker { display: inline-block; padding: 6px 10px; border: 1px solid #ddd1fe; border-radius: 999px; color: var(--purple-dark); background: #f5f0ff; font-size: 11px; font-weight: 700; }
-.hero-card h1 { margin: 14px 0 10px; color: #111827; font-size: clamp(26px, 4vw, 42px); line-height: 1.1; letter-spacing: -.045em; }
-.hero-card p { max-width: 700px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-.booking-bar { display: flex; gap: 8px; max-width: 700px; margin-top: 20px; }
-.booking-bar input, .booking-bar button { height: 42px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--text); font: inherit; font-size: 13px; padding: 0 12px; }
-.booking-bar input:focus { outline: 2px solid #c4b5fd; border-color: var(--purple); }
-.booking-bar input:first-child { flex: 1; }
-.booking-bar input { width: 145px; }
-.booking-bar button { border-color: var(--purple); background: var(--purple); color: #fff; font-weight: 700; cursor: pointer; }
-.booking-bar button:hover { background: var(--purple-dark); }
-
-.categories { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 22px; }
-.categories button { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); text-align: left; cursor: pointer; box-shadow: 0 3px 12px rgba(16, 24, 40, .04); }
-.categories button.active, .categories button:hover { border-color: #a78bfa; background: #faf8ff; }
-.categories strong { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--purple); background: #f1eafe; font-size: 16px; }
-.categories span { font-size: 13px; font-weight: 800; }
-.categories small { color: var(--muted); font-size: 11px; }
-
-.section-title { display: flex; justify-content: space-between; align-items: end; margin-bottom: 11px; }
-.section-title span { color: var(--purple); font-size: 10px; font-weight: 800; letter-spacing: .08em; }
-.section-title h2 { margin: 4px 0 0; color: #111827; font-size: 21px; letter-spacing: -.03em; }
-.section-title a { color: var(--purple-dark); text-decoration: none; font-size: 12px; font-weight: 700; }
-.picks-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.pick-card { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); cursor: pointer; box-shadow: 0 5px 18px rgba(16, 24, 40, .06); transition: transform .2s, box-shadow .2s; }
-.pick-card:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(16, 24, 40, .1); }
-.pick-image { height: 165px; position: relative; background: #f2f4f7; }
-.pick-image img { width: 100%; height: 100%; object-fit: cover; }
-.pick-image em { position: absolute; top: 9px; left: 9px; padding: 5px 7px; border-radius: 5px; background: var(--purple); color: #fff; font-size: 9px; font-style: normal; font-weight: 800; }
-.pick-image b { position: absolute; right: 10px; top: 8px; color: #e11d48; font-size: 17px; }
-.pick-body { padding: 13px; }
-.vehicle-type, .pick-body>small { color: var(--purple-dark); font-size: 10px; font-weight: 700; letter-spacing: .04em; }
-.pick-body h3 { margin: 4px 0 9px; color: #111827; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.specs { display: flex; gap: 5px; }
-.specs span { flex: 1; padding: 6px 3px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: 10px; text-align: center; }
-.description { height: 34px; overflow: hidden; margin: 10px 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
-.price-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
-.price-row strong { color: #111827; font-size: 17px; }
-.price-row button { border: 0; border-radius: 6px; padding: 8px 11px; background: var(--purple); color: #fff; font-size: 11px; font-weight: 800; }
-.loading { height: 350px; background: linear-gradient(100deg, #f5f5f5 35%, #e9e7f5 50%, #f5f5f5 65%); background-size: 200%; animation: load 1.2s infinite; }
-@keyframes load { to { background-position: -200%; } }
-
-.why { margin-top: 24px; padding: 24px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--soft); text-align: center; }
-.why h2 { margin: 0; color: #111827; font-size: 20px; }
-.why>p { margin: 6px 0 16px; color: var(--muted); font-size: 13px; }
-.why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.why-grid article { padding: 15px; border: 1px solid var(--line); border-radius: 9px; background: #fff; text-align: left; }
-.why-grid b { color: var(--purple); font-size: 18px; }
-.why-grid h3 { margin: 7px 0 5px; color: #1f2937; font-size: 13px; }
-.why-grid p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
-.offer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 16px 0 5px; padding: 18px; border: 1px solid #ddd1fe; border-radius: 12px; background: #faf8ff; }
-.offer small { color: var(--purple-dark); font-size: 10px; font-weight: 800; letter-spacing: .06em; }
-.offer h2 { margin: 4px 0; color: #111827; font-size: 16px; }
-.offer p { margin: 0; color: var(--muted); font-size: 11px; }
-.offer p b { padding: 3px 5px; color: var(--purple-dark); background: #ede9fe; border-radius: 3px; }
-.offer a { padding: 9px 12px; border-radius: 7px; color: #fff; background: var(--purple); text-decoration: none; font-size: 11px; font-weight: 800; white-space: nowrap; }
-
-@media (max-width: 650px) {
-  .home { padding: 14px; }
-  .hero-card { padding: 22px 18px; }
-  .topbar { margin-bottom: 12px; }
-  .topbar nav { gap: 12px; }
-  .topbar nav a { font-size: 12px; }
-  .topbar nav a { padding: 7px 10px; }
-  .hero-card h1 br { display: none; }
-  .hero-card h1 { font-size: 28px; }
-  .hero-card p { font-size: 13px; }
-  .booking-bar { flex-wrap: wrap; }
-  .booking-bar input:first-child { min-width: 100%; }
-  .booking-bar input { flex: 1; width: auto; }
-  .categories { gap: 8px; }
-  .categories button { padding: 11px 9px; }
-  .categories span { font-size: 11px; }
-  .categories small { font-size: 9px; }
-  .picks-grid { grid-template-columns: 1fr; }
-  .pick-card { display: grid; grid-template-columns: 42% 58%; }
-  .pick-image { height: 100%; min-height: 205px; }
-  .why-grid { grid-template-columns: 1fr; }
-  .offer { align-items: flex-start; }
+.recommendation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
 }
 
-@media (min-width: 651px) and (max-width: 960px) {
-  .home { padding-right: 24px; padding-left: 24px; }
-  .picks-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pick-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .why-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.recommendation-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-surface);
+  color: var(--sd-foreground);
+  text-align: left;
+  cursor: pointer;
 }
 
-@media (max-width: 650px) {
-  .home { padding: 12px; }
-  .topbar { min-height: 44px; height: auto; gap: 12px; }
-  .brand { font-size: 18px; }
-  .topbar nav { gap: 7px; }
-  .topbar nav a { min-height: 40px; padding: 0 11px; display: inline-flex; align-items: center; }
-  .hero-card { padding: 22px 18px; border-radius: 15px; }
-  .hero-kicker { max-width: 100%; font-size: 10px; line-height: 1.4; }
-  .hero-card h1 { max-width: 18ch; margin-top: 16px; font-size: clamp(27px, 8vw, 34px); line-height: 1.08; }
-  .hero-card p { font-size: 13px; }
-  .booking-bar { gap: 9px; }
-  .booking-bar input,
-  .booking-bar button { min-height: 46px; }
-  .booking-bar input:first-child { min-width: 100%; }
-  .booking-bar input { flex: 1 1 46%; width: auto; }
-  .booking-bar button { flex: 1 1 46%; padding: 0 9px; }
-  .categories { gap: 8px; margin: 14px 0 24px; }
-  .categories button { min-height: 105px; padding: 12px 9px; }
-  .categories span { font-size: 12px; }
-  .categories small { font-size: 9px; line-height: 1.35; }
-  .section-title { align-items: center; gap: 12px; }
-  .section-title h2 { font-size: 19px; }
-  .section-title a { min-height: 40px; display: inline-flex; align-items: center; white-space: nowrap; }
-  .picks-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .pick-card { grid-template-columns: minmax(120px, 40%) minmax(0, 1fr); }
-  .pick-image { min-height: 205px; }
-  .pick-body { min-width: 0; padding: 12px; }
-  .pick-body h3 { white-space: normal; }
-  .specs { flex-wrap: wrap; }
-  .specs span { min-width: 62px; }
-  .description { height: auto; min-height: 33px; }
-  .price-row button { min-height: 40px; padding: 0 12px; }
-  .why { margin-top: 22px; padding: 22px 14px; }
-  .why-grid { grid-template-columns: minmax(0, 1fr); }
-  .why-grid article { padding: 16px; }
-  .offer { align-items: stretch; flex-direction: column; padding: 18px 16px; }
-  .offer a { align-self: flex-start; min-height: 42px; display: inline-flex; align-items: center; padding: 0 14px; }
+.recommendation-card img {
+  width: 5rem;
+  height: 4rem;
+  flex: 0 0 auto;
+  border-radius: .7rem;
+  background: var(--sd-primary-soft);
+  object-fit: cover;
 }
 
-@media (max-width: 380px) {
-  .home { padding: 10px; }
-  .topbar nav { gap: 5px; }
-  .topbar nav a { padding: 0 8px; }
-  .categories small { display: none; }
-  .pick-card { grid-template-columns: minmax(105px, 38%) minmax(0, 1fr); }
-  .pick-image { min-height: 190px; }
-  .pick-body { padding: 10px; }
-  .specs span { min-width: 0; font-size: 9px; }
+.recommendation-copy {
+  display: grid;
+  min-width: 0;
+  gap: .16rem;
+  flex: 1;
 }
 
-.home a:focus-visible,
-.home button:focus-visible,
-.home input:focus-visible,
-.pick-card:focus-visible {
-  outline: 3px solid #a78bfa;
-  outline-offset: 3px;
+.recommendation-copy small {
+  color: var(--sd-muted-foreground);
+  font-size: .68rem;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pick-card,
-  .categories button { transition: none; }
-  .loading { animation: none; }
+.recommendation-copy strong {
+  overflow: hidden;
+  color: var(--sd-heading);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recommendation-copy > span {
+  color: var(--sd-primary);
+  font-size: .75rem;
+  font-weight: 700;
+}
+
+.recommendation-card > ion-icon {
+  flex: 0 0 auto;
+  color: var(--sd-primary);
+}
+
+.recommendation-note {
+  margin: .75rem 0 0;
+  color: var(--sd-muted-foreground);
+  font-size: .72rem;
+}
+
+@media (max-width: 760px) {
+  .recommendations {
+    margin-bottom: 1.25rem;
+  }
+
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+  }
 }

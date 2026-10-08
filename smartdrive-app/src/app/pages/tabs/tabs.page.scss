@@ -11,12 +11,14 @@
   --padding-start: 0;
   --padding-end: 0;
 
+  ion-icon { font-size: 1.2rem; }
+
   &::after {
     display: block;
-    margin-top: 3px;
+    margin-top: 2px;
     color: var(--sd-muted-foreground);
     content: 'Menu';
-    font-size: 0.68rem;
-    font-weight: 700;
+    font-size: 0.65rem;
+    font-weight: 750;
   }
 }

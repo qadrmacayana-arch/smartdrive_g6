@@ -50,6 +50,11 @@ type PaymentMethod = 'credit-card' | 'gcash' | 'maya' | 'srpoints';
 export class BookingPaymentPage implements OnInit {
   readonly draft = this.bookingService.draft;
   readonly paymentMethod = signal<PaymentMethod>('credit-card');
+  readonly cardholderName = signal('');
+  readonly cardNumber = signal('');
+  readonly cardExpiry = signal('');
+  readonly cardCvv = signal('');
+  readonly walletMobile = signal('');
   readonly promoInput = signal('');
   readonly promoError = signal<string | null>(null);
   readonly promoApplying = signal(false);
@@ -126,6 +131,43 @@ export class BookingPaymentPage implements OnInit {
     return (this.walletBalance()?.balance ?? 0) < total;
   }
 
+  onPaymentMethodChange(value: PaymentMethod): void {
+    this.paymentMethod.set(value);
+    this.errorMessage.set(null);
+  }
+
+  get paymentDetailsError(): string | null {
+    switch (this.paymentMethod()) {
+      case 'credit-card': {
+        if (!this.cardholderName().trim()) return 'Enter the demo cardholder name.';
+        if (this.cardNumber().replace(/\D/g, '') !== '4242424242424242') {
+          return 'For this demo, use the test card number 4242 4242 4242 4242.';
+        }
+        if (!this.isFutureExpiry(this.cardExpiry())) return 'Enter a valid future expiry date (MM/YY).';
+        if (this.cardCvv() !== '123') return 'For this demo, use the test CVV 123.';
+        return null;
+      }
+      case 'gcash':
+      case 'maya':
+        return this.walletMobile().replace(/\D/g, '') === '09170000000'
+          ? null
+          : `For this demo, use the test ${this.paymentMethod() === 'gcash' ? 'GCash' : 'Maya'} number 09170000000.`;
+      case 'srpoints':
+        return null;
+    }
+  }
+
+  private isFutureExpiry(value: string): boolean {
+    const match = /^(0[1-9]|1[0-2])\/(\d{2})$/.exec(value);
+    if (!match) return false;
+
+    const expiryMonth = Number(match[1]);
+    const expiryYear = 2000 + Number(match[2]);
+    const now = new Date();
+    return expiryYear > now.getFullYear() ||
+      (expiryYear === now.getFullYear() && expiryMonth >= now.getMonth() + 1);
+  }
+
   async confirmPayment(): Promise<void> {
     const draft = this.draft();
     const pricing = this.pricing();
@@ -137,15 +179,25 @@ export class BookingPaymentPage implements OnInit {
       return;
     }
 
+    if (this.paymentDetailsError) {
+      this.errorMessage.set(this.paymentDetailsError);
+      return;
+    }
+
     this.errorMessage.set(null);
     this.submitting.set(true);
 
     try {
       this.bookingService.updateDraft((d) => ({ ...d, pricing }));
 
-      const booking = await this.bookingService.createBooking(user.id, this.paymentMethod());
+      const usesSrPoints = this.paymentMethod() === 'srpoints';
+      const booking = await this.bookingService.createBooking(
+        user.id,
+        this.paymentMethod(),
+        usesSrPoints ? 'completed' : 'pending',
+      );
 
-      if (this.paymentMethod() === 'srpoints') {
+      if (usesSrPoints) {
         await this.walletService.spendPoints(
           user.id,
           user.email,
@@ -153,16 +205,9 @@ export class BookingPaymentPage implements OnInit {
           `Used for booking #${booking.reference_number}`,
           booking.reference_number,
         );
-      } else if (draft.vehicle.srPoints > 0) {
-        await this.walletService.earnPoints(
-          user.id,
-          user.email,
-          draft.vehicle.srPoints,
-          `Earned from booking #${booking.reference_number}`,
-          booking.reference_number,
-        );
       }
 
+      this.clearPaymentDetails();
       this.bookingService.clearDraft();
       this.router.navigate(['/booking/confirmation', booking.reference_number]);
     } catch (error) {
@@ -170,5 +215,13 @@ export class BookingPaymentPage implements OnInit {
     } finally {
       this.submitting.set(false);
     }
+  }
+
+  private clearPaymentDetails(): void {
+    this.cardholderName.set('');
+    this.cardNumber.set('');
+    this.cardExpiry.set('');
+    this.cardCvv.set('');
+    this.walletMobile.set('');
   }
 }

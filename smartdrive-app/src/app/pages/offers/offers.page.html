@@ -2,26 +2,108 @@
   <main class="dashboard-page-shell">
     <section class="dashboard-page-main">
       <header class="dashboard-page-heading">
-        <p class="eyebrow">SMARTDRIVE REWARDS</p>
-        <h1>Exclusive Offers &amp; Promos</h1>
-        <p>Take advantage of special promotions for your next rental.</p>
+        <div class="offers-intro-copy">
+          <p class="eyebrow">SMARTDRIVE REWARDS</p>
+          <h1>Offers for your next ride</h1>
+          <p>Explore member perks, seasonal deals, and rewards you can claim.</p>
+        </div>
+        <span class="offers-intro-mark" aria-hidden="true"><ion-icon name="pricetag-outline"></ion-icon></span>
       </header>
 
       <section class="offers-shell" aria-label="Available offers">
+        <div class="offers-section-heading">
+          <div><span class="offers-kicker">MADE FOR THE ROAD</span><h2>Current promotions</h2></div>
+          <span>{{ offers.length }} offers</span>
+        </div>
         <div class="offers-grid">
           @for (offer of offers; track offer[1]) {
             <article class="offer-card">
-              <span class="offer-tag">{{ offer[0] }}</span>
-              <h2>{{ offer[1] }}</h2>
+              <div class="offer-card-top">
+                <span class="offer-tag">{{ offer[0] }}</span>
+                <span class="offer-card-icon" aria-hidden="true"><ion-icon name="pricetag-outline"></ion-icon></span>
+              </div>
+              <h3>{{ offer[1] }}</h3>
               <p>{{ offer[2] }}</p>
-              <strong>{{ offer[3] }}</strong>
+              <strong class="offer-detail">{{ offer[3] }}</strong>
               <a routerLink="/tabs/rent-a-car">
-                Browse Fleet
+                Find a vehicle
                 <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
               </a>
             </article>
           }
         </div>
+
+        <section class="rewards-section" aria-labelledby="rewards-title">
+          <div class="rewards-heading">
+            <span class="rewards-heading-icon" aria-hidden="true"><ion-icon name="gift-outline"></ion-icon></span>
+            <div>
+              <h2 id="rewards-title">Claimable Rewards</h2>
+              <p>Complete a milestone to unlock a discount code for checkout.</p>
+            </div>
+          </div>
+
+          @if (!currentUser()) {
+            <p class="rewards-notice">Sign in to track progress and claim rewards.</p>
+          } @else if (rewardsLoading()) {
+            <div class="rewards-loading"><ion-spinner name="dots"></ion-spinner><span>Loading your reward progress...</span></div>
+          } @else if (rewardError() && !rewards().length) {
+            <p class="rewards-error" role="alert">{{ rewardError() }}</p>
+          } @else {
+            @if (rewardError()) {
+              <p class="rewards-error" role="alert">{{ rewardError() }}</p>
+            }
+            <div class="rewards-grid">
+              @for (reward of rewards(); track reward.key) {
+                <article class="reward-card" [class.reward-claimed]="reward.code">
+                  <div class="reward-card-heading">
+                    <div>
+                      <span class="reward-tag">−{{ reward.discountPercent }}%</span>
+                      <h3>{{ reward.title }}</h3>
+                    </div>
+                    <span class="reward-discount">−{{ reward.discountPercent }}%</span>
+                  </div>
+                  <p class="reward-description">{{ reward.description }}</p>
+                  <p class="reward-requirement">{{ reward.requirement }}</p>
+                  <div
+                    class="reward-progress"
+                    role="progressbar"
+                    [attr.aria-valuenow]="reward.progress"
+                    [attr.aria-valuemin]="0"
+                    [attr.aria-valuemax]="reward.target"
+                    [attr.aria-label]="reward.title + ' progress: ' + reward.progressLabel"
+                  >
+                    <span [style.width.%]="reward.target ? reward.progress / reward.target * 100 : 0"></span>
+                  </div>
+                  @if (reward.code) {
+                    <div class="claimed-code">
+                      <span>Claimed code</span>
+                      <strong>{{ reward.code }}</strong>
+                    </div>
+                  } @else {
+                    <div class="reward-card-footer">
+                      <span>{{ reward.progressLabel }}</span>
+                      <ion-button
+                        size="small"
+                        class="claim-button"
+                        [disabled]="reward.progress < reward.target || claimingReward() !== null"
+                        (click)="claimReward(reward)"
+                      >
+                        @if (claimingReward() === reward.key) {
+                          <ion-spinner name="dots"></ion-spinner>
+                        } @else {
+                          {{ reward.progress >= reward.target ? 'Claim' : 'Locked' }}
+                        }
+                      </ion-button>
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+            <p class="future-rewards-note">
+              More rewards are coming as referral, social-share, and membership verification are added.
+            </p>
+          }
+        </section>
 
         <section class="promo-box">
           <div class="promo-heading">
@@ -37,7 +119,13 @@
               [value]="promoCode()"
               (ionInput)="promoCode.set($any($event.target).value || '')"
             ></ion-input>
-            <button type="button" (click)="validatePromo()">Validate Code</button>
+            <button type="button" [disabled]="promoValidating()" (click)="validatePromo()">
+              @if (promoValidating()) {
+                <ion-spinner name="dots"></ion-spinner>
+              } @else {
+                Validate Code
+              }
+            </button>
           </div>
           @if (promoMessage()) {
             <p class="promo-message" [class.valid]="promoValid()" role="status">{{ promoMessage() }}</p>

@@ -1,0 +1,11 @@
+{
+  "installCommand": "cd smartdrive-app && npm ci",
+  "buildCommand": "cd smartdrive-app && npm run build",
+  "outputDirectory": "smartdrive-app/www",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

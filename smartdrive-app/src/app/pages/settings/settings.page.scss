@@ -35,6 +35,37 @@
     letter-spacing: -0.04em;
   }
 
+  .settings-page-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    p {
+      margin: 0;
+      color: var(--sd-muted-foreground);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+  }
+
+  .settings-page-mark {
+    display: grid;
+    width: 3.25rem;
+    height: 3.25rem;
+    flex: 0 0 3.25rem;
+    place-items: center;
+    border: 1px solid #dfd2f5;
+    border-radius: 1rem;
+    background: linear-gradient(145deg, #f4efff, #fff);
+    color: var(--sd-primary);
+    box-shadow: 0 8px 20px rgba(76, 29, 149, 0.08);
+
+    ion-icon {
+      font-size: 1.45rem;
+    }
+  }
+
   > p:last-child {
     margin: 0;
     color: var(--sd-muted-foreground);
@@ -54,6 +85,9 @@
 .settings-card {
   margin-bottom: 1rem;
   padding: clamp(1rem, 2vw, 1.4rem);
+  border-color: #e3ddf2;
+  border-radius: 22px;
+  box-shadow: 0 12px 30px -22px rgba(76, 29, 149, 0.3);
 }
 
 .settings-card-heading {
@@ -197,6 +231,100 @@
   }
 }
 
+.settings-form-section {
+  padding-top: 1.1rem;
+  margin-top: 1.1rem;
+  border-top: 1px solid #eeeaf5;
+}
+
+.settings-form-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-bottom: 0.8rem;
+
+  > span {
+    display: grid;
+    width: 1.85rem;
+    height: 1.85rem;
+    flex: 0 0 1.85rem;
+    place-items: center;
+    border: 1px solid #e4daf2;
+    border-radius: 0.6rem;
+    background: #f7f3ff;
+    color: var(--sd-primary);
+    font-size: 0.65rem;
+    font-weight: 850;
+  }
+
+  h3 {
+    margin: 0.05rem 0 0.15rem;
+    color: var(--sd-heading);
+    font: 750 0.88rem 'Sora', sans-serif;
+  }
+
+  p {
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.69rem;
+    line-height: 1.45;
+  }
+}
+
+.settings-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 0.75rem;
+
+  .auth-item {
+    min-width: 0;
+  }
+}
+
+.location-field-grid {
+  margin-top: 0.1rem;
+}
+
+.location-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.7rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.73rem;
+
+  ion-spinner {
+    width: 1rem;
+    height: 1rem;
+    color: var(--sd-primary);
+  }
+}
+
+.location-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  margin-bottom: 0.7rem;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  border-radius: 0.7rem;
+  background: rgba(239, 68, 68, 0.06);
+  color: var(--sd-destructive);
+  font-size: 0.72rem;
+
+  button {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 0.45rem;
+    background: #fff;
+    color: var(--sd-destructive);
+    font: 750 0.68rem 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+  }
+}
+
 .auth-item {
   --background: var(--sd-card);
   --border-color: transparent;
@@ -205,6 +333,12 @@
   margin-bottom: 0.7rem;
   border: 1px solid var(--sd-border);
   border-radius: 14px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+
+  &:focus-within {
+    border-color: #bda5e7;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
+  }
 
   ion-icon[slot='start'] {
     color: var(--sd-primary);
@@ -215,6 +349,38 @@
   min-height: 46px;
   margin: 0.2rem 0 0;
   font-weight: 800;
+}
+
+.settings-save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1rem;
+  margin-top: 0.4rem;
+  border-top: 1px solid #eeeaf5;
+
+  p {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.68rem;
+    line-height: 1.45;
+  }
+
+  p ion-icon {
+    flex: 0 0 auto;
+    margin-top: 0.05rem;
+    color: var(--sd-primary);
+    font-size: 0.9rem;
+  }
+}
+
+.settings-card .save-profile-btn {
+  flex: 0 0 auto;
+  min-width: 190px;
 }
 
 .update-password-btn {
@@ -266,6 +432,27 @@
   }
 }
 
+.settings-privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.8rem 0.95rem;
+  margin: 0.15rem 0 1rem;
+  border: 1px solid #e5def1;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--sd-muted-foreground);
+  font-size: 0.72rem;
+  line-height: 1.5;
+
+  ion-icon {
+    flex: 0 0 auto;
+    margin-top: 0.08rem;
+    color: var(--sd-primary);
+    font-size: 1rem;
+  }
+}
+
 .delete-account-btn {
   min-height: 42px;
   padding: 0.6rem 0.85rem;
@@ -296,9 +483,30 @@
     flex-direction: column;
   }
 
+  .settings-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .settings-save-row {
+    align-items: stretch;
+    flex-direction: column;
+
+    .save-profile-btn {
+      width: 100%;
+      margin-inline: 0;
+    }
+  }
+
   .avatar-settings {
     align-items: flex-start;
     padding: 0.85rem;
+  }
+
+  .settings-page-mark {
+    width: 2.8rem;
+    height: 2.8rem;
+    flex-basis: 2.8rem;
   }
 
   .avatar-preview {

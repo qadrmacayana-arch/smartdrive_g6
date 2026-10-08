@@ -8,12 +8,30 @@
       <p>{{ errorMessage() }}</p>
     </div>
   } @else if (booking(); as b) {
+    <nav class="booking-progress" aria-label="Booking progress">
+      <span class="completed"><b>✓</b>Dates</span>
+      <span class="completed"><b>✓</b>Details</span>
+      <span class="completed"><b>✓</b>Payment</span>
+      <span class="current" aria-current="step"><b>4</b>Confirmation</span>
+    </nav>
+
     <div class="confirmation-banner">
     <div class="success-icon">
-      <ion-icon name="checkmark-circle"></ion-icon>
+      <ion-icon
+        [name]="b.payment_status === 'completed' ? 'checkmark-circle' : 'time-outline'"
+        [class.payment-pending]="b.payment_status !== 'completed'"
+      ></ion-icon>
     </div>
-    <h1 class="sd-section-title confirm-title">Booking Confirmed!</h1>
-    <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
+    <h1 class="sd-section-title confirm-title">
+      {{ b.payment_status === 'completed' ? 'Booking Confirmed!' : 'Reservation Saved' }}
+    </h1>
+    @if (b.payment_status === 'completed') {
+      <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
+    } @else {
+      <p class="sd-muted confirm-sub">
+        This demo reservation is saved, but payment is still pending. No payment was taken.
+      </p>
+    }
     </div>
 
     <div class="sd-card ref-card">
@@ -42,8 +60,12 @@
         <span class="sd-muted">Payment Method</span>
         <strong class="capitalize">{{ b.payment_method }}</strong>
       </div>
+      <div class="detail-row">
+        <span class="sd-muted">Payment Status</span>
+        <strong class="capitalize">{{ b.payment_status }}</strong>
+      </div>
       <div class="detail-row total">
-        <span>Total Paid</span>
+        <span>{{ b.payment_status === 'completed' ? 'Total Paid' : 'Total Due' }}</span>
         <strong>₱{{ b.total_price | number }}</strong>
       </div>
     </div>

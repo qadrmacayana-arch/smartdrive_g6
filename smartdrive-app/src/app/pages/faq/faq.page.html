@@ -12,9 +12,51 @@
     <header class="faq-intro">
       <span class="faq-kicker">WE'RE HERE TO HELP</span>
       <h1>Frequently asked questions</h1>
-      <p>Find quick answers about bookings, payments, and your account.</p>
+      <p>Ask our help chatbot or browse quick answers about bookings, payments, and your account.</p>
     </header>
 
+    <section class="sd-card chatbot" aria-label="SmartDrive help chatbot">
+      <header class="chatbot-heading">
+        <span class="chatbot-icon"><ion-icon name="chatbubbles-outline"></ion-icon></span>
+        <div>
+          <h2>Chat with SmartDrive</h2>
+          <p>Instant answers to common questions</p>
+        </div>
+        <span class="online-indicator">ONLINE</span>
+      </header>
+
+      <div #chatMessages class="chat-messages" aria-live="polite" aria-relevant="additions">
+        @for (message of messages(); track $index) {
+          <div class="chat-message" [class.user-message]="message.role === 'user'">
+            @if (message.role === 'bot') {
+              <span class="message-avatar"><ion-icon name="sparkles-outline"></ion-icon></span>
+            }
+            <p>{{ message.text }}</p>
+          </div>
+        }
+      </div>
+
+      <div class="suggested-questions" aria-label="Suggested questions">
+        @for (question of suggestedQuestions; track question) {
+          <button type="button" (click)="sendMessage(question)">{{ question }}</button>
+        }
+      </div>
+
+      <form class="chat-input" (ngSubmit)="sendMessage()">
+        <ion-input
+          aria-label="Ask SmartDrive a question"
+          placeholder="Type your question..."
+          [value]="draft()"
+          (ionInput)="draft.set($event.detail.value ?? '')"
+          maxlength="500"
+        ></ion-input>
+        <ion-button type="submit" aria-label="Send message" [disabled]="!draft().trim()">
+          <ion-icon slot="icon-only" name="send-outline"></ion-icon>
+        </ion-button>
+      </form>
+    </section>
+
+    <h2 class="faq-list-heading">Popular questions</h2>
     <section class="faq-list" aria-label="Frequently asked questions">
       @for (item of items; track item.q; let i = $index) {
         <article class="sd-card faq-item">

@@ -57,6 +57,13 @@ export class LoginPage {
     if (rememberedEmail) {
       this.form.patchValue({ email: rememberedEmail, rememberMe: true });
     }
+    if (this.route.snapshot.queryParamMap.get('googleError') === '1') {
+      this.errorMessage.set(
+        sessionStorage.getItem('smartdrive_google_oauth_error')
+          || 'Google sign-in failed before an app session was created. Check the Supabase Google provider and database logs.',
+      );
+      sessionStorage.removeItem('smartdrive_google_oauth_error');
+    }
   }
 
   togglePassword(): void {

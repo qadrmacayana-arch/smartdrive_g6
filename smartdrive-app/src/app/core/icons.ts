@@ -73,6 +73,9 @@ import {
   sparklesOutline,
   arrowForwardOutline,
   menuOutline,
+  heartOutline,
+  heart,
+  moonOutline,
 } from 'ionicons/icons';
 
 export function registerIcons(): void {
@@ -150,5 +153,8 @@ export function registerIcons(): void {
     'medkit-outline': medkitOutline,
     'accessibility-outline': accessibilityOutline,
     'sparkles-outline': sparklesOutline,
+    'heart-outline': heartOutline,
+    heart,
+    'moon-outline': moonOutline,
   });
 }

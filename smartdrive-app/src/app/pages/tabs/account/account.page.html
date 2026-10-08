@@ -1,78 +1,129 @@
-<ion-content [fullscreen]="true">
+<ion-content class="customer-account-theme" [fullscreen]="true">
   @if (currentUser(); as user) {
-    <main class="dashboard-page-shell">
-      <section class="dashboard-page-main">
-        <header class="dashboard-header">
-          <div class="dashboard-heading">
-            <p class="eyebrow">SMARTDRIVE ACCOUNT</p>
-            <h1>Welcome, {{ user.fullName.split(' ')[0] }}!</h1>
-            <p>Here's what's happening with your account today.</p>
-          </div>
-        </header>
+    <main class="customer-dashboard">
+      <header class="dashboard-header">
+        <div class="heading-copy">
+          <p class="eyebrow"><span class="eyebrow-mark"></span> YOUR SMARTDRIVE</p>
+          <h1>Welcome back, {{ user.fullName.split(' ')[0] }}!</h1>
+          <p class="header-subtitle">Your next great drive starts here.</p>
+        </div>
+        <div class="header-actions">
+          <a class="header-booking-link" routerLink="/tabs/rent-a-car"><ion-icon name="add-outline"></ion-icon>Book a vehicle</a>
+          <span class="user-avatar" aria-label="Your profile">{{ user.fullName.charAt(0).toUpperCase() }}</span>
+        </div>
+      </header>
 
-        @if (latestBooking; as booking) {
-          <article class="current-ride">
-            <div>
-              <span class="eyebrow">YOUR CURRENT RIDE</span>
+      @if (loading()) {
+        <section class="dashboard-loading" aria-live="polite">
+          <span class="loading-mark"><ion-icon name="car-sport-outline"></ion-icon></span>
+          <strong>Getting your dashboard ready</strong>
+          <p>Loading your latest booking and wallet balance…</p>
+        </section>
+      } @else {
+        @if (primaryActiveBooking; as booking) {
+          <section class="customer-hero active-ride-hero">
+            <div class="hero-copy">
+              <span class="hero-kicker"><span class="hero-status-dot"></span> {{ booking.booking_status === 'ongoing' ? 'YOUR TRIP IS IN PROGRESS' : 'YOUR NEXT RIDE' }}</span>
               <h2>{{ booking.vehicle_name }}</h2>
-              <p>{{ booking.pickup_date }} → {{ booking.return_date }}</p>
-              <span class="status">{{ booking.booking_status }}</span>
+              <p class="hero-dates"><ion-icon name="calendar-outline"></ion-icon>{{ booking.pickup_date | date:'MMM d, y' }} <span>→</span> {{ booking.return_date | date:'MMM d, y' }}</p>
+              <div class="hero-meta"><span class="ride-reference">Booking {{ booking.reference_number }}</span><span class="ride-status">{{ booking.booking_status | titlecase }}</span></div>
+              <a class="hero-cta" routerLink="/tabs/bookings">View booking details <ion-icon name="arrow-forward-outline"></ion-icon></a>
             </div>
-            <ion-icon name="car-sport-outline"></ion-icon>
-          </article>
+            <div class="hero-illustration" aria-hidden="true">
+              <span class="hero-orbit hero-orbit-one"></span><span class="hero-orbit hero-orbit-two"></span>
+              <ion-icon name="car-sport-outline"></ion-icon>
+            </div>
+          </section>
         } @else {
-          <article class="welcome-banner">
-            <span>NEW MEMBER SPECIAL</span>
-            <h2>🎉 Your first ride awaits.</h2>
-            <p>Enjoy an exclusive <strong>15% OFF</strong> your first rental with code FIRST15.</p>
-          </article>
+          <section class="customer-hero welcome-hero">
+            <div class="hero-copy">
+              <span class="hero-kicker"><span class="hero-status-dot"></span> READY WHEN YOU ARE</span>
+              <h2>Your next adventure awaits.</h2>
+              <p>Find the right ride for the road ahead—from everyday drives to weekend getaways.</p>
+              <a class="hero-cta" routerLink="/tabs/rent-a-car">Explore the fleet <ion-icon name="arrow-forward-outline"></ion-icon></a>
+            </div>
+            <div class="hero-illustration" aria-hidden="true">
+              <span class="hero-orbit hero-orbit-one"></span><span class="hero-orbit hero-orbit-two"></span>
+              <ion-icon name="car-sport-outline"></ion-icon>
+            </div>
+          </section>
         }
 
-        <section class="stats-grid" aria-label="Account statistics">
-          <article><span>Active Bookings</span><strong>{{ activeBookings.length }}</strong></article>
-          <article><span>Total Spent</span><strong>₱{{ totalSpent | number }}</strong></article>
-          <article><span>Hours Driven</span><strong>{{ hoursDriven }}</strong></article>
+        <section class="customer-stats" aria-label="Your account summary">
+          <article class="customer-stat">
+            <span class="customer-stat-icon active-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+            <span class="customer-stat-label">Active bookings</span>
+            <strong>{{ activeBookings.length }}</strong>
+            <small>{{ activeBookings.length === 1 ? 'One upcoming or active ride' : 'Upcoming or active rides' }}</small>
+          </article>
+          <article class="customer-stat">
+            <span class="customer-stat-icon spend-icon"><ion-icon name="wallet-outline"></ion-icon></span>
+            <span class="customer-stat-label">Total spent</span>
+            <strong>₱{{ totalSpent | number:'1.0-0' }}</strong>
+            <small>Across {{ bookings().length }} {{ bookings().length === 1 ? 'booking' : 'bookings' }}</small>
+          </article>
+          <article class="customer-stat">
+            <span class="customer-stat-icon drive-icon"><ion-icon name="time-outline"></ion-icon></span>
+            <span class="customer-stat-label">Time on the road</span>
+            <strong>{{ hoursDriven }} <small>hrs</small></strong>
+            <small>Estimated from your rental days</small>
+          </article>
         </section>
 
-        <article class="loyalty-card">
-          <div>
-            <span class="eyebrow">SR WALLET</span>
-            <h2>{{ (wallet()?.balance ?? 0) | number }} SR Points</h2>
-            <p>1 SR Point = ₱1 off your next booking.</p>
-          </div>
-          <a routerLink="/tabs/wallet">View Wallet <span aria-hidden="true">→</span></a>
-        </article>
-
-        <section class="activity-card">
-          <div class="section-heading">
-            <div><h2>Recent Activity</h2><p>Your latest bookings and reservations</p></div>
-            <a routerLink="/tabs/bookings">View All History <span aria-hidden="true">→</span></a>
-          </div>
-          @if (loading()) {
-            <p class="empty">Loading activity...</p>
-          } @else if (bookings().length === 0) {
-            <p class="empty">No bookings yet. Start your next adventure.</p>
-          } @else {
-            @for (booking of bookings().slice(0, 3); track booking.id) {
-              <div class="activity-row">
-                <div class="activity-details">
-                  <strong>{{ booking.reference_number }}</strong>
-                  <span>{{ booking.vehicle_name }} · {{ booking.pickup_date }}</span>
-                </div>
-                <b>₱{{ booking.total_price | number }}</b>
-                <span class="status">{{ booking.booking_status }}</span>
+        <section class="dashboard-lower-grid">
+          <article class="customer-panel activity-panel">
+            <div class="panel-heading">
+              <div><span class="section-kicker">YOUR JOURNEY</span><h2>Recent activity</h2><p>Your latest bookings and reservations.</p></div>
+              <a class="panel-link" routerLink="/tabs/bookings">Booking history <ion-icon name="arrow-forward-outline"></ion-icon></a>
+            </div>
+            @if (bookings().length === 0) {
+              <div class="activity-empty">
+                <span><ion-icon name="calendar-outline"></ion-icon></span>
+                <strong>No bookings yet</strong>
+                <p>Your trips will show up here after you make a reservation.</p>
+                <a routerLink="/tabs/rent-a-car">Browse vehicles</a>
+              </div>
+            } @else {
+              <div class="activity-list">
+                @for (booking of bookings().slice(0, 4); track booking.id ?? booking.reference_number) {
+                  <article class="activity-row">
+                    <span class="activity-icon"><ion-icon name="car-outline"></ion-icon></span>
+                    <div class="activity-details">
+                      <strong>{{ booking.vehicle_name }}</strong>
+                      <span>{{ booking.reference_number }} <span class="activity-divider">·</span> {{ booking.pickup_date | date:'MMM d, y' }}</span>
+                    </div>
+                    <div class="activity-total"><strong>₱{{ booking.total_price | number:'1.0-0' }}</strong><span class="booking-status" [class]="'booking-status ' + booking.booking_status">{{ booking.booking_status | titlecase }}</span></div>
+                  </article>
+                }
               </div>
             }
-          }
-        </section>
+          </article>
 
-        <article class="quick-action">
-          <div><h2>Need a ride for your next adventure?</h2><p>Choose from our premium fleet of electric and luxury vehicles.</p></div>
-          <a routerLink="/tabs/rent-a-car">Book New Vehicle</a>
-        </article>
-      </section>
+          <aside class="dashboard-side">
+            <article class="wallet-panel">
+              <div class="wallet-topline"><span class="section-kicker">SMARTDRIVE REWARDS</span><span class="wallet-icon"><ion-icon name="wallet-outline"></ion-icon></span></div>
+              <p class="wallet-label">Your points balance</p>
+              <h2>{{ (wallet()?.balance ?? 0) | number:'1.0-0' }} <span>SR Points</span></h2>
+              <div class="wallet-divider"></div>
+              <p class="wallet-value"><ion-icon name="sparkles-outline"></ion-icon>1 point = ₱1 off your next booking</p>
+              <a routerLink="/tabs/wallet">Open your wallet <ion-icon name="arrow-forward-outline"></ion-icon></a>
+            </article>
+
+            <article class="next-step-panel">
+              <span class="next-step-icon"><ion-icon name="speedometer-outline"></ion-icon></span>
+              <div><span class="section-kicker">PLAN SOMETHING GOOD</span><h3>Where to next?</h3><p>Browse the fleet and find your next ride.</p></div>
+              <a routerLink="/tabs/rent-a-car" aria-label="Browse vehicles"><ion-icon name="arrow-forward-outline"></ion-icon></a>
+            </article>
+          </aside>
+        </section>
+      }
     </main>
   } @else {
-    <div class="empty">Please sign in to view your dashboard.</div>
+    <main class="signed-out-state">
+      <span><ion-icon name="person-outline"></ion-icon></span>
+      <h1>Sign in to your dashboard</h1>
+      <p>Your bookings, rewards, and account activity will be waiting for you.</p>
+      <a routerLink="/login">Log in to SmartDrive</a>
+    </main>
   }
 </ion-content>

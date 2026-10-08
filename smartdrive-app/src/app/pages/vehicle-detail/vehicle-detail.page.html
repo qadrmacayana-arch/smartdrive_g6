@@ -48,26 +48,28 @@
 
       <div class="detail-grid">
         <div class="main-details">
-          @if (v.description) {
-            <section class="details-section">
+          <section class="details-section">
+            <div class="section-heading">
+              <ion-icon name="information-circle-outline"></ion-icon>
               <h2>About this vehicle</h2>
-              <p class="description">{{ v.description }}</p>
-            </section>
-          }
+            </div>
+            <p class="description">{{ getVehicleDescription(v) }}</p>
+          </section>
 
-          @if (v.features?.length) {
-            <section class="details-section">
-              <h2>What's included</h2>
-              <div class="features-grid">
-                @for (feature of v.features; track feature) {
-                  <div class="feature-pill">
-                    <ion-icon name="checkmark-circle"></ion-icon>
-                    {{ feature }}
-                  </div>
-                }
-              </div>
-            </section>
-          }
+          <section class="details-section">
+            <div class="section-heading">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              <h2>Key features</h2>
+            </div>
+            <div class="features-grid">
+              @for (feature of getVehicleFeatures(v); track feature) {
+                <div class="feature-pill">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  {{ feature }}
+                </div>
+              }
+            </div>
+          </section>
         </div>
 
         <aside class="booking-summary">

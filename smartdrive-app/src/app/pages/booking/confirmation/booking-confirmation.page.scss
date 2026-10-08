@@ -4,6 +4,50 @@
   padding-bottom: 1rem;
 }
 
+.booking-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.1rem 0 1.25rem;
+  padding: 0.7rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+
+  span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sd-muted-foreground);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  b {
+    display: grid;
+    width: 1.6rem;
+    height: 1.6rem;
+    flex: 0 0 1.6rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+    font-size: 0.68rem;
+  }
+
+  .completed,
+  .current {
+    color: var(--sd-primary);
+  }
+
+  .current b {
+    background: var(--sd-primary);
+    color: #fff;
+  }
+}
+
 .confirmation-banner {
   padding: 1.25rem 1rem 1rem;
   margin: 0 0 1rem;
@@ -20,6 +64,10 @@
   ion-icon {
     font-size: clamp(3.5rem, 16vw, 5rem);
     color: var(--sd-success);
+
+    &.payment-pending {
+      color: var(--sd-primary);
+    }
   }
 }
 
@@ -95,6 +143,25 @@ ion-button {
 }
 
 @media (max-width: 380px) {
+  .booking-progress {
+    gap: 0.25rem;
+    padding: 0.55rem;
+
+    span {
+      flex: 1;
+      gap: 0.25rem;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.65rem;
+    }
+
+    b {
+      width: 1.35rem;
+      height: 1.35rem;
+      flex-basis: 1.35rem;
+    }
+  }
+
   .detail-row {
     gap: 0.6rem;
     font-size: 0.82rem;

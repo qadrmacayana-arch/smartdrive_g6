@@ -18,7 +18,6 @@ import { WalletBalance } from '../../../core/models/wallet.model';
     IonIcon,
   ],
   templateUrl: './account.page.html',
-  styleUrl: './account.page.scss',
 })
 export class AccountPage implements OnInit {
   readonly currentUser = this.auth.currentUser;
@@ -56,6 +55,10 @@ export class AccountPage implements OnInit {
 
   get activeBookings(): Booking[] {
     return this.bookings().filter((booking) => ['confirmed', 'ongoing'].includes(booking.booking_status));
+  }
+
+  get primaryActiveBooking(): Booking | null {
+    return this.activeBookings[0] ?? null;
   }
 
   get totalSpent(): number {

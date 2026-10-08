@@ -15,18 +15,26 @@
     </section>
     <section class="form-panel">
       <div class="form-content">
-        <div class="form-heading"><div class="form-logo"><ion-icon name="car-outline"></ion-icon></div><div><h1>Create Account</h1><p>START YOUR SMARTDRIVE JOURNEY</p></div></div>
+        <div class="form-heading"><div class="form-logo"><ion-icon name="car-outline"></ion-icon></div><div><h1>{{ googleRegistration() ? 'Complete Registration' : 'Create Account' }}</h1><p>{{ googleRegistration() ? 'FINISH SETTING UP YOUR SMARTDRIVE PROFILE' : 'START YOUR SMARTDRIVE JOURNEY' }}</p></div></div>
         <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
           @if (errorMessage()) { <div id="signup-error" class="auth-alert error" role="alert" tabindex="-1">{{ errorMessage() }}</div> }
           @if (successMessage()) { <div class="auth-alert success">{{ successMessage() }}</div> }
           @if (locationError()) { <div class="auth-alert error" role="alert">{{ locationError() }} <button type="button" class="inline-link" (click)="loadLocations()">Retry</button></div> }
+          @if (googleRegistration()) {
+            <div class="google-registration-note">Google verified <strong>{{ googleEmail() }}</strong>. Complete your profile to finish registration.</div>
+            <label class="profile-photo-field">Profile photo <small>(optional)</small>
+              @if (profilePhotoPreview()) { <img class="profile-photo-preview" [src]="profilePhotoPreview()" alt="Profile photo preview"> }
+              <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onProfilePhotoSelected($event)">
+              <small>JPG, PNG, or WebP up to 5 MB</small>
+            </label>
+          }
           <div class="field-grid">
             <label>First Name<ion-item class="field" lines="none"><ion-input placeholder="Juan" formControlName="firstName" autocomplete="given-name"></ion-input></ion-item></label>
-            <label>Middle Name<ion-item class="field" lines="none"><ion-input placeholder="Santos" formControlName="middleName" autocomplete="additional-name"></ion-input></ion-item></label>
+            <label>Middle Name <small>(optional)</small><ion-item class="field" lines="none"><ion-input placeholder="Santos" formControlName="middleName" autocomplete="additional-name"></ion-input></ion-item></label>
             <label>Surname<ion-item class="field" lines="none"><ion-input placeholder="Dela Cruz" formControlName="surname" autocomplete="family-name"></ion-input></ion-item></label>
             <label>Suffix <small>(optional)</small><ion-item class="field" lines="none"><ion-select placeholder="No suffix" formControlName="suffix" interface="popover"><ion-select-option value="">No suffix</ion-select-option><ion-select-option value="Jr.">Jr.</ion-select-option><ion-select-option value="Sr.">Sr.</ion-select-option><ion-select-option value="II">II</ion-select-option><ion-select-option value="III">III</ion-select-option></ion-select></ion-item></label>
           </div>
-          <label>Birthday<ion-item class="field" lines="none"><ion-input type="date" formControlName="birthday"></ion-input></ion-item></label>
+          <label>Birthday (MM/DD/YYYY)<ion-item class="field" lines="none"><ion-input type="text" placeholder="MM/DD/YYYY" inputmode="numeric" maxlength="10" autocomplete="bday" formControlName="birthday"></ion-input></ion-item></label>
           <label>Street / House No.<ion-item class="field" lines="none"><ion-input placeholder="House no., street, subdivision" formControlName="address" autocomplete="street-address"></ion-input></ion-item></label>
           <div class="field-grid">
             <label>Region<ion-item class="field" lines="none"><ion-select placeholder="Select region" formControlName="region" interface="popover" [disabled]="locationsLoading()" (ionChange)="updateRegion()">@for (region of regions(); track region.code) { <ion-select-option [value]="region.code">{{ region.islandGroup }} — {{ region.name }} ({{ region.regionName }})</ion-select-option> }</ion-select></ion-item></label>
@@ -37,16 +45,22 @@
             <label>Barangay<ion-item class="field" lines="none"><ion-select placeholder="Select barangay" formControlName="barangay" interface="popover" [disabled]="barangaysLoading() || !barangays().length">@for (barangay of barangays(); track barangay.code) { <ion-select-option [value]="barangay.code">{{ barangay.name }}</ion-select-option> }</ion-select><ion-text slot="end">@if (barangaysLoading()) { Loading… }</ion-text></ion-item></label>
           </div>
           <label>Gender<ion-item class="field short" lines="none"><ion-select placeholder="Select Gender" formControlName="gender" interface="popover"><ion-select-option value="male">Male</ion-select-option><ion-select-option value="female">Female</ion-select-option><ion-select-option value="other">Other</ion-select-option><ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option></ion-select></ion-item></label>
-          <label>Email Address<ion-item class="field" lines="none"><ion-input type="email" placeholder="name@example.com" formControlName="email" autocomplete="email"></ion-input></ion-item></label>
+          @if (!googleRegistration()) {
+            <label>Email Address<ion-item class="field" lines="none"><ion-input type="email" placeholder="name@example.com" formControlName="email" autocomplete="email"></ion-input></ion-item></label>
+          }
           <label>Phone Number<ion-item class="field" lines="none"><ion-input type="tel" placeholder="+63 912 345 6789" formControlName="phone" autocomplete="tel"></ion-input></ion-item></label>
-          <div class="field-grid">
-            <label>Password<ion-item class="field" lines="none"><ion-input [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="password" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('password')" class="toggle-icon"></ion-icon></ion-item></label>
-            <label>Confirm Password<ion-item class="field" lines="none"><ion-input [type]="showConfirmPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="confirmPassword" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showConfirmPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('confirmPassword')" class="toggle-icon"></ion-icon></ion-item></label>
-          </div>
-          <p class="field-hint" [class.strong]="passwordStrength() === 'Strong password.'">{{ passwordStrength() }}</p>
+          @if (!googleRegistration()) {
+            <div class="field-grid">
+              <label>Password<ion-item class="field" lines="none"><ion-input [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="password" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('password')" class="toggle-icon"></ion-icon></ion-item></label>
+              <label>Confirm Password<ion-item class="field" lines="none"><ion-input [type]="showConfirmPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="confirmPassword" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showConfirmPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('confirmPassword')" class="toggle-icon"></ion-icon></ion-item></label>
+            </div>
+            <p class="field-hint" [class.strong]="passwordStrength() === 'Strong password.'">{{ passwordStrength() }} Passwords need uppercase, lowercase, a number, and a symbol.</p>
+          }
           <ion-item lines="none" class="remember-item"><ion-checkbox formControlName="agreeToTerms" slot="start"></ion-checkbox><ion-text>I agree to the <button type="button" class="inline-link" (click)="legalOpen.set('terms')">Terms</button> and <button type="button" class="inline-link" (click)="legalOpen.set('privacy')">Privacy Policy</button>.</ion-text></ion-item>
-          <div class="divider"><span>OR</span></div>
-          <ion-button expand="block" fill="outline" type="button" class="google-button" (click)="continueWithGoogle()" [disabled]="submitting() || oauthSubmitting()"><ion-icon slot="start" name="logo-google"></ion-icon>Continue with Google</ion-button>
+          @if (!googleRegistration()) {
+            <div class="divider"><span>OR</span></div>
+            <ion-button expand="block" fill="outline" type="button" class="google-button" (click)="continueWithGoogle()" [disabled]="submitting() || oauthSubmitting()"><ion-icon slot="start" name="logo-google"></ion-icon>Continue with Google</ion-button>
+          }
           <ion-button expand="block" type="submit" class="primary-button" [disabled]="submitting() || oauthSubmitting()">@if (submitting()) { <ion-spinner name="dots"></ion-spinner> } @else { Sign Up Now <span>→</span> }</ion-button>
         </form>
       </div>

@@ -4,74 +4,81 @@
       <header class="dashboard-page-heading">
         <p class="eyebrow">SMARTDRIVE REWARDS</p>
         <h1>SR Wallet</h1>
-        <p>Track your SR Points and use them on future bookings.</p>
+        <p>Your rewards balance and recent points activity, all in one place.</p>
       </header>
 
       <ion-refresher slot="fixed" (ionRefresh)="load($event)">
         <ion-refresher-content></ion-refresher-content>
       </ion-refresher>
 
-      <section class="balance-card" aria-label="Wallet balance">
-        <div class="balance-header">
-          <p class="balance-label">Available Balance</p>
-          <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
-        </div>
-        <h2 class="balance-amount">{{ (balance()?.balance ?? 0) | number }} <small>pts</small></h2>
-        <div class="balance-stats">
-          <div>
-            <span class="balance-stat-label">Earned</span>
-            <strong>{{ (balance()?.total_earned ?? 0) | number }}</strong>
+      <div class="wallet-overview">
+        <section class="balance-card" aria-label="Wallet balance">
+          <div class="balance-header">
+            <span class="balance-label"><ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon> SR POINTS</span>
+            <ion-icon class="balance-symbol" name="wallet-outline" aria-hidden="true"></ion-icon>
           </div>
-          <div>
-            <span class="balance-stat-label">Spent</span>
-            <strong>{{ (balance()?.total_spent ?? 0) | number }}</strong>
+          <p class="balance-caption">Available balance</p>
+          <h2 class="balance-amount">{{ (balance()?.balance ?? 0) | number }} <small>pts</small></h2>
+          <div class="balance-stats">
+            <div>
+              <span class="balance-stat-label"><ion-icon name="trending-up-outline"></ion-icon> Earned</span>
+              <strong>{{ (balance()?.total_earned ?? 0) | number }}</strong>
+            </div>
+            <div>
+              <span class="balance-stat-label"><ion-icon name="card-outline"></ion-icon> Spent</span>
+              <strong>{{ (balance()?.total_spent ?? 0) | number }}</strong>
+            </div>
           </div>
-        </div>
-        <ion-button expand="block" class="sd-gradient-btn top-up-btn" (click)="openTopUp()">
-          <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-          Top Up Points
-        </ion-button>
-      </section>
+          <ion-button expand="block" class="sd-gradient-btn top-up-btn" (click)="openTopUp()">
+            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+            Top Up Points
+          </ion-button>
+          <p class="balance-footnote">Use SR Points toward eligible future bookings.</p>
+        </section>
 
-      <section class="wallet-history">
-        <div class="history-heading">
-          <div>
-            <h2>Transaction History</h2>
-            <p>Your recent SR Wallet activity</p>
+        <section class="wallet-history">
+          <div class="history-heading">
+            <div>
+              <span class="history-kicker">YOUR ACTIVITY</span>
+              <h2>Transaction History</h2>
+              <p>Your recent SR Wallet activity</p>
+            </div>
+            <span class="history-mark" aria-hidden="true"><ion-icon name="receipt-outline"></ion-icon></span>
           </div>
-        </div>
 
-        @if (loading()) {
-          <p class="sd-muted history-loading">Loading...</p>
-        } @else if (errorMessage()) {
-          <div class="sd-empty-state wallet-empty">
-            <ion-icon name="alert-circle-outline"></ion-icon>
-            <p>{{ errorMessage() }}</p>
-          </div>
-        } @else if (transactions().length === 0) {
-          <div class="sd-empty-state wallet-empty">
-            <ion-icon name="wallet-outline"></ion-icon>
-            <p>No transactions yet.</p>
-          </div>
-        } @else {
-          <div class="transaction-list">
-            @for (tx of transactions(); track tx.id) {
-              <div class="sd-card tx-row">
-                <div class="tx-icon" [class.negative]="tx.amount < 0">
-                  <ion-icon [name]="iconFor(tx.type)"></ion-icon>
+          @if (loading()) {
+            <p class="sd-muted history-loading">Loading...</p>
+          } @else if (errorMessage()) {
+            <div class="sd-empty-state wallet-empty">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>{{ errorMessage() }}</p>
+            </div>
+          } @else if (transactions().length === 0) {
+            <div class="sd-empty-state wallet-empty">
+              <ion-icon name="wallet-outline"></ion-icon>
+              <p>No transactions yet.</p>
+              <span>Your points activity will appear here.</span>
+            </div>
+          } @else {
+            <div class="transaction-list">
+              @for (tx of transactions(); track tx.id) {
+                <div class="sd-card tx-row">
+                  <div class="tx-icon" [class.negative]="tx.amount < 0">
+                    <ion-icon [name]="iconFor(tx.type)"></ion-icon>
+                  </div>
+                  <div class="tx-info">
+                    <p class="tx-desc">{{ tx.description }}</p>
+                    <p class="sd-muted tx-date">{{ tx.created_at | date: 'MMM d, y, h:mm a' }}</p>
+                  </div>
+                  <span class="tx-amount" [class.negative]="tx.amount < 0">
+                    {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount | number }}
+                  </span>
                 </div>
-                <div class="tx-info">
-                  <p class="tx-desc">{{ tx.description }}</p>
-                  <p class="sd-muted tx-date">{{ tx.created_at | date: 'MMM d, y, h:mm a' }}</p>
-                </div>
-                <span class="tx-amount" [class.negative]="tx.amount < 0">
-                  {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount | number }}
-                </span>
-              </div>
-            }
-          </div>
-        }
-      </section>
+              }
+            </div>
+          }
+        </section>
+      </div>
     </section>
   </main>
 
