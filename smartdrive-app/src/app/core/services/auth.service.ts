@@ -278,6 +278,11 @@ export class AuthService {
     }
   }
 
+  clearGoogleOAuthIntent(): void {
+    localStorage.removeItem('smartdrive_google_oauth_intent');
+    localStorage.removeItem('smartdrive_google_oauth_intent_started_at');
+  }
+
   async completeGoogleSignup(payload: SignupPayload): Promise<void> {
     const { data: userData, error: userError } = await this.supabase.client.auth.getUser();
     const user = userData.user;

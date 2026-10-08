@@ -142,6 +142,13 @@ ion-button {
   text-transform: none;
 }
 
+.share-status {
+  margin: 0.1rem 0 0.75rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
 @media (max-width: 380px) {
   .booking-progress {
     gap: 0.25rem;

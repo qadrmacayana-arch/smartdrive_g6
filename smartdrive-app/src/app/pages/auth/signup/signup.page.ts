@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, effect, HostListener, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -129,6 +129,8 @@ export class SignupPage implements OnInit, OnDestroy {
   readonly showPassword = signal(false);
   readonly showConfirmPassword = signal(false);
   readonly oauthSubmitting = signal(false);
+  private oauthStartedRoute: string | null = null;
+  private oauthResumeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -177,6 +179,7 @@ export class SignupPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.profilePhotoObjectUrl) URL.revokeObjectURL(this.profilePhotoObjectUrl);
+    if (this.oauthResumeTimer) clearTimeout(this.oauthResumeTimer);
   }
 
   onProfilePhotoSelected(event: Event): void {
@@ -302,8 +305,32 @@ export class SignupPage implements OnInit, OnDestroy {
     return 'Strong password.';
   }
 
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    this.resetOAuthAfterReturn();
+  }
+
+  @HostListener('window:focus')
+  onWindowFocus(): void {
+    this.resetOAuthAfterReturn();
+  }
+
+  private resetOAuthAfterReturn(): void {
+    if (document.visibilityState === 'hidden' || !this.oauthSubmitting() || this.oauthResumeTimer) return;
+
+    this.oauthResumeTimer = setTimeout(() => {
+      this.oauthResumeTimer = null;
+      if (!this.oauthSubmitting() || this.router.url !== this.oauthStartedRoute || this.auth.currentUser()) return;
+
+      this.auth.clearGoogleOAuthIntent();
+      this.oauthSubmitting.set(false);
+      this.errorMessage.set('Google sign-up was cancelled. You can try again or create an account with email.');
+    }, 1200);
+  }
+
   async continueWithGoogle(): Promise<void> {
     this.errorMessage.set(null);
+    this.oauthStartedRoute = this.router.url;
     this.oauthSubmitting.set(true);
     try {
       await this.auth.signInWithGoogle('registration');

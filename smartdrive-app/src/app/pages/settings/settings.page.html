@@ -165,6 +165,31 @@
         </form>
       </section>
 
+      <section class="settings-card notification-card">
+        <header class="settings-card-heading">
+          <span class="settings-icon"><ion-icon name="notifications-outline"></ion-icon></span>
+          <div><h2>Notifications</h2><p>Choose whether SmartDrive alerts are enabled on this device.</p></div>
+        </header>
+        <div class="notification-setting">
+          <div>
+            <strong>Booking and account updates</strong>
+            <p>Save your notification preference for this account on this device.</p>
+            @if (notificationStatus()) {
+              <span class="notification-status" role="status">{{ notificationStatus() }}</span>
+            } @else {
+              <span class="notification-status" role="status">
+                Notifications are {{ notificationsEnabled() ? 'on' : 'off' }}.
+              </span>
+            }
+          </div>
+          <ion-toggle
+            [checked]="notificationsEnabled()"
+            (ionChange)="setNotifications($event)"
+            aria-label="Enable SmartDrive notifications"
+          ></ion-toggle>
+        </div>
+      </section>
+
       <section class="settings-card">
         <header class="settings-card-heading">
           <span class="settings-icon"><ion-icon name="lock-closed-outline"></ion-icon></span>

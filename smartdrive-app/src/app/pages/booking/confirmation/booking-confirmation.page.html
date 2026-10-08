@@ -70,10 +70,18 @@
       </div>
     </div>
 
-    <ion-button expand="block" class="sd-gradient-btn" (click)="share()">
-      <ion-icon slot="start" name="share-social-outline"></ion-icon>
-      Share Receipt
+    <ion-button expand="block" class="sd-gradient-btn" (click)="share()" [disabled]="sharing()">
+      @if (sharing()) {
+        <ion-spinner slot="start" name="dots"></ion-spinner>
+        Preparing receipt…
+      } @else {
+        <ion-icon slot="start" name="share-social-outline"></ion-icon>
+        Share Receipt
+      }
     </ion-button>
+    @if (shareMessage()) {
+      <p class="share-status" role="status">{{ shareMessage() }}</p>
+    }
     <ion-button expand="block" fill="outline" (click)="viewBookings()">View My Bookings</ion-button>
     <ion-button expand="block" fill="clear" (click)="goHome()">Back to Home</ion-button>
   }

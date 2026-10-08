@@ -20,6 +20,7 @@ import {
   IonDatetime,
   IonDatetimeButton,
   IonModal,
+  IonToggle,
   AlertController,
 } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
@@ -69,6 +70,7 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
     IonDatetime,
     IonDatetimeButton,
     IonModal,
+    IonToggle,
   ],
   templateUrl: './settings.page.html',
   styleUrl: './settings.page.scss',
@@ -118,6 +120,8 @@ export class SettingsPage implements OnInit, OnDestroy {
   readonly savingPassword = signal(false);
   readonly message = signal<string | null>(null);
   readonly isError = signal(false);
+  readonly notificationsEnabled = signal(false);
+  readonly notificationStatus = signal<string | null>(null);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -131,6 +135,9 @@ export class SettingsPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     const user = this.auth.currentUser();
     if (!user) return;
+    this.notificationsEnabled.set(
+      localStorage.getItem(this.notificationPreferenceKey(user.id)) === 'true',
+    );
     const nameParts = this.nameParts(user.fullName);
     this.profileForm.patchValue({
       firstName: user.firstName || nameParts.firstName,
@@ -143,6 +150,31 @@ export class SettingsPage implements OnInit, OnDestroy {
       phone: user.phone ?? '',
     });
     void this.loadLocations();
+  }
+
+  setNotifications(event: CustomEvent<{ checked: boolean }>): void {
+    const user = this.currentUser();
+    if (!user) {
+      this.notificationStatus.set('Sign in again to update notification settings.');
+      return;
+    }
+
+    const enabled = event.detail.checked;
+    try {
+      localStorage.setItem(this.notificationPreferenceKey(user.id), String(enabled));
+      this.notificationsEnabled.set(enabled);
+      this.notificationStatus.set(
+        enabled ? 'Notifications are on for this device.' : 'Notifications are turned off.',
+      );
+    } catch (error) {
+      console.error('Unable to save notification preferences.', error);
+      this.notificationsEnabled.set(!enabled);
+      this.notificationStatus.set('Unable to save this notification preference. Please try again.');
+    }
+  }
+
+  private notificationPreferenceKey(userId: string): string {
+    return `smartdrive_notifications_enabled:${userId}`;
   }
 
   ngOnDestroy(): void {

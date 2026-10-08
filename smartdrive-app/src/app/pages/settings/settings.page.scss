@@ -125,6 +125,40 @@
   }
 }
 
+.notification-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 16px;
+  background: var(--sd-background);
+
+  strong {
+    color: var(--sd-heading);
+    font-size: 0.85rem;
+  }
+
+  p {
+    margin: 0.2rem 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+
+  ion-toggle {
+    flex: 0 0 auto;
+    --track-background-checked: var(--sd-primary);
+  }
+}
+
+.notification-status {
+  color: var(--sd-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
 .avatar-settings {
   display: flex;
   align-items: center;
