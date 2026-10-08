@@ -213,13 +213,13 @@ h2 {
   position: fixed;
   z-index: 5;
   right: 0;
-  bottom: 0;
+  bottom: calc(96px + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
   left: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem max(1.25rem, calc((100% - 1040px) / 2)) calc(0.75rem + env(safe-area-inset-bottom));
+  padding: 0.75rem max(1.25rem, calc((100% - 1040px) / 2)) calc(0.75rem + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
   border-top: 1px solid var(--sd-border);
   background: var(--sd-card);
 }

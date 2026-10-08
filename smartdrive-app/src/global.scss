@@ -95,6 +95,34 @@ ion-tab-button.tab-selected {
 }
 
 /* ---------- SmartDrive shared utility classes ---------- */
+
+ion-app.android-native {
+  --android-safe-area-top: max(
+    48px,
+    var(--safe-area-inset-top, env(safe-area-inset-top, 0px))
+  );
+  --android-safe-area-bottom: max(
+    28px,
+    var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))
+  );
+}
+
+ion-app.android-native ion-header {
+  padding-top: var(--android-safe-area-top);
+}
+
+ion-app.android-native ion-content[fullscreen]:not(.menu-content) {
+  --padding-top: var(--android-safe-area-top);
+  --padding-bottom: var(--android-safe-area-bottom);
+}
+
+ion-app.android-native.customer-navigation-visible ion-content[fullscreen]:not(.menu-content) {
+  --padding-bottom: calc(96px + var(--android-safe-area-bottom));
+}
+
+ion-app.android-native .about-subnav {
+  top: var(--android-safe-area-top);
+}
 ion-content {
   --background: var(--sd-background);
 }

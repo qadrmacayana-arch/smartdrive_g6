@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import {
   IonApp,
   IonRouterOutlet,
@@ -42,6 +43,7 @@ import { AuthService } from './core/services/auth.service';
 export class AppComponent {
   readonly currentUser = this.auth.currentUser;
   readonly avatarLoadFailedUrl = signal<string | null>(null);
+  readonly isAndroid = Capacitor.getPlatform() === 'android';
 
   constructor(
     private readonly auth: AuthService,
