@@ -99,6 +99,7 @@
                 label="Subject"
                 labelPlacement="stacked"
                 placeholder="What went wrong?"
+                minlength="3"
                 maxlength="120"
                 [value]="ticketSubject()"
                 (ionInput)="ticketSubject.set($event.detail.value ?? '')"
@@ -110,6 +111,7 @@
                 placeholder="Tell us what happened and what you expected."
                 [autoGrow]="true"
                 rows="3"
+                minlength="5"
                 maxlength="2000"
                 [value]="ticketDescription()"
                 (ionInput)="ticketDescription.set($event.detail.value ?? '')"
@@ -117,7 +119,7 @@
               ></ion-textarea>
               <div class="ticket-actions">
                 <ion-button type="button" fill="clear" (click)="ticketFormOpen.set(false)">Cancel</ion-button>
-                <ion-button type="submit" [disabled]="submittingTicket() || !ticketSubject().trim() || !ticketDescription().trim()">
+                <ion-button type="submit" [disabled]="submittingTicket() || ticketSubject().trim().length < 3 || ticketDescription().trim().length < 5">
                   {{ submittingTicket() ? 'Sending…' : 'Send report' }}
                 </ion-button>
               </div>

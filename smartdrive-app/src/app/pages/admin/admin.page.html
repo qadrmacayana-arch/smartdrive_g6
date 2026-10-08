@@ -404,7 +404,7 @@
                 } @empty { <p class="empty">No internal notes recorded.</p> }
                 <form class="support-note-form" (submit)="$event.preventDefault(); saveSupportNote()">
                   <textarea aria-label="Internal support note" placeholder="Add a follow-up note for the admin team..." maxlength="2000" [ngModel]="supportNoteDraft()" (ngModelChange)="supportNoteDraft.set($event)" name="supportNote" required></textarea>
-                  <button class="primary-action" type="submit" [disabled]="savingSupportNote() || !supportNoteDraft().trim()">{{ savingSupportNote() ? 'Saving…' : 'Save internal note' }}</button>
+                  <button class="primary-action" type="submit" [disabled]="savingSupportNote() || !supportNoteDraft().trim() || supportNoteDraft().trim().length > 2000">{{ savingSupportNote() ? 'Saving…' : 'Save internal note' }}</button>
                 </form>
               </div>
             } @else {

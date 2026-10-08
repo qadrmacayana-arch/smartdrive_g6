@@ -238,7 +238,7 @@ export class FaqPage implements OnInit, OnDestroy {
     const conversation = this.conversation();
     const subject = this.ticketSubject().trim();
     const description = this.ticketDescription().trim();
-    if (!userId || !conversation || !subject || !description || this.submittingTicket()) return;
+    if (!userId || !conversation || subject.length < 3 || description.length < 5 || this.submittingTicket()) return;
 
     this.submittingTicket.set(true);
     this.supportError.set(null);
