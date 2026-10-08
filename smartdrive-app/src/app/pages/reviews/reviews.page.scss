@@ -8,6 +8,13 @@
   }
 }
 
+.reviews-content {
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --padding-top: 0.35rem;
+  --padding-bottom: 1rem;
+}
+
 .reviews-page {
   width: min(100%, 900px);
   margin: 0 auto;
@@ -15,7 +22,7 @@
 }
 
 .reviews-intro {
-  margin: 0.4rem 0 1.5rem;
+  margin: 0 0 1.25rem;
   text-align: center;
 
   h1 {
