@@ -18,6 +18,13 @@ import { SupabaseService } from '../../core/services/supabase.service';
 import { Booking } from '../../core/models/booking.model';
 import { DemoTrackingService } from '../../core/services/demo-tracking.service';
 import { FleetForecast, PredictiveInsightsService } from '../../core/services/predictive-insights.service';
+import {
+  SupportAdminNote,
+  SupportConversation,
+  SupportConversationService,
+  SupportMessage,
+  SupportTicket,
+} from '../../core/services/support-conversation.service';
 
 interface AdminStats {
   revenue: number;
@@ -26,7 +33,7 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking';
+type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'promos';
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
@@ -43,6 +50,18 @@ interface AdminLocation {
   is_demo?: boolean;
 }
 interface UserTransactionSummary { user: AdminUser; balance: number; transactions: Array<{ created_at?: string; description: string; amount: number }>; bookings: Booking[]; }
+interface AdminPromo {
+  id: number;
+  code: string;
+  description: string | null;
+  discount_percent: number;
+  max_uses: number | null;
+  current_uses: number;
+  min_spend: number;
+  valid_from: string | null;
+  valid_until: string | null;
+  is_active: boolean;
+}
 
 @Component({
   selector: 'app-admin',
@@ -67,6 +86,7 @@ export class AdminPage implements OnInit {
   private readonly supabase = inject(SupabaseService);
   private readonly demoTracking = inject(DemoTrackingService);
   private readonly predictiveInsights = inject(PredictiveInsightsService);
+  private readonly supportService = inject(SupportConversationService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
@@ -96,6 +116,25 @@ export class AdminPage implements OnInit {
   readonly users = signal<AdminUser[]>([]);
   readonly vehicles = signal<any[]>([]);
   readonly reviews = signal<AdminReview[]>([]);
+  readonly supportConversations = signal<SupportConversation[]>([]);
+  readonly supportTickets = signal<SupportTicket[]>([]);
+  readonly supportMessages = signal<SupportMessage[]>([]);
+  readonly supportNotes = signal<SupportAdminNote[]>([]);
+  readonly selectedSupportConversation = signal<SupportConversation | null>(null);
+  readonly supportNoteDraft = signal('');
+  readonly savingSupportNote = signal(false);
+  readonly promoCodes = signal<AdminPromo[]>([]);
+  readonly promoFeedback = signal<string | null>(null);
+  readonly savingPromo = signal(false);
+  readonly newPromo = {
+    code: '',
+    description: '',
+    discountPercent: 10,
+    maxUses: null as number | null | '',
+    minSpend: 0,
+    validFrom: '',
+    validUntil: '',
+  };
   readonly locations = signal<AdminLocation[]>([]);
   readonly trackingColorsByKey = computed(() => {
     const keys = [...new Set(this.locations().map((location) => location.key))].sort();
@@ -157,6 +196,8 @@ export class AdminPage implements OnInit {
       if (section === 'fleet') await this.loadFleet();
       if (section === 'reviews') await this.loadReviews();
       if (section === 'tracking') await this.loadLocations();
+      if (section === 'support') await this.loadSupport();
+      if (section === 'promos') await this.loadPromos();
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : `Unable to load ${section}.`);
     } finally {
@@ -204,6 +245,159 @@ export class AdminPage implements OnInit {
     const { data, error } = await this.supabase.client.from('reviews').select('*').order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     this.reviews.set((data ?? []) as AdminReview[]);
+  }
+
+  private async loadSupport(): Promise<void> {
+    const [conversations, tickets] = await Promise.all([
+      this.supportService.listConversations(),
+      this.supportService.listTickets(),
+    ]);
+    this.supportConversations.set(conversations);
+    this.supportTickets.set(tickets);
+    if (this.selectedSupportConversation()) {
+      const selected = conversations.find((item) => item.id === this.selectedSupportConversation()?.id);
+      if (selected) await this.selectSupportConversation(selected);
+      else this.selectedSupportConversation.set(null);
+    }
+  }
+
+  private async loadPromos(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('discount_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    this.promoCodes.set((data ?? []) as AdminPromo[]);
+  }
+
+  async selectSupportConversation(conversation: SupportConversation): Promise<void> {
+    this.selectedSupportConversation.set(conversation);
+    this.errorMessage.set(null);
+    try {
+      const [messages, notes] = await Promise.all([
+        this.supportService.listMessages(conversation.id),
+        this.supportService.listAdminNotes(conversation.id),
+      ]);
+      this.supportMessages.set(messages);
+      this.supportNotes.set(notes);
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load this support conversation.');
+    }
+  }
+
+  async saveSupportNote(): Promise<void> {
+    const conversation = this.selectedSupportConversation();
+    const adminId = this.currentUser()?.id;
+    const note = this.supportNoteDraft().trim();
+    if (!conversation || !adminId || !note || this.savingSupportNote()) return;
+
+    this.savingSupportNote.set(true);
+    this.errorMessage.set(null);
+    try {
+      const saved = await this.supportService.addAdminNote(conversation.id, adminId, note);
+      this.supportNotes.update((items) => [...items, saved]);
+      this.supportNoteDraft.set('');
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to save the internal note.');
+    } finally {
+      this.savingSupportNote.set(false);
+    }
+  }
+
+  async updateSupportTicketStatus(ticket: SupportTicket, status: SupportTicket['status']): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      await this.supportService.updateTicketStatus(ticket.id, status);
+      this.supportTickets.update((items) => items.map((item) => item.id === ticket.id ? { ...item, status } : item));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update the support ticket.');
+    }
+  }
+
+  conversationNumber(conversationId: string): string {
+    return this.supportConversations().find((item) => item.id === conversationId)?.conversation_number ?? conversationId;
+  }
+
+  updateTicketStatusFromSelect(ticket: SupportTicket, status: string): void {
+    if (status === 'open' || status === 'in_progress' || status === 'resolved') {
+      void this.updateSupportTicketStatus(ticket, status);
+    }
+  }
+
+  async togglePromo(promo: AdminPromo): Promise<void> {
+    this.errorMessage.set(null);
+    const isActive = !promo.is_active;
+    try {
+      const { error } = await this.supabase.client
+        .from('discount_codes')
+        .update({ is_active: isActive })
+        .eq('id', promo.id);
+      if (error) throw new Error(error.message);
+      this.promoCodes.update((items) => items.map((item) => item.id === promo.id ? { ...item, is_active: isActive } : item));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update the promo code.');
+    }
+  }
+
+  async savePromo(): Promise<void> {
+    const code = this.newPromo.code.trim().toUpperCase();
+    const discountPercent = Number(this.newPromo.discountPercent);
+    const maxUses = this.newPromo.maxUses === null || this.newPromo.maxUses === ''
+      ? null
+      : Number(this.newPromo.maxUses);
+    const minSpend = Number(this.newPromo.minSpend);
+    if (!/^[A-Z0-9_-]{3,30}$/.test(code)) {
+      this.promoFeedback.set('Use 3–30 letters, numbers, hyphens, or underscores for the code.');
+      return;
+    }
+    if (!Number.isFinite(discountPercent) || discountPercent <= 0 || discountPercent > 100) {
+      this.promoFeedback.set('Discount must be greater than 0% and no more than 100%.');
+      return;
+    }
+    if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1)) {
+      this.promoFeedback.set('Maximum uses must be a positive whole number or left blank.');
+      return;
+    }
+    if (!Number.isFinite(minSpend) || minSpend < 0) {
+      this.promoFeedback.set('Minimum spend must be zero or more.');
+      return;
+    }
+    const validFrom = this.newPromo.validFrom ? new Date(`${this.newPromo.validFrom}T00:00:00`).toISOString() : null;
+    const validUntil = this.newPromo.validUntil ? new Date(`${this.newPromo.validUntil}T23:59:59`).toISOString() : null;
+    if (validFrom && validUntil && new Date(validUntil) < new Date(validFrom)) {
+      this.promoFeedback.set('The end date must be on or after the start date.');
+      return;
+    }
+
+    this.savingPromo.set(true);
+    this.promoFeedback.set(null);
+    try {
+      const { error } = await this.supabase.client.from('discount_codes').insert({
+        code,
+        description: this.newPromo.description.trim() || null,
+        discount_percent: discountPercent,
+        max_uses: maxUses,
+        current_uses: 0,
+        min_spend: minSpend,
+        valid_from: validFrom,
+        valid_until: validUntil,
+        is_active: true,
+      });
+      if (error) throw new Error(error.message);
+      this.newPromo.code = '';
+      this.newPromo.description = '';
+      this.newPromo.discountPercent = 10;
+      this.newPromo.maxUses = null;
+      this.newPromo.minSpend = 0;
+      this.newPromo.validFrom = '';
+      this.newPromo.validUntil = '';
+      this.promoFeedback.set('Promo code created.');
+      await this.loadPromos();
+    } catch (error) {
+      this.promoFeedback.set(error instanceof Error ? error.message : 'Could not create promo code.');
+    } finally {
+      this.savingPromo.set(false);
+    }
   }
 
   private async loadLocations(): Promise<void> {

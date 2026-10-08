@@ -20,21 +20,42 @@
         <span class="chatbot-icon"><ion-icon [icon]="chatIcon"></ion-icon></span>
         <div>
           <h2>Chat with SmartDrive</h2>
-          <p>Instant answers to common questions</p>
+          <p>Instant answers · conversations are saved securely</p>
         </div>
-        <span class="online-indicator">ONLINE</span>
+        @if (conversation(); as activeConversation) {
+          <span class="online-indicator" [class.offline]="activeConversation.status !== 'open'">
+            {{ activeConversation.status === 'open' ? 'ONLINE' : activeConversation.status | uppercase }}
+          </span>
+        }
       </header>
 
-      <div #chatMessages class="chat-messages" aria-live="polite" aria-relevant="additions">
-        @for (message of messages(); track $index) {
-          <div class="chat-message" [class.user-message]="message.role === 'user'">
-            @if (message.role === 'bot') {
-              <span class="message-avatar"><ion-icon name="sparkles-outline"></ion-icon></span>
-            }
-            <p>{{ message.text }}</p>
-          </div>
-        }
-      </div>
+      @if (conversation(); as activeConversation) {
+        <div class="conversation-meta">
+          <span>Session <strong>{{ activeConversation.conversation_number }}</strong></span>
+          @if (activeConversation.status === 'open') {
+            <ion-button size="small" fill="clear" class="end-chat-button" (click)="endConversation()" [disabled]="ending()">
+              {{ ending() ? 'Ending…' : 'End chat' }}
+            </ion-button>
+          } @else {
+            <ion-button size="small" fill="clear" (click)="returnToCurrentConversation()">Start a new chat</ion-button>
+          }
+        </div>
+      }
+
+      @if (loadingConversation()) {
+        <div class="chat-loading">Loading your saved conversation…</div>
+      } @else {
+        <div #chatMessages class="chat-messages" aria-live="polite" aria-relevant="additions">
+          @for (message of messages(); track $index) {
+            <div class="chat-message" [class.user-message]="message.role === 'user'">
+              @if (message.role === 'bot') {
+                <span class="message-avatar"><ion-icon name="sparkles-outline"></ion-icon></span>
+              }
+              <p>{{ message.text }}</p>
+            </div>
+          }
+        </div>
+      }
 
       <div class="suggested-questions" aria-label="Suggested questions">
         @for (question of suggestedQuestions; track question) {
@@ -49,11 +70,89 @@
           [value]="draft()"
           (ionInput)="draft.set($event.detail.value ?? '')"
           maxlength="500"
+          [disabled]="loadingConversation() || sending() || viewedConversationId() !== conversation()?.id"
         ></ion-input>
-        <ion-button type="submit" aria-label="Send message" [disabled]="!draft().trim()">
-          <ion-icon slot="icon-only" [icon]="sendIcon"></ion-icon>
+        <ion-button type="submit" aria-label="Send message" [disabled]="!draft().trim() || loadingConversation() || sending() || viewedConversationId() !== conversation()?.id">
+          @if (sending()) {
+            <ion-spinner name="dots"></ion-spinner>
+          } @else {
+            <ion-icon slot="icon-only" [icon]="sendIcon"></ion-icon>
+          }
         </ion-button>
       </form>
+
+      @if (supportError()) {
+        <p class="support-feedback error" role="alert">{{ supportError() }}</p>
+      }
+      @if (supportNotice()) {
+        <p class="support-feedback notice" role="status">{{ supportNotice() }}</p>
+      }
+
+      @if (conversation()?.status === 'open') {
+        <div class="report-problem">
+          @if (!ticketFormOpen()) {
+            <ion-button size="small" fill="outline" (click)="ticketFormOpen.set(true)">Report a problem</ion-button>
+          } @else {
+            <form class="ticket-form" (ngSubmit)="submitTicket()">
+              <h3>Report a problem</h3>
+              <ion-input
+                label="Subject"
+                labelPlacement="stacked"
+                placeholder="What went wrong?"
+                maxlength="120"
+                [value]="ticketSubject()"
+                (ionInput)="ticketSubject.set($event.detail.value ?? '')"
+                required
+              ></ion-input>
+              <ion-textarea
+                label="Details"
+                labelPlacement="stacked"
+                placeholder="Tell us what happened and what you expected."
+                [autoGrow]="true"
+                rows="3"
+                maxlength="2000"
+                [value]="ticketDescription()"
+                (ionInput)="ticketDescription.set($event.detail.value ?? '')"
+                required
+              ></ion-textarea>
+              <div class="ticket-actions">
+                <ion-button type="button" fill="clear" (click)="ticketFormOpen.set(false)">Cancel</ion-button>
+                <ion-button type="submit" [disabled]="submittingTicket() || !ticketSubject().trim() || !ticketDescription().trim()">
+                  {{ submittingTicket() ? 'Sending…' : 'Send report' }}
+                </ion-button>
+              </div>
+            </form>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="support-history" aria-labelledby="support-history-title">
+      <h2 id="support-history-title">My support history</h2>
+      @if (conversations().length) {
+        <div class="history-list">
+          @for (item of conversations(); track item.id) {
+            <button type="button" class="history-item" [class.selected]="viewedConversationId() === item.id" (click)="viewConversation(item)">
+              <span><strong>{{ item.conversation_number }}</strong><small>{{ item.created_at | date:'medium' }}</small></span>
+              <span class="history-status" [class.open]="item.status === 'open'">{{ item.status | titlecase }}</span>
+            </button>
+          }
+        </div>
+      } @else if (!loadingConversation()) {
+        <p class="history-empty">Your saved conversations will appear here.</p>
+      }
+      @if (conversation() && viewedConversationId() !== conversation()?.id) {
+        <ion-button size="small" fill="outline" (click)="returnToCurrentConversation()">Return to current chat</ion-button>
+      }
+      @if (tickets().length) {
+        <h3 class="ticket-history-title">Reported problems</h3>
+        @for (ticket of tickets(); track ticket.id) {
+          <div class="ticket-history-item">
+            <strong>{{ ticket.subject }}</strong>
+            <span>{{ ticket.status | titlecase }} · {{ ticket.created_at | date:'mediumDate' }}</span>
+          </div>
+        }
+      }
     </section>
 
     <h2 class="faq-list-heading">Popular questions</h2>

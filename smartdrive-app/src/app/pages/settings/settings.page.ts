@@ -34,7 +34,7 @@ import {
 } from '../../core/services/philippine-location.service';
 import { Profile } from '../../core/models/profile.model';
 import { NotificationCenterService } from '../../core/services/notification-center.service';
-import { notificationsOutline } from 'ionicons/icons';
+import { notificationsOutline, settingsOutline } from 'ionicons/icons';
 
 function profileGender(value: string | null | undefined): Profile['gender'] {
   if (value === 'male' || value === 'female' || value === 'other') return value;
@@ -79,6 +79,7 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
 })
 export class SettingsPage implements OnInit, OnDestroy {
   readonly notificationIcon = notificationsOutline;
+  readonly settingsIcon = settingsOutline;
   readonly ncrRegionCode = '130000000';
   readonly currentUser = this.auth.currentUser;
   readonly regions = signal<PhilippineRegion[]>([]);

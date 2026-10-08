@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>Notifications</ion-title>
+    <ion-title><ion-icon class="notifications-title-icon" [icon]="notificationIcon" aria-hidden="true"></ion-icon>Notifications</ion-title>
     <ion-buttons slot="end">
       <ion-button aria-label="Refresh notifications" (click)="loadNotifications()">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -61,7 +61,7 @@
       </section>
     } @else {
       <div class="notifications-empty">
-        <ion-icon name="notifications-outline"></ion-icon>
+        <ion-icon [icon]="notificationIcon" aria-hidden="true"></ion-icon>
         <h2>You're all caught up</h2>
         <p>New vehicles and offers will show up here.</p>
       </div>

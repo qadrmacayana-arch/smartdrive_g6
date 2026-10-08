@@ -50,6 +50,15 @@
         <a class="nav-item" [class.active]="section() === 'reviews'" [attr.aria-current]="section() === 'reviews' ? 'page' : null" (click)="openSection('reviews')">
           <ion-icon name="star-outline"></ion-icon><span>Reviews</span>
         </a>
+        <span class="nav-group-label">CUSTOMER CARE</span>
+        <a class="nav-item" [class.active]="section() === 'support'" [attr.aria-current]="section() === 'support' ? 'page' : null" (click)="openSection('support')">
+          <ion-icon name="chatbubbles-outline"></ion-icon><span>Support inbox</span>
+          @if (supportTickets().length) { <span class="nav-live-dot" aria-label="Support tickets available"></span> }
+        </a>
+        <span class="nav-group-label">GROWTH</span>
+        <a class="nav-item" [class.active]="section() === 'promos'" [attr.aria-current]="section() === 'promos' ? 'page' : null" (click)="openSection('promos')">
+          <ion-icon name="pricetag-outline"></ion-icon><span>Promo codes</span>
+        </a>
       </nav>
 
       <div class="sidebar-account">
@@ -63,7 +72,7 @@
       <header class="dashboard-heading">
         <div>
           <p class="eyebrow">SMARTDRIVE <span>/</span> {{ section() | titlecase }}</p>
-          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() | titlecase) }}</h1>
+          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
           <p class="subtitle">
             @switch (section()) {
               @case ('overview') { Here's what's happening across your rental business today. }
@@ -73,6 +82,8 @@
               @case ('transactions') { Review wallet balances, bookings, and transaction history. }
               @case ('reviews') { See what customers are saying about their experience. }
               @case ('tracking') { View the latest reported and sample vehicle locations. }
+              @case ('support') { Review saved conversations, reported problems, and internal follow-up notes. }
+              @case ('promos') { Create and manage discount codes available at checkout. }
             }
           </p>
         </div>
@@ -357,6 +368,86 @@
               } @empty { <p class="empty">No location updates yet.</p> }
             </div>
           </section>
+        </section>
+      }
+
+      @if (section() === 'support') {
+        <section class="support-admin-layout">
+          <section class="data-card admin-module">
+            <div class="section-heading"><div><span class="section-kicker">SAVED SESSIONS</span><h2>Conversations <span class="count-pill">{{ supportConversations().length }}</span></h2></div></div>
+            <div class="support-conversation-list">
+              @for (conversation of supportConversations(); track conversation.id) {
+                <button type="button" class="support-conversation-row" [class.selected]="selectedSupportConversation()?.id === conversation.id" (click)="selectSupportConversation(conversation)">
+                  <span class="support-conversation-copy"><strong>{{ conversation.conversation_number }}</strong><small>User {{ conversation.user_id }} · {{ conversation.created_at | date:'medium' }}</small></span>
+                  <span class="support-status" [class.open]="conversation.status === 'open'">{{ conversation.status | titlecase }}</span>
+                </button>
+              } @empty { <p class="empty">No saved conversations yet.</p> }
+            </div>
+          </section>
+
+          <section class="data-card admin-module support-transcript">
+            @if (selectedSupportConversation(); as conversation) {
+              <div class="section-heading"><div><span class="section-kicker">SESSION {{ conversation.conversation_number }}</span><h2>Conversation transcript</h2><p>User ID: {{ conversation.user_id }}</p></div><span class="support-status" [class.open]="conversation.status === 'open'">{{ conversation.status | titlecase }}</span></div>
+              <div class="support-message-list">
+                @for (message of supportMessages(); track message.id) {
+                  <article class="support-message" [class.user]="message.sender === 'user'">
+                    <strong>{{ message.sender === 'user' ? 'Customer' : 'SmartDrive' }}</strong>
+                    <p>{{ message.message }}</p>
+                    <small>{{ message.created_at | date:'short' }}</small>
+                  </article>
+                } @empty { <p class="empty">This conversation has no messages.</p> }
+              </div>
+              <div class="support-notes">
+                <h3>Internal notes</h3>
+                @for (note of supportNotes(); track note.id) {
+                  <article class="support-note"><p>{{ note.note }}</p><small>{{ note.created_at | date:'short' }}</small></article>
+                } @empty { <p class="empty">No internal notes recorded.</p> }
+                <form class="support-note-form" (submit)="$event.preventDefault(); saveSupportNote()">
+                  <textarea aria-label="Internal support note" placeholder="Add a follow-up note for the admin team..." maxlength="2000" [ngModel]="supportNoteDraft()" (ngModelChange)="supportNoteDraft.set($event)" name="supportNote" required></textarea>
+                  <button class="primary-action" type="submit" [disabled]="savingSupportNote() || !supportNoteDraft().trim()">{{ savingSupportNote() ? 'Saving…' : 'Save internal note' }}</button>
+                </form>
+              </div>
+            } @else {
+              <div class="support-empty-selection"><ion-icon name="chatbubbles-outline"></ion-icon><h2>Select a conversation</h2><p>Choose a session to read its transcript and add internal notes.</p></div>
+            }
+          </section>
+
+          <section class="data-card admin-module support-ticket-card">
+            <div class="section-heading"><div><span class="section-kicker">CUSTOMER REPORTS</span><h2>Reported problems <span class="count-pill">{{ supportTickets().length }}</span></h2></div></div>
+            <div class="support-ticket-list">
+              @for (ticket of supportTickets(); track ticket.id) {
+                <article class="support-ticket">
+                  <div class="support-ticket-heading"><div><h3>{{ ticket.subject }}</h3><p>{{ ticket.description }}</p></div><select aria-label="Ticket status" [ngModel]="ticket.status" (ngModelChange)="updateTicketStatusFromSelect(ticket, $event)"><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
+                  <small>Session {{ conversationNumber(ticket.conversation_id) }} · User {{ ticket.user_id }} · {{ ticket.created_at | date:'medium' }}</small>
+                </article>
+              } @empty { <p class="empty">No customer reports yet.</p> }
+            </div>
+          </section>
+        </section>
+      }
+
+      @if (section() === 'promos') {
+        <section class="data-card admin-module">
+          <div class="module-title"><span class="section-kicker">PROMOTION MANAGEMENT</span><h2>Create a promo code</h2><p>New codes are immediately available at checkout unless deactivated.</p></div>
+          <form class="promo-form" (submit)="$event.preventDefault(); savePromo()">
+            <label><span>Promo code</span><input placeholder="e.g. SUMMER20" maxlength="30" [(ngModel)]="newPromo.code" name="promoCode" required></label>
+            <label><span>Discount (%)</span><input type="number" min="0.01" max="100" step="0.01" [(ngModel)]="newPromo.discountPercent" name="discountPercent" required></label>
+            <label><span>Maximum uses <small>(optional)</small></span><input type="number" min="1" step="1" [(ngModel)]="newPromo.maxUses" name="maxUses"></label>
+            <label><span>Minimum spend (₱)</span><input type="number" min="0" step="0.01" [(ngModel)]="newPromo.minSpend" name="minSpend" required></label>
+            <label><span>Valid from <small>(optional)</small></span><input type="date" [(ngModel)]="newPromo.validFrom" name="validFrom"></label>
+            <label><span>Valid until <small>(optional)</small></span><input type="date" [(ngModel)]="newPromo.validUntil" name="validUntil"></label>
+            <label class="promo-description"><span>Description <small>(optional)</small></span><input placeholder="Short customer-facing details" maxlength="250" [(ngModel)]="newPromo.description" name="promoDescription"></label>
+            <button class="primary-action" type="submit" [disabled]="savingPromo()"><ion-icon name="add-outline"></ion-icon>{{ savingPromo() ? 'Creating…' : 'Create promo code' }}</button>
+          </form>
+          @if (promoFeedback()) { <p class="promo-feedback" [class.error]="!promoFeedback()?.startsWith('Promo code created')" role="status">{{ promoFeedback() }}</p> }
+        </section>
+        <section class="data-card admin-module">
+          <div class="section-heading"><div><span class="section-kicker">CHECKOUT OFFERS</span><h2>Promo codes <span class="count-pill">{{ promoCodes().length }}</span></h2></div></div>
+          <div class="table-scroll"><table><thead><tr><th>Code</th><th>Discount</th><th>Usage</th><th>Valid dates</th><th>Status</th><th>Action</th></tr></thead><tbody>
+            @for (promo of promoCodes(); track promo.id) {
+              <tr><td><strong>{{ promo.code }}</strong><small class="cell-subtitle">{{ promo.description || 'No description' }}</small></td><td>{{ promo.discount_percent }}% <small class="cell-subtitle">Min. ₱{{ promo.min_spend | number:'1.0-2' }}</small></td><td>{{ promo.current_uses }} / {{ promo.max_uses ?? '∞' }}</td><td>{{ promo.valid_from ? (promo.valid_from | date:'mediumDate') : 'Anytime' }} – {{ promo.valid_until ? (promo.valid_until | date:'mediumDate') : 'No end' }}</td><td><span class="status-pill" [class.suspended]="!promo.is_active">{{ promo.is_active ? 'Active' : 'Inactive' }}</span></td><td><button class="table-action" type="button" (click)="togglePromo(promo)">{{ promo.is_active ? 'Deactivate' : 'Activate' }}</button></td></tr>
+            } @empty { <tr><td colspan="6" class="empty">No promo codes yet.</td></tr> }
+          </tbody></table></div>
         </section>
       }
 

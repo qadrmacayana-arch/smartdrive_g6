@@ -16,6 +16,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationCenterService } from '../../core/services/notification-center.service';
+import { notificationsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-notifications',
@@ -39,6 +40,7 @@ import { NotificationCenterService } from '../../core/services/notification-cent
   styleUrl: './notifications.page.scss',
 })
 export class NotificationsPage implements OnInit {
+  readonly notificationIcon = notificationsOutline;
   readonly currentUser = this.auth.currentUser;
 
   constructor(
