@@ -8,67 +8,93 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  @if (currentUser()) {
-    <div class="sd-card write-review">
-      <h3>Leave a Review</h3>
-      <div class="stars">
-        @for (star of stars; track star) {
-          <ion-icon
-            [name]="star <= rating() ? 'star' : 'star-outline'"
-            (click)="rating.set(star)"
-          ></ion-icon>
-        }
-      </div>
-      <ion-textarea
-        placeholder="Tell us about your SmartDrive™ experience..."
-        [ngModel]="comment()"
-        (ngModelChange)="comment.set($event)"
-        [autoGrow]="true"
-        rows="3"
-      ></ion-textarea>
-      <ion-button
-        expand="block"
-        class="sd-gradient-btn"
-        [disabled]="submitting() || !comment().trim()"
-        (click)="submit()"
-      >
-        @if (submitting()) {
-          <ion-spinner name="dots"></ion-spinner>
-        } @else {
-          Submit Review
-        }
-      </ion-button>
-    </div>
-  }
+  <main class="reviews-page">
+    <header class="reviews-intro">
+      <span class="reviews-kicker">YOUR VOICE MATTERS</span>
+      <h1>Reviews &amp; Ratings</h1>
+      <p>Share your experience and help make every drive better.</p>
+    </header>
 
-  <h3 class="section-title">What our customers say</h3>
-
-  @if (loading()) {
-    <p class="sd-muted">Loading reviews...</p>
-  } @else if (reviews().length === 0) {
-    <div class="sd-empty-state">
-      <ion-icon name="star-outline"></ion-icon>
-      <p>No reviews yet. Be the first to share your experience!</p>
-    </div>
-  } @else {
-    @for (review of reviews(); track review.id) {
-      <div class="sd-card review-card">
-        <div class="review-top">
-          <div class="review-avatar">{{ review.customer_name.charAt(0) }}</div>
-          <div>
-            <strong>{{ review.customer_name }}</strong>
-            <p class="sd-muted review-date">{{ review.created_at | date: 'MMM d, y' }}</p>
-          </div>
+    @if (currentUser()) {
+      <div class="sd-card write-review">
+        <div class="form-heading">
+          <span class="form-icon"><ion-icon name="chatbubble-ellipses-outline"></ion-icon></span>
+          <h2>Leave a Review</h2>
+          <p>How was your SmartDrive™ experience?</p>
         </div>
-        <div class="stars small">
-          @for (star of stars; track star) {
-            <ion-icon [name]="star <= review.rating ? 'star' : 'star-outline'"></ion-icon>
+        <div class="emoji-ratings" role="group" aria-label="Choose a rating">
+          @for (option of ratingOptions; track option.value) {
+            <button
+              type="button"
+              class="emoji-rating"
+              [class.selected]="rating() === option.value"
+              [attr.aria-label]="option.label"
+              [attr.aria-pressed]="rating() === option.value"
+              (click)="rating.set(option.value)"
+            >
+              <span class="rating-emoji" aria-hidden="true">{{ option.emoji }}</span>
+              <span class="rating-label">{{ option.label }}</span>
+            </button>
           }
         </div>
-        @if (review.comment) {
-          <p class="review-comment">{{ review.comment }}</p>
-        }
+        <ion-textarea
+          placeholder="Tell us about your SmartDrive™ experience..."
+          [ngModel]="comment()"
+          (ngModelChange)="comment.set($event)"
+          [autoGrow]="true"
+          rows="3"
+        ></ion-textarea>
+        <ion-button
+          expand="block"
+          class="sd-gradient-btn"
+          [disabled]="submitting() || !comment().trim()"
+          (click)="submit()"
+        >
+          @if (submitting()) {
+            <ion-spinner name="dots"></ion-spinner>
+          } @else {
+            Submit Review
+          }
+        </ion-button>
       </div>
     }
-  }
+
+    <div class="section-heading">
+      <div>
+        <span class="reviews-kicker">COMMUNITY FEEDBACK</span>
+        <h2 class="section-title">What our customers say</h2>
+      </div>
+      @if (!loading() && reviews().length > 0) {
+        <span class="review-count">{{ reviews().length }} {{ reviews().length === 1 ? 'review' : 'reviews' }}</span>
+      }
+    </div>
+
+    @if (loading()) {
+      <p class="sd-muted">Loading reviews...</p>
+    } @else if (reviews().length === 0) {
+      <div class="sd-empty-state">
+        <ion-icon name="star-outline"></ion-icon>
+        <p>No reviews yet. Be the first to share your experience!</p>
+      </div>
+    } @else {
+      @for (review of reviews(); track review.id) {
+        <div class="sd-card review-card">
+          <div class="review-top">
+            <div class="review-avatar">{{ review.customer_name.charAt(0) }}</div>
+            <div>
+              <strong>{{ review.customer_name }}</strong>
+              <p class="sd-muted review-date">{{ review.created_at | date: 'MMM d, y' }}</p>
+            </div>
+            <div class="review-rating" [attr.aria-label]="review.rating + ' out of 5: ' + ratingLabel(review.rating)">
+              <span aria-hidden="true">{{ ratingEmoji(review.rating) }}</span>
+              <span>{{ review.rating }}/5</span>
+            </div>
+          </div>
+          @if (review.comment) {
+            <p class="review-comment">{{ review.comment }}</p>
+          }
+        </div>
+      }
+    }
+  </main>
 </ion-content>

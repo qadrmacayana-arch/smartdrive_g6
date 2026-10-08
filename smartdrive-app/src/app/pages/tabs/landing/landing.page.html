@@ -1,0 +1,79 @@
+<ion-content [fullscreen]="true">
+  <main class="fleet-page">
+    <header class="fleet-header">
+      <a routerLink="/tabs/home" class="brand">SmartDrive<sup>TM</sup></a>
+      @if (!currentUser()) {
+        <nav><a routerLink="/login" class="log-in">Log in</a><a routerLink="/signup" class="sign-up">Sign up</a></nav>
+      }
+    </header>
+
+    <section class="page-heading">
+      <p class="eyebrow">SMARTDRIVE FLEET</p>
+      <h1>Our Premium Vehicle Fleet</h1>
+      <p>Carefully curated cars and motorcycles for your Philippine journey.</p>
+    </section>
+
+    <section class="filters">
+      <div class="search-box"><span>⌕</span><input [value]="search()" (input)="search.set($any($event.target).value)" placeholder="Search by vehicle name or model..."></div>
+      <div class="category-tabs">
+        @for (category of categories; track category.key) {
+          <button [class.active]="mainCategory() === category.key" (click)="selectMainCategory(category.key)">{{ category.label }}</button>
+        }
+      </div>
+      @if (activeSubTypes().length) {
+        <div class="sub-filters">
+          <button [class.active]="subFilter() === 'All'" (click)="selectSubFilter('All')">All {{ mainCategory() === 'Recreational' ? 'RVs' : mainCategory() }}</button>
+          @for (type of activeSubTypes(); track type) {
+            <button [class.active]="subFilter() === type" (click)="selectSubFilter(type)">{{ type === 'Traditional Commuter Scooters' ? 'Commuter Scooters' : type }}</button>
+          }
+        </div>
+      }
+    </section>
+
+    @if (errorMessage()) {
+      <div class="empty error-state">
+        <h2>Fleet unavailable</h2>
+        <p>{{ errorMessage() }}</p>
+        <button (click)="loadVehicles()">Try again</button>
+      </div>
+    }
+
+    <section class="top-picks">
+      <div class="section-heading"><div><h2>Top 3 Picks</h2><p>A quick shortlist for every kind of journey.</p></div></div>
+      @if (loading()) {
+        <div class="pick-groups"><div class="pick-group loading-group" *ngFor="let item of [1,2,3]"></div></div>
+      } @else {
+        <div class="pick-groups">
+          @for (group of topPickGroups(); track group.label) {
+            <article class="pick-group">
+              <div class="pick-group-header"><h3>{{ group.label }}</h3><span>3 picks</span></div>
+              <div class="pick-list">
+                @for (vehicle of group.vehicles; track vehicle.id) {
+                  <button class="pick-item" (click)="openVehicle(vehicle)">
+                    <span class="rank">{{ $index + 1 | number:'2.0-0' }}</span><img [src]="vehicle.image || ''" [alt]="vehicle.name"><span class="pick-info"><strong>{{ vehicle.name }}</strong><small>{{ vehicle.type }} · ₱{{ vehicle.price | number }}/day</small></span><span class="arrow">↗</span>
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <div class="results-heading"><div><h2>All Vehicles</h2><p>Browse our entire collection</p></div><span>{{ filteredVehicles().length }} vehicles</span></div>
+    @if (loading()) {
+      <div class="vehicle-grid"><div class="vehicle-loading" *ngFor="let item of [1,2,3,4,5,6]"></div></div>
+    } @else if (filteredVehicles().length) {
+      <div class="vehicle-grid">
+        @for (vehicle of filteredVehicles(); track vehicle.id) {
+          <article class="vehicle-card" (click)="openVehicle(vehicle)">
+            <div class="vehicle-image"><img [src]="vehicle.image || ''" [alt]="vehicle.name"><span>{{ vehicle.type }}</span><button type="button" class="favorite-button" [class.active]="isFavorite(vehicle)" (click)="toggleFavorite(vehicle, $event)" [attr.aria-label]="isFavorite(vehicle) ? 'Remove from favorites' : 'Add to favorites'">★</button></div>
+            <div class="vehicle-content"><small>{{ vehicle.main_category }}</small><h3>{{ vehicle.name }}</h3><div class="vehicle-specs"><span>{{ vehicle.seats }} seats</span><span>{{ vehicle.transmission }}</span><span>{{ vehicle.fuel }}</span></div><div class="vehicle-footer"><strong>₱{{ vehicle.price | number }}<small>/day</small></strong><button>View details →</button></div></div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty"><h2>No vehicles found</h2><p>Try adjusting your filters or search terms.</p><button (click)="clearFilters()">Clear all filters</button></div>
+    }
+  </main>
+</ion-content>

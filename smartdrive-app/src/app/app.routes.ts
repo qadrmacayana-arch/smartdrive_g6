@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard } from './core/guards/auth.guard';
+import { adminGuard, authGuard, customerGuard, guestGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
@@ -9,23 +9,49 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/login/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./pages/admin/admin.page').then((m) => m.AdminPage),
+  },
+  {
     path: 'signup',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/auth/signup/signup.page').then((m) => m.SignupPage),
   },
   {
     path: 'forgot-password',
+    canActivate: [customerGuard],
     loadComponent: () =>
       import('./pages/auth/forgot-password/forgot-password.page').then((m) => m.ForgotPasswordPage),
   },
   {
+    path: 'services',
+    canActivate: [customerGuard],
+    loadComponent: () => import('./pages/services/services.page').then((m) => m.ServicesPage),
+  },
+  {
+    path: 'offers',
+    canActivate: [customerGuard],
+    loadComponent: () => import('./pages/offers/offers.page').then((m) => m.OffersPage),
+  },
+  {
     path: 'tabs',
+    canActivate: [customerGuard],
     loadComponent: () => import('./pages/tabs/tabs.page').then((m) => m.TabsPage),
     children: [
       { path: '', redirectTo: 'home', pathMatch: 'full' },
       {
         path: 'home',
         loadComponent: () => import('./pages/tabs/home/home.page').then((m) => m.HomePage),
+      },
+      {
+        path: 'rent-a-car',
+        loadComponent: () => import('./pages/tabs/landing/landing.page').then((m) => m.LandingPage),
+      },
+      {
+        path: 'about',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/about/about.page').then((m) => m.AboutPage),
       },
       {
         path: 'bookings',
@@ -46,6 +72,7 @@ export const routes: Routes = [
   },
   {
     path: 'vehicle/:id',
+    canActivate: [customerGuard],
     loadComponent: () => import('./pages/vehicle-detail/vehicle-detail.page').then((m) => m.VehicleDetailPage),
   },
   {
@@ -76,14 +103,17 @@ export const routes: Routes = [
   },
   {
     path: 'reviews',
+    canActivate: [authGuard],
     loadComponent: () => import('./pages/reviews/reviews.page').then((m) => m.ReviewsPage),
   },
   {
     path: 'faq',
+    canActivate: [authGuard],
     loadComponent: () => import('./pages/faq/faq.page').then((m) => m.FaqPage),
   },
   {
     path: 'about',
+    canActivate: [authGuard],
     loadComponent: () => import('./pages/about/about.page').then((m) => m.AboutPage),
   },
   { path: '**', redirectTo: 'tabs/home' },

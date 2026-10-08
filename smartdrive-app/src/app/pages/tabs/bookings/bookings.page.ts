@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -28,6 +28,7 @@ type StatusFilter = 'all' | 'active' | 'past';
   standalone: true,
   imports: [
     CommonModule,
+    RouterLink,
     IonContent,
     IonHeader,
     IonToolbar,
@@ -43,9 +44,10 @@ type StatusFilter = 'all' | 'active' | 'past';
     IonLabel,
   ],
   templateUrl: './bookings.page.html',
-  styleUrl: './bookings.page.scss',
+  styleUrls: ['./bookings.page.scss'],
 })
 export class BookingsPage implements OnInit {
+  readonly currentUser = this.auth.currentUser;
   readonly bookings = signal<Booking[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);

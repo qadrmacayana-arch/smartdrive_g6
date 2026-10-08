@@ -1,4 +1,5 @@
 <ion-content [fullscreen]="true" class="ion-padding">
+  <main class="booking-page">
   @if (loading()) {
     <p class="sd-muted">Loading...</p>
   } @else if (errorMessage()) {
@@ -7,11 +8,13 @@
       <p>{{ errorMessage() }}</p>
     </div>
   } @else if (booking(); as b) {
+    <div class="confirmation-banner">
     <div class="success-icon">
       <ion-icon name="checkmark-circle"></ion-icon>
     </div>
     <h1 class="sd-section-title confirm-title">Booking Confirmed!</h1>
     <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
+    </div>
 
     <div class="sd-card ref-card">
       <span class="sd-muted">Reference Number</span>
@@ -52,4 +55,5 @@
     <ion-button expand="block" fill="outline" (click)="viewBookings()">View My Bookings</ion-button>
     <ion-button expand="block" fill="clear" (click)="goHome()">Back to Home</ion-button>
   }
+  </main>
 </ion-content>

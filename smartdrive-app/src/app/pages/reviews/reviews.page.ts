@@ -47,7 +47,13 @@ export class ReviewsPage implements OnInit {
   readonly submitting = signal(false);
 
   readonly currentUser = this.auth.currentUser;
-  readonly stars = [1, 2, 3, 4, 5];
+  readonly ratingOptions = [
+    { value: 1, emoji: '😞', label: 'Poor' },
+    { value: 2, emoji: '🙁', label: 'Fair' },
+    { value: 3, emoji: '😐', label: 'Okay' },
+    { value: 4, emoji: '🙂', label: 'Good' },
+    { value: 5, emoji: '😍', label: 'Great' },
+  ];
 
   constructor(
     private readonly auth: AuthService,
@@ -57,6 +63,14 @@ export class ReviewsPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     await this.load();
+  }
+
+  ratingEmoji(value: number): string {
+    return this.ratingOptions.find((option) => option.value === value)?.emoji ?? '😐';
+  }
+
+  ratingLabel(value: number): string {
+    return this.ratingOptions.find((option) => option.value === value)?.label ?? 'Okay';
   }
 
   async load(): Promise<void> {

@@ -1,0 +1,52 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Our Services</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="services-shell">
+    <header class="services-intro">
+      <span class="eyebrow">SMARTDRIVE SERVICES</span>
+      <h1>How would you like to travel?</h1>
+      <p>Find the right ride for your plans, with comfort and support at every step.</p>
+    </header>
+
+    <div class="service-grid">
+      @for (service of services; track service.title) {
+        <article class="service-card">
+          <div class="service-card-heading">
+            <div class="service-icon">
+              <ion-icon [name]="service.icon"></ion-icon>
+            </div>
+            <span class="service-badge">SMARTDRIVE SERVICE</span>
+          </div>
+          <h2>{{ service.title }}</h2>
+          <p class="service-description">{{ service.description }}</p>
+          <div class="service-price">
+            <span class="price-label">Starting from</span>
+            <strong>₱{{ service.price | number }}</strong>
+            <span class="price-period">per day</span>
+          </div>
+          <ul>
+            @for (feature of service.features; track feature) {
+              <li><ion-icon name="checkmark-circle-outline"></ion-icon>{{ feature }}</li>
+            }
+          </ul>
+          <a class="primary-link" [routerLink]="service.link">
+            {{ service.title === 'Self-Drive Rental' ? 'Browse Fleet' : 'Learn More' }}
+            <ion-icon name="arrow-forward-outline"></ion-icon>
+          </a>
+        </article>
+      }
+    </div>
+
+    <p class="services-note">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      Every journey is backed by our customer support team.
+    </p>
+  </main>
+</ion-content>

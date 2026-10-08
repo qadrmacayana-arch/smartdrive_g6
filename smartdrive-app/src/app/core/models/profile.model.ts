@@ -15,6 +15,7 @@ export interface AppUser {
   id: string;
   email: string;
   fullName: string;
+  avatarUrl?: string | null;
   memberType: string;
   registrationDate: string;
   isAdmin: boolean;

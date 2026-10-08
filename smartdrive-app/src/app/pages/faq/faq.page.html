@@ -8,26 +8,41 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  <p class="sd-muted intro">Find quick answers to common questions about booking, payments, and your account.</p>
+  <main class="faq-page">
+    <header class="faq-intro">
+      <span class="faq-kicker">WE'RE HERE TO HELP</span>
+      <h1>Frequently asked questions</h1>
+      <p>Find quick answers about bookings, payments, and your account.</p>
+    </header>
 
-  @for (item of items; track item.q; let i = $index) {
-    <div class="sd-card faq-item" (click)="toggle(i)">
-      <div class="faq-question">
-        <span>{{ item.q }}</span>
-        <ion-icon [name]="openIndex() === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-      </div>
-      @if (openIndex() === i) {
-        <p class="faq-answer">{{ item.a }}</p>
+    <section class="faq-list" aria-label="Frequently asked questions">
+      @for (item of items; track item.q; let i = $index) {
+        <article class="sd-card faq-item">
+          <button
+            type="button"
+            class="faq-question"
+            [attr.aria-expanded]="openIndex() === i"
+            [attr.aria-controls]="'faq-answer-' + i"
+            (click)="toggle(i)"
+          >
+            <span class="faq-question-icon"><ion-icon name="help-circle-outline"></ion-icon></span>
+            <span class="faq-question-text">{{ item.q }}</span>
+            <span class="faq-chevron">
+              <ion-icon [name]="openIndex() === i ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            </span>
+          </button>
+          <p class="faq-answer" [id]="'faq-answer-' + i" [hidden]="openIndex() !== i">{{ item.a }}</p>
+        </article>
       }
-    </div>
-  }
+    </section>
 
-  <div class="sd-card contact-card">
-    <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-    <div>
-      <h3>Still need help?</h3>
-      <p class="sd-muted">Our support team is available 24/7 at contact&#64;smartdrive.com</p>
-      <ion-button size="small" fill="outline" href="mailto:contact@smartdrive.com">Email Support</ion-button>
+    <div class="sd-card contact-card">
+      <span class="contact-icon"><ion-icon name="chatbubble-ellipses-outline"></ion-icon></span>
+      <div class="contact-copy">
+        <h2>Still need a hand?</h2>
+        <p class="sd-muted">Our support team is available 24/7 to help with your trip.</p>
+        <ion-button size="small" fill="outline" href="mailto:contact@smartdrive.com">Email Support</ion-button>
+      </div>
     </div>
-  </div>
+  </main>
 </ion-content>

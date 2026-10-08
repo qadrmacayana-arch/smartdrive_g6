@@ -1,68 +1,700 @@
-.auth-wrap {
-  max-width: 420px;
-  margin: 0 auto;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+:host {
+  display: block;
 }
 
-.auth-brand {
-  text-align: center;
-  margin-bottom: 2rem;
+.auth-page {
+  --background: #eef5f8;
 }
 
-.auth-logo {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1rem;
-  border-radius: 18px;
+.auth-page::part(scroll) {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 6% 5%, rgba(41, 183, 183, 0.15), transparent 28%),
+    radial-gradient(circle at 96% 96%, rgba(35, 79, 119, 0.13), transparent 34%),
+    #eef5f8;
+}
+
+.auth-shell {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.67fr) minmax(580px, 1.33fr);
+  width: min(1120px, calc(100% - 48px));
+  min-height: min(790px, calc(100vh - 48px));
+  margin: 24px auto;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 28px 70px rgba(25, 57, 76, 0.16);
+}
+
+.showcase-panel {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 218px 34px 32px;
+  overflow: hidden;
+  color: #fff;
+  background: linear-gradient(155deg, #102e43 0%, #155064 58%, #1b7d7e 100%);
+}
+
+.showcase-panel::before {
+  position: absolute;
+  right: -125px;
+  bottom: -125px;
+  width: 310px;
+  height: 310px;
+  border: 1px solid rgba(151, 249, 230, 0.2);
+  border-radius: 50%;
+  box-shadow: 0 0 0 35px rgba(151, 249, 230, 0.04), 0 0 0 72px rgba(151, 249, 230, 0.035);
+  content: '';
+}
+
+.showcase-panel::after {
+  position: absolute;
+  top: 34px;
+  right: 30px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #8ef8df;
+  box-shadow: 0 0 0 8px rgba(142, 248, 223, 0.12), 0 0 24px #8ef8df;
+  content: '';
+}
+
+.brand-pill {
+  position: absolute;
+  top: 30px;
+  left: 34px;
+  color: #9af4e1;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.showcase-icon {
   display: grid;
   place-items: center;
-  background: var(--sd-gradient-primary);
-  color: #fff;
-  font-family: 'Sora', sans-serif;
+  width: 47px;
+  height: 47px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #a4f9e5;
+  font-size: 23px;
+}
+
+.eyebrow {
+  margin: 0 0 13px;
+  color: #a4f9e5;
+  font-size: 9px;
   font-weight: 800;
-  font-size: 1.5rem;
-  box-shadow: var(--sd-shadow-md);
+  letter-spacing: 0.13em;
+}
+
+.showcase-panel h2 {
+  margin: 0 0 16px;
+  font-family: 'Sora', sans-serif;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  line-height: 0.98;
+  letter-spacing: -0.065em;
+}
+
+.showcase-copy {
+  max-width: 250px;
+  margin: 0 0 27px;
+  color: #c9e3e8;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.feature-list {
+  display: grid;
+  gap: 11px;
+}
+
+.feature-list div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #e4f5f4;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.feature-list ion-icon {
+  flex: 0 0 auto;
+  color: #8ef8df;
+  font-size: 15px;
+}
+
+.form-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  background: #fff;
+}
+
+.form-content {
+  padding: 38px 46px 22px;
+}
+
+.form-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.form-logo {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 14px;
+  color: #fff;
+  background: #173f56;
+  box-shadow: 0 9px 18px rgba(23, 63, 86, 0.2);
+  font-size: 20px;
+}
+
+.form-heading h1 {
+  margin: 0;
+  color: #17364b;
+  font-family: 'Sora', sans-serif;
+  font-size: 21px;
+  letter-spacing: -0.05em;
+}
+
+.form-heading p {
+  margin: 3px 0 0;
+  color: #7b8e99;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
 }
 
 .auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
+  display: grid;
+  gap: 7px;
 }
 
-.auth-item {
-  --background: var(--sd-card);
-  --border-radius: var(--sd-radius);
-  border: 1px solid var(--sd-border);
-  border-radius: var(--sd-radius);
+.auth-form > label,
+.field-grid > label {
+  display: grid;
+  gap: 4px;
+  color: #294354;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px 10px;
+}
+
+.field {
+  min-height: 35px;
+  --background: #f6fafb;
+  --border-radius: 9px;
+  border: 1px solid #d9e8eb;
+  border-radius: 9px;
+  color: #203b4a;
+}
+
+.field:focus-within {
+  border-color: #36bcb4;
+  box-shadow: 0 0 0 3px rgba(54, 188, 180, 0.11);
+}
+
+.field ion-input,
+.field ion-select {
+  --padding-start: 7px;
+  font-size: 11px;
+}
+
+.field ion-select {
+  width: 100%;
+}
+
+.toggle-icon {
+  align-self: center;
+  cursor: pointer;
+  color: #6e8994;
+  font-size: 14px;
+}
+
+.remember-item {
+  --background: transparent;
+  --min-height: 27px;
+  --padding-start: 0;
+  color: #708691;
+  font-size: 10px;
+}
+
+.remember-item ion-checkbox {
+  --size: 14px;
+  margin-right: 6px;
+  --checkbox-background-checked: #1b9997;
+  --border-color-checked: #1b9997;
+}
+
+.inline-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #168d8b;
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+.primary-button,
+.google-button {
+  height: 37px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.primary-button {
+  --background: #173f56;
+  --background-hover: #205870;
+  --background-activated: #102f42;
+  --border-radius: 10px;
+  --box-shadow: 0 10px 17px rgba(23, 63, 86, 0.18);
+}
+
+.primary-button span {
+  margin-left: 7px;
+  color: #8ef8df;
+  font-size: 17px;
+}
+
+.google-button {
+  --background: #fff;
+  --background-hover: #f3fbfb;
+  --border-radius: 10px;
+  --border-color: #cbdde1;
+  --color: #294354;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 3px 0;
+  color: #8a9ba3;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.divider::before,
+.divider::after {
+  height: 1px;
+  flex: 1;
+  background: #e2ecee;
+  content: '';
+}
+
+.field-hint {
+  margin: -2px 0 0;
+  color: #7b8e99;
+  font-size: 9px;
+}
+
+.field-hint.strong {
+  color: #168d61;
 }
 
 .auth-alert {
-  border-radius: 0.75rem;
-  padding: 0.85rem 1rem;
-  font-size: 0.875rem;
-
-  &.error {
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--sd-destructive);
-  }
-
-  &.success {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: var(--sd-success);
-  }
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 10px;
 }
 
-.auth-link {
-  color: var(--sd-primary);
-  font-weight: 700;
+.auth-alert.error {
+  border: 1px solid #f0b9be;
+  background: #fff3f4;
+  color: #b4232d;
+}
+
+.auth-alert.success {
+  border: 1px solid #b2dfc4;
+  background: #effcf2;
+  color: #147a3a;
+}
+
+.form-footer {
+  padding: 15px;
+  border-top: 1px solid #e1edef;
+  background: #f5fafb;
+  color: #708691;
+  text-align: center;
+  font-size: 11px;
+}
+
+.form-footer a {
+  color: #168d8b;
+  font-weight: 800;
   text-decoration: none;
 }
 
-.auth-footer {
-  text-align: center;
-  margin-top: 1.5rem;
+.legal-content {
+  line-height: 1.65;
+}
+
+@media (max-width: 800px) {
+  .auth-shell {
+    display: block;
+    width: min(540px, calc(100% - 28px));
+    min-height: 0;
+    margin: 14px auto 28px;
+    border-radius: 22px;
+  }
+
+  .showcase-panel {
+    min-height: 350px;
+    padding: 105px 28px 28px;
+  }
+
+  .brand-pill {
+    top: 27px;
+    left: 28px;
+  }
+
+  .showcase-panel h2 {
+    font-size: 2.25rem;
+  }
+
+  .form-content {
+    padding: 30px 22px 25px;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-form > label,
+  .field-grid > label {
+    font-size: 11px;
+  }
+
+  .field {
+    min-height: 42px;
+  }
+
+  .field ion-input,
+  .field ion-select {
+    font-size: 13px;
+  }
+
+  .primary-button,
+  .google-button {
+    height: 44px;
+    font-size: 13px;
+  }
+}
+
+/* Amethyst theme overrides */
+.auth-page {
+  --background: #f7f5fc;
+}
+
+.auth-page::part(scroll) {
+  background:
+    radial-gradient(circle at 6% 5%, rgba(168, 85, 247, 0.15), transparent 28%),
+    radial-gradient(circle at 96% 96%, rgba(192, 38, 211, 0.12), transparent 34%),
+    #f7f5fc;
+}
+
+.auth-shell {
+  box-shadow: 0 28px 70px rgba(76, 29, 149, 0.16);
+}
+
+.showcase-panel {
+  background: linear-gradient(155deg, #2a075e 0%, #4d1c8a 58%, #7c3aed 100%);
+}
+
+.showcase-panel::before {
+  border-color: rgba(216, 180, 254, 0.2);
+  box-shadow: 0 0 0 35px rgba(216, 180, 254, 0.04), 0 0 0 72px rgba(216, 180, 254, 0.035);
+}
+
+.showcase-panel::after {
+  background: #e0baff;
+  box-shadow: 0 0 0 8px rgba(224, 186, 255, 0.12), 0 0 24px #e0baff;
+}
+
+.brand-pill,
+.eyebrow {
+  color: #d8b8ff;
+}
+
+.showcase-icon,
+.feature-list ion-icon {
+  color: #e0baff;
+}
+
+.showcase-copy {
+  color: #dfd0f4;
+}
+
+.feature-list div {
+  color: #f1eaff;
+}
+
+.form-logo {
+  background: linear-gradient(145deg, #8c3cf0, #c12edf);
+  box-shadow: 0 9px 18px rgba(150, 53, 225, 0.23);
+}
+
+.form-heading h1 {
+  color: #7430c8;
+}
+
+.form-heading p,
+.remember-item,
+.field-hint {
+  color: #776a91;
+}
+
+.auth-form > label,
+.field-grid > label {
+  color: #252033;
+}
+
+.field {
+  --background: #f8f5fc;
+  border-color: #e1d5f1;
+  color: #252033;
+}
+
+.field:focus-within {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.11);
+}
+
+.toggle-icon {
+  color: #776a91;
+}
+
+.remember-item ion-checkbox {
+  --checkbox-background-checked: #7c3aed;
+  --border-color-checked: #7c3aed;
+}
+
+.inline-link,
+.form-footer a {
+  color: #8134de;
+}
+
+.primary-button {
+  --background: linear-gradient(90deg, #8138f0, #c02bdc);
+  --background-hover: linear-gradient(90deg, #944ff7, #d73ceb);
+  --background-activated: linear-gradient(90deg, #7130d5, #ad24c7);
+  --box-shadow: 0 10px 17px rgba(147, 48, 221, 0.25);
+}
+
+.primary-button span {
+  color: #f0c6ff;
+}
+
+.google-button {
+  --background-hover: #faf8ff;
+  --border-color: #d8d4df;
+  --color: #293040;
+}
+
+.divider {
+  color: #776a91;
+}
+
+.divider::before,
+.divider::after {
+  background: #e2dce9;
+}
+
+.form-footer {
+  border-top-color: #e5dcf2;
+  background: #f3edff;
+  color: #776a91;
+}
+
+.auth-page a:focus-visible,
+.auth-page button:focus-visible,
+.auth-page ion-button:focus-visible,
+.auth-page ion-checkbox:focus-visible,
+.auth-page ion-select:focus-visible,
+.auth-page ion-input:focus-visible {
+  outline: 3px solid #a855f7;
+  outline-offset: 3px;
+}
+
+.field,
+.primary-button,
+.google-button {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.toggle-icon {
+  box-sizing: content-box;
+  width: 20px;
+  height: 20px;
+  padding: 10px;
+  margin: -10px -8px -10px 0;
+}
+
+@media (max-width: 520px) {
+  .auth-shell {
+    width: min(100% - 20px, 500px);
+    margin: 10px auto max(18px, env(safe-area-inset-bottom));
+    border-radius: 20px;
+  }
+
+  .showcase-panel {
+    min-height: 0;
+    padding: 78px 22px 24px;
+  }
+
+  .brand-pill {
+    top: 22px;
+    left: 22px;
+  }
+
+  .showcase-panel::after {
+    top: 24px;
+    right: 22px;
+  }
+
+  .showcase-icon {
+    width: 42px;
+    height: 42px;
+    margin-bottom: 16px;
+    font-size: 20px;
+  }
+
+  .eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .showcase-panel h2 {
+    margin-bottom: 12px;
+    font-size: clamp(1.95rem, 9vw, 2.35rem);
+  }
+
+  .showcase-copy {
+    margin-bottom: 16px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .feature-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 12px;
+  }
+
+  .feature-list div {
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .feature-list ion-icon {
+    font-size: 15px;
+  }
+
+  .form-content {
+    padding: 25px 20px 24px;
+  }
+
+  .form-heading {
+    margin-bottom: 20px;
+  }
+
+  .auth-form {
+    gap: 9px;
+  }
+
+  .field-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 10px;
+  }
+
+  .auth-form > label,
+  .field-grid > label {
+    min-width: 0;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .field {
+    min-height: 46px;
+  }
+
+  .field ion-input,
+  .field ion-select {
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  .remember-item {
+    --min-height: 44px;
+    font-size: 12px;
+  }
+
+  .remember-item ion-checkbox {
+    --size: 18px;
+  }
+
+  .primary-button,
+  .google-button {
+    min-height: 48px;
+    margin-top: 3px;
+    font-size: 13px;
+  }
+
+  .form-footer {
+    padding: 15px 12px;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 360px) {
+  .auth-shell {
+    width: calc(100% - 16px);
+  }
+
+  .showcase-panel {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .brand-pill {
+    left: 18px;
+  }
+
+  .feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .form-content {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .field-grid {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  .primary-button,
+  .google-button {
+    transition: none;
+  }
 }

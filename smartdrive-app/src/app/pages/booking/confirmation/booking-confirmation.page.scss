@@ -1,9 +1,24 @@
+.booking-page {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding-bottom: 1rem;
+}
+
+.confirmation-banner {
+  padding: 1.25rem 1rem 1rem;
+  margin: 0 0 1rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1.25rem;
+  background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+}
+
 .success-icon {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 0.5rem;
 
   ion-icon {
-    font-size: 5rem;
+    font-size: clamp(3.5rem, 16vw, 5rem);
     color: var(--sd-success);
   }
 }
@@ -20,8 +35,10 @@
 
 .ref-card {
   text-align: center;
-  padding: 1.25rem;
+  padding: 1.25rem 1rem;
   margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+  border: 1px dashed var(--sd-primary);
 
   span {
     font-size: 0.78rem;
@@ -43,8 +60,19 @@
 
 .detail-row {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 1rem;
   padding: 0.5rem 0;
+
+  > * {
+    min-width: 0;
+  }
+
+  strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
 
   &.total {
     border-top: 1px dashed var(--sd-border);
@@ -61,4 +89,14 @@
 
 ion-button {
   margin-bottom: 0.5rem;
+  --border-radius: 0.85rem;
+  font-weight: 700;
+  text-transform: none;
+}
+
+@media (max-width: 380px) {
+  .detail-row {
+    gap: 0.6rem;
+    font-size: 0.82rem;
+  }
 }

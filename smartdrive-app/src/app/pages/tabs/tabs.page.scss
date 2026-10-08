@@ -1,0 +1,22 @@
+:host {
+  --background: var(--sd-background);
+}
+
+.menu-tab-button {
+  flex: 1 1 0;
+  width: 100%;
+  max-width: 168px;
+  height: 100%;
+  --color: var(--sd-muted-foreground);
+  --padding-start: 0;
+  --padding-end: 0;
+
+  &::after {
+    display: block;
+    margin-top: 3px;
+    color: var(--sd-muted-foreground);
+    content: 'Menu';
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+}

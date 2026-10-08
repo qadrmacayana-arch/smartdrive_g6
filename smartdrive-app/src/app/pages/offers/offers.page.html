@@ -1,0 +1,49 @@
+<ion-content [fullscreen]="true">
+  <main class="dashboard-page-shell">
+    <section class="dashboard-page-main">
+      <header class="dashboard-page-heading">
+        <p class="eyebrow">SMARTDRIVE REWARDS</p>
+        <h1>Exclusive Offers &amp; Promos</h1>
+        <p>Take advantage of special promotions for your next rental.</p>
+      </header>
+
+      <section class="offers-shell" aria-label="Available offers">
+        <div class="offers-grid">
+          @for (offer of offers; track offer[1]) {
+            <article class="offer-card">
+              <span class="offer-tag">{{ offer[0] }}</span>
+              <h2>{{ offer[1] }}</h2>
+              <p>{{ offer[2] }}</p>
+              <strong>{{ offer[3] }}</strong>
+              <a routerLink="/tabs/rent-a-car">
+                Browse Fleet
+                <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+              </a>
+            </article>
+          }
+        </div>
+
+        <section class="promo-box">
+          <div class="promo-heading">
+            <span class="promo-icon"><ion-icon name="pricetag-outline"></ion-icon></span>
+            <div><h2>Have a promo code?</h2><p>Enter your code to check if it can be applied at checkout.</p></div>
+          </div>
+          <div class="promo-row">
+            <ion-input
+              fill="outline"
+              placeholder="Enter your promo code"
+              maxlength="20"
+              aria-label="Promo code"
+              [value]="promoCode()"
+              (ionInput)="promoCode.set($any($event.target).value || '')"
+            ></ion-input>
+            <button type="button" (click)="validatePromo()">Validate Code</button>
+          </div>
+          @if (promoMessage()) {
+            <p class="promo-message" [class.valid]="promoValid()" role="status">{{ promoMessage() }}</p>
+          }
+        </section>
+      </section>
+    </section>
+  </main>
+</ion-content>

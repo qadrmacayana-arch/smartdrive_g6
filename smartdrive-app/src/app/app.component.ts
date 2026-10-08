@@ -1,19 +1,18 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import {
   IonApp,
   IonRouterOutlet,
   IonMenu,
   IonMenuToggle,
-  IonHeader,
-  IonToolbar,
   IonContent,
   IonList,
   IonItem,
   IonIcon,
   IonLabel,
   IonButton,
+  IonMenuButton,
   AlertController,
 } from '@ionic/angular';
 import { AuthService } from './core/services/auth.service';
@@ -24,30 +23,40 @@ import { AuthService } from './core/services/auth.service';
   imports: [
     CommonModule,
     RouterLink,
+    RouterLinkActive,
     IonApp,
     IonRouterOutlet,
     IonMenu,
     IonMenuToggle,
-    IonHeader,
-    IonToolbar,
     IonContent,
     IonList,
     IonItem,
     IonIcon,
     IonLabel,
     IonButton,
+    IonMenuButton,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
   readonly currentUser = this.auth.currentUser;
+  readonly avatarLoadFailedUrl = signal<string | null>(null);
 
   constructor(
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly alertCtrl: AlertController,
   ) {}
+
+  onAvatarError(url: string): void {
+    this.avatarLoadFailedUrl.set(url);
+  }
+
+  showGlobalMenuButton(): boolean {
+    const url = this.router.url;
+    return Boolean(this.currentUser()) && !url.startsWith('/tabs') && !url.startsWith('/admin');
+  }
 
   async logout(): Promise<void> {
     const alert = await this.alertCtrl.create({

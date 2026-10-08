@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="admin-toolbar">
+    <ion-buttons slot="start"><ion-button routerLink="/tabs/home"><ion-icon name="car-sport-outline"></ion-icon></ion-button></ion-buttons>
+    <div class="admin-brand"><span class="admin-logo">SD</span><div><strong>SmartDrive™</strong><span>ADMIN</span></div></div>
+    <ion-button slot="end" fill="clear" (click)="logout()">Logout</ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="loadSection(section())"><ion-refresher-content></ion-refresher-content></ion-refresher>
+  <div class="admin-workspace">
+    <aside class="admin-sidebar"><div class="profile-card">
+      <div class="profile-header"><span class="profile-avatar">{{ (currentUser()?.fullName || 'A').charAt(0).toUpperCase() }}</span><div><strong>{{ currentUser()?.fullName || 'Admin User' }}</strong><span class="profile-badge">ADMIN</span></div></div>
+      <nav class="sidebar-nav">
+        <a class="nav-item" [class.active]="section() === 'overview'" (click)="openSection('overview')"><ion-icon name="grid-outline"></ion-icon>Overview</a>
+        <a class="nav-item" [class.active]="section() === 'bookings'" (click)="openSection('bookings')"><ion-icon name="calendar-outline"></ion-icon>Manage Bookings</a>
+        <a class="nav-item" [class.active]="section() === 'users'" (click)="openSection('users')"><ion-icon name="people-outline"></ion-icon>Manage Users</a>
+        <a class="nav-item" [class.active]="section() === 'fleet'" (click)="openSection('fleet')"><ion-icon name="car-outline"></ion-icon>Fleet Management</a>
+        <a class="nav-item" [class.active]="section() === 'transactions'" (click)="openSection('transactions')"><ion-icon name="wallet-outline"></ion-icon>User Transactions</a>
+        <a class="nav-item" [class.active]="section() === 'reviews'" (click)="openSection('reviews')"><ion-icon name="star-outline"></ion-icon>Reviews & Ratings</a>
+        <a class="nav-item" [class.active]="section() === 'tracking'" (click)="openSection('tracking')"><ion-icon name="location-outline"></ion-icon>Vehicle Tracking</a>
+      </nav>
+    </div></aside>
+
+    <main class="admin-shell">
+      <header class="dashboard-heading"><div><p class="eyebrow">ADMINISTRATION</p><h1>{{ section() === 'overview' ? 'Admin Overview' : (section() | titlecase) }}</h1><p class="subtitle">{{ section() === 'overview' ? "Here's a snapshot of your platform's activity." : 'Manage this area of the SmartDrive platform.' }}</p></div><div class="admin-profile"><span class="avatar">{{ (currentUser()?.fullName || 'A').charAt(0).toUpperCase() }}</span>{{ currentUser()?.fullName || 'Admin User' }}</div></header>
+      @if (errorMessage()) { <div class="admin-alert"><ion-icon name="alert-circle-outline"></ion-icon>{{ errorMessage() }}</div> }
+
+      @if (section() === 'overview') {
+        <section class="stats-grid">
+          <article class="stat-card revenue"><span class="stat-icon">₱</span><span class="stat-label">Total Revenue</span><strong>₱{{ stats().revenue | number }}</strong></article>
+          <article class="stat-card"><span class="stat-icon">⌁</span><span class="stat-label">Total Bookings</span><strong>{{ stats().bookings | number }}</strong></article>
+          <article class="stat-card"><span class="stat-icon">♙</span><span class="stat-label">Registered Users</span><strong>{{ stats().users | number }}</strong></article>
+          <article class="stat-card"><span class="stat-icon">▣</span><span class="stat-label">Vehicles in Fleet</span><strong>{{ stats().vehicles | number }}</strong></article>
+        </section>
+        <section class="quick-actions"><div><p class="eyebrow">OPERATIONS</p><h2>Quick Actions</h2><p class="subtitle">Manage your platform efficiently.</p></div><div class="action-links"><button (click)="openSection('fleet')">Add New Vehicle</button><button (click)="openSection('users')">Manage Users</button><button (click)="openSection('tracking')">Live Tracking</button></div></section>
+        <div class="tables-grid"><section class="data-card"><div class="section-heading"><h2>Recent Bookings</h2><span>{{ stats().bookings }} total</span></div><div class="table-scroll"><table><thead><tr><th>Ref #</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th></tr></thead><tbody>@for (booking of recentBookings(); track booking.id ?? booking.reference_number) {<tr><td>{{ booking.reference_number }}</td><td>{{ booking.customer_name }}</td><td>{{ booking.vehicle_name }}</td><td>₱{{ booking.total_price | number }}</td><td>{{ booking.booking_status | titlecase }}</td></tr>} @empty {<tr><td colspan="5" class="empty">No bookings have been made yet.</td></tr>}</tbody></table></div></section><section class="data-card"><div class="section-heading"><h2>Top Spending Users</h2><span>Lifetime</span></div><div class="table-scroll"><table><thead><tr><th>Name</th><th>Email</th><th>Total Spent</th></tr></thead><tbody>@for (user of topUsers(); track user.email) {<tr><td>{{ user.name }}</td><td>{{ user.email }}</td><td>₱{{ user.spent | number }}</td></tr>} @empty {<tr><td colspan="3" class="empty">No spending data yet.</td></tr>}</tbody></table></div></section></div>
+      }
+
+      @if (section() === 'bookings') {
+        <section class="data-card admin-module"><div class="module-toolbar"><h2>All Bookings <small>{{ filteredBookings().length }} total</small></h2><input placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></div><div class="table-scroll"><table><thead><tr><th>Ref #</th><th>Customer</th><th>Vehicle</th><th>Dates</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>@for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {<tr><td>{{ booking.reference_number }}</td><td>{{ booking.customer_name }}<br><small>{{ booking.customer_email }}</small></td><td>{{ booking.vehicle_name }}</td><td>{{ booking.pickup_date | date }} - {{ booking.return_date | date }}</td><td>₱{{ booking.total_price | number }}</td><td><select [ngModel]="booking.booking_status" (ngModelChange)="updateBookingStatus(booking, $event)"><option value="confirmed">Confirmed</option><option value="ongoing">In Progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></td><td><button class="table-action danger" (click)="deleteBooking(booking)">Delete</button></td></tr>} @empty {<tr><td colspan="7" class="empty">No bookings found.</td></tr>}</tbody></table></div></section>
+      }
+
+      @if (section() === 'users' || section() === 'transactions') {
+        <section class="data-card admin-module"><div class="module-toolbar"><h2>{{ section() === 'users' ? 'All Users' : 'User Transaction Summary' }} <small>{{ filteredUsers().length }} total</small></h2><input placeholder="Search users by name, email, phone..." [ngModel]="search()" (ngModelChange)="search.set($event)"></div>@if (section() === 'users') {<div class="table-scroll"><table><thead><tr><th>Full Name</th><th>Email</th><th>Phone</th><th>Member Since</th><th>Status</th><th>Actions</th></tr></thead><tbody>@for (user of filteredUsers(); track user.id) {<tr><td>{{ user.full_name }}</td><td>{{ user.email }}</td><td>{{ user.phone || 'N/A' }}</td><td>{{ user.created_at | date }}</td><td>{{ user.is_active === false ? 'Suspended' : 'Active' }}</td><td><button class="table-action" (click)="selectedUser.set(user)">Edit</button><button class="table-action danger" (click)="deleteUser(user)">Delete</button></td></tr>} @empty {<tr><td colspan="6" class="empty">No users found.</td></tr>}</tbody></table></div>} @else {@for (summary of transactionSummaries(); track summary.user.id) {<article class="transaction-card"><h3>{{ summary.user.full_name }} <small>{{ summary.user.email }}</small></h3><p>Current Wallet Balance: <strong>₱{{ summary.balance | number:'1.2-2' }}</strong></p><p>Bookings: {{ summary.bookings.length }} · Wallet transactions: {{ summary.transactions.length }}</p>@if (summary.transactions.length) {<div class="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Amount</th></tr></thead><tbody>@for (transaction of summary.transactions; track transaction.created_at) {<tr><td>{{ transaction.created_at | date }}</td><td>{{ transaction.description }}</td><td>₱{{ transaction.amount | number:'1.2-2' }}</td></tr>}</tbody></table></div>} @else {<p>No wallet transactions.</p>}</article>} @empty {<p class="empty">No registered users found.</p>}}</section>
+      }
+
+      @if (section() === 'fleet') {
+        <section class="data-card admin-module"><div class="module-toolbar"><h2>Fleet Management <small>{{ filteredVehicles().length }} vehicles</small></h2><input placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></div><div class="vehicle-form"><input placeholder="Vehicle name" [(ngModel)]="newVehicle.name"><input placeholder="Type" [(ngModel)]="newVehicle.type"><input type="number" placeholder="Daily rate" [(ngModel)]="newVehicle.price"><input placeholder="Image URL" [(ngModel)]="newVehicle.image"><button class="primary-action" (click)="saveVehicle()">Add Vehicle</button></div><div class="table-scroll"><table><thead><tr><th>Vehicle</th><th>Type</th><th>Daily Rate</th><th>Status</th><th>Actions</th></tr></thead><tbody>@for (vehicle of filteredVehicles(); track vehicle.id) {<tr [class.archived-row]="vehicle.status === 'archived'"><td>{{ vehicle.name }}</td><td>{{ vehicle.type }}</td><td>₱{{ vehicle.price | number }}</td><td>{{ vehicle.status | titlecase }}</td><td><button class="table-action" (click)="archiveVehicle(vehicle)">{{ vehicle.status === 'archived' ? 'Recover' : 'Archive' }}</button><button class="table-action danger" (click)="deleteVehicle(vehicle)">Delete</button></td></tr>} @empty {<tr><td colspan="5" class="empty">No vehicles found.</td></tr>}</tbody></table></div></section>
+      }
+
+      @if (section() === 'reviews') {
+        <section class="data-card admin-module"><div class="module-toolbar"><h2>Reviews & Ratings <small>{{ reviews().length }} reviews</small></h2><button class="primary-action" (click)="loadSection('reviews')">Refresh</button></div><div class="table-scroll"><table><thead><tr><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Actions</th></tr></thead><tbody>@for (review of reviews(); track review.id ?? review.created_at) {<tr><td>{{ review.customer_name || 'Anonymous' }}<br><small>{{ review.customer_email }}</small></td><td class="review-stars">{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }} ({{ review.rating }}/5)</td><td>{{ review.comment || 'No comment provided.' }}</td><td>{{ review.created_at | date }}</td><td><button class="table-action danger" (click)="deleteReview(review)">Delete</button></td></tr>} @empty {<tr><td colspan="5" class="empty">No reviews have been submitted yet.</td></tr>}</tbody></table></div></section>
+      }
+
+      @if (section() === 'tracking') {
+        <section class="tracking-layout"><section class="data-card map-card"><iframe title="Metro Manila live map" src="https://www.google.com/maps?q=14.5995,120.9842&z=12&output=embed"></iframe></section><section class="data-card"><div class="module-toolbar"><div><h2>Tracked Users <small>{{ locations().length }}</small></h2>@if (trackingDemoMode()) {<span class="demo-status">DEMO LIVE</span>} @else {<span class="live-status">LIVE API</span>}</div><button class="primary-action" (click)="loadSection('tracking')">Refresh</button></div>@for (location of locations(); track location.key) {<a class="location-row" target="_blank" [href]="'https://www.google.com/maps?q=' + location.latitude + ',' + location.longitude"><strong>{{ location.name }}</strong><span>{{ location.latitude | number:'1.5-5' }}, {{ location.longitude | number:'1.5-5' }}</span><small>{{ location.recorded_at | date:'shortTime' }} · Show exact location on map</small></a>} @empty {<p class="empty">No location updates yet.</p>}</section></section>
+      }
+
+      @if (selectedUser(); as user) {
+        <div class="edit-overlay" (click)="selectedUser.set(null)">
+          <form class="edit-card" (submit)="$event.preventDefault(); updateUser(user)" (click)="$event.stopPropagation()">
+            <h2>Edit User</h2>
+            <label>Full Name<input [(ngModel)]="user.full_name" name="fullName" required></label>
+            <label>Phone<input [(ngModel)]="user.phone" name="phone"></label>
+            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="user.is_active" name="active"> Active account</label>
+            <div class="edit-actions"><button type="button" class="table-action" (click)="selectedUser.set(null)">Cancel</button><button type="submit" class="primary-action">Save Changes</button></div>
+          </form>
+        </div>
+      }
+    </main>
+  </div>
+</ion-content>

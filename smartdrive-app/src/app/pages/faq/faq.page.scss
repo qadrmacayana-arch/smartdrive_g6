@@ -2,33 +2,89 @@
   --background: var(--sd-background);
 }
 
-.intro {
-  margin-bottom: 1.25rem;
+.faq-page {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding-bottom: 1.5rem;
+}
+
+.faq-intro {
+  margin: 0.4rem 0 1.5rem;
+  text-align: center;
+
+  h1 {
+    margin: 0.3rem 0;
+    color: var(--sd-heading);
+    font: 800 clamp(1.5rem, 6vw, 2rem)/1.2 'Sora', sans-serif;
+  }
+
+  p {
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.88rem;
+  }
+}
+
+.faq-kicker {
+  color: var(--sd-primary);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.faq-list {
+  display: grid;
+  gap: 0.7rem;
 }
 
 .faq-item {
-  padding: 1rem;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
+  padding: 0.25rem 0.9rem;
+  border-radius: 1rem;
 }
 
 .faq-question {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  width: 100%;
+  min-height: 3.7rem;
+  gap: 0.7rem;
+  padding: 0.45rem 0;
+  border: 0;
+  background: transparent;
   font-weight: 700;
   color: var(--sd-heading);
   font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
 
-  ion-icon {
-    color: var(--sd-primary);
-    flex-shrink: 0;
-  }
+.faq-question-text {
+  flex: 1;
+}
+
+.faq-question-icon,
+.faq-chevron {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.7rem;
+}
+
+.faq-question-icon {
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font-size: 1.15rem;
+}
+
+.faq-chevron {
+  color: var(--sd-muted-foreground);
 }
 
 .faq-answer {
-  margin: 0.75rem 0 0;
+  margin: 0;
+  padding: 0 0.4rem 1rem 2.7rem;
   color: var(--sd-muted-foreground);
   font-size: 0.85rem;
   line-height: 1.6;
@@ -36,26 +92,52 @@
 
 .contact-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.85rem;
-  padding: 1.1rem;
+  padding: 1.2rem;
   margin-top: 1.5rem;
-  margin-bottom: 1.5rem;
+  border-radius: 1.1rem;
+  background: var(--sd-card);
+}
 
-  ion-icon {
-    font-size: 1.8rem;
-    color: var(--sd-primary);
-    flex-shrink: 0;
-  }
+.contact-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--sd-card);
+  color: var(--sd-primary);
+  font-size: 1.35rem;
+}
 
-  h3 {
+.contact-copy {
+  h2 {
     margin: 0;
-    font-size: 0.9rem;
     color: var(--sd-heading);
+    font: 800 0.95rem/1.3 'Sora', sans-serif;
   }
 
   p {
-    margin: 0.15rem 0 0;
+    margin: 0.25rem 0 0.65rem;
     font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  ion-button {
+    --border-radius: 0.75rem;
+    font-weight: 700;
+    text-transform: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .faq-item {
+    padding-inline: 0.7rem;
+  }
+
+  .faq-answer {
+    padding-left: 0.25rem;
   }
 }

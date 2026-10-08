@@ -71,6 +71,7 @@ import {
   accessibilityOutline,
   sparklesOutline,
   arrowForwardOutline,
+  menuOutline,
 } from 'ionicons/icons';
 
 export function registerIcons(): void {
@@ -102,6 +103,7 @@ export function registerIcons(): void {
     'close-circle': closeCircle,
     'arrow-back-outline': arrowBackOutline,
     'arrow-forward-outline': arrowForwardOutline,
+    'menu-outline': menuOutline,
     'search-outline': searchOutline,
     'options-outline': optionsOutline,
     'add-outline': addOutline,

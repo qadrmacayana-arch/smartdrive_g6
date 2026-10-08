@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border transparent-header">
   <ion-toolbar class="transparent-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+      <ion-back-button defaultHref="/tabs/rent-a-car" text=""></ion-back-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -20,45 +20,65 @@
     <div class="hero-image" [style.background-image]="'url(' + v.image + ')'"></div>
 
     <div class="detail-body">
-      <ion-chip class="type-chip">
-        <ion-label>{{ v.type }}</ion-label>
-      </ion-chip>
-      <h1>{{ v.name }}</h1>
+      <div class="vehicle-heading">
+        <div>
+          <span class="type-label">{{ v.type }}</span>
+          <h1>{{ v.name }}</h1>
+        </div>
+        <span class="availability" [class.unavailable]="v.status !== 'available'">
+          <span class="status-dot"></span>
+          {{ v.status === 'available' ? 'Available now' : (v.status | titlecase) }}
+        </span>
+      </div>
 
-      <div class="spec-row">
+      <div class="spec-row" aria-label="Vehicle specifications">
         <div class="spec">
           <ion-icon name="people-outline"></ion-icon>
-          <span>{{ v.seats }} Seats</span>
+          <span><strong>{{ v.seats }}</strong> seats</span>
         </div>
         <div class="spec">
           <ion-icon name="speedometer-outline"></ion-icon>
-          <span>{{ v.transmission }}</span>
+          <span><strong>{{ v.transmission }}</strong></span>
         </div>
         <div class="spec">
           <ion-icon name="flash-outline"></ion-icon>
-          <span>{{ v.fuel }}</span>
+          <span><strong>{{ v.fuel }}</strong></span>
         </div>
       </div>
 
-      @if (v.description) {
-        <p class="description">{{ v.description }}</p>
-      }
+      <div class="detail-grid">
+        <div class="main-details">
+          @if (v.description) {
+            <section class="details-section">
+              <h2>About this vehicle</h2>
+              <p class="description">{{ v.description }}</p>
+            </section>
+          }
 
-      @if (v.features?.length) {
-        <h3>Features</h3>
-        <div class="features-grid">
-          @for (feature of v.features; track feature) {
-            <div class="feature-pill">
-              <ion-icon name="checkmark-circle"></ion-icon>
-              {{ feature }}
-            </div>
+          @if (v.features?.length) {
+            <section class="details-section">
+              <h2>What's included</h2>
+              <div class="features-grid">
+                @for (feature of v.features; track feature) {
+                  <div class="feature-pill">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    {{ feature }}
+                  </div>
+                }
+              </div>
+            </section>
           }
         </div>
-      }
 
-      <div class="sr-points-banner">
-        <ion-icon name="star"></ion-icon>
-        Earn {{ v.sr_points }} SR Points when you book this vehicle
+        <aside class="booking-summary">
+          <span class="summary-label">Your daily rate</span>
+          <div class="summary-price">₱{{ v.price | number }} <small>/ day</small></div>
+          <div class="sr-points-banner">
+            <ion-icon name="star"></ion-icon>
+            Earn {{ v.sr_points }} SR Points
+          </div>
+          <p class="summary-note">Free cancellation up to 24 hours before pickup.</p>
+        </aside>
       </div>
     </div>
 

@@ -1,16 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonBackButton,
   IonIcon,
   IonButton,
 } from '@ionic/angular';
+import { AuthService } from '../../core/services/auth.service';
 
 interface FeatureItem {
   icon: string;
@@ -37,17 +34,34 @@ const STATS = [
 @Component({
   selector: 'app-about',
   standalone: true,
-  imports: [CommonModule, IonContent, IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton, IonIcon, IonButton],
+  imports: [CommonModule, RouterLink, IonContent, IonIcon, IonButton],
   templateUrl: './about.page.html',
   styleUrl: './about.page.scss',
 })
 export class AboutPage {
+  readonly currentUser = this.auth.currentUser;
+  readonly activeTab = signal<'history' | 'contact' | 'developers'>('history');
   readonly whyChoose = WHY_CHOOSE;
   readonly stats = STATS;
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
+    private readonly auth: AuthService,
+  ) {
+    this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      const section = params.get('section');
+      this.activeTab.set(
+        section === 'contact' || section === 'developers' ? section : 'history',
+      );
+    });
+  }
 
   browseFleet(): void {
-    this.router.navigateByUrl('/tabs/home');
+    this.router.navigateByUrl('/tabs/rent-a-car');
+  }
+
+  selectTab(tab: 'history' | 'contact' | 'developers'): void {
+    this.activeTab.set(tab);
   }
 }

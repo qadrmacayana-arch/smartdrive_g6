@@ -1,68 +1,147 @@
 ion-menu {
-  --width: 300px;
-}
-
-.menu-toolbar {
+  --width: 260px;
   --background: var(--sd-background);
-  --min-height: 88px;
+  --border: 0;
 }
 
-.menu-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-
-  h2 {
-    margin: 0;
-    font-family: 'Sora', sans-serif;
-    font-weight: 800;
-    font-size: 1.05rem;
-    color: var(--sd-heading);
-  }
-
-  p {
-    margin: 0.1rem 0 0;
-    font-size: 0.75rem;
-    max-width: 190px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-.menu-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: var(--sd-gradient-primary);
-  color: #fff;
-  display: grid;
-  place-items: center;
-  font-weight: 800;
-  font-family: 'Sora', sans-serif;
-  flex-shrink: 0;
+.global-menu-button {
+  position: fixed;
+  z-index: 20;
+  top: max(0.75rem, env(safe-area-inset-top));
+  right: 0.75rem;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+  color: var(--sd-primary);
+  box-shadow: 0 8px 24px rgba(76, 29, 149, 0.18);
+  --background: var(--sd-card);
+  --color: var(--sd-primary);
+  --border-radius: 1rem;
 }
 
 .menu-content {
   --background: var(--sd-background);
 }
 
+.menu-content::part(scroll) {
+  display: flex;
+  padding: 0.65rem;
+}
+
+.menu-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 0.7rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 0.9rem;
+  background: var(--sd-card);
+  box-shadow: 0 12px 32px -22px rgba(76, 29, 149, 0.32);
+}
+
+.menu-profile {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 0.15rem 0 0.8rem;
+  text-align: center;
+}
+
+.menu-profile-link {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.menu-avatar {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 3.25rem;
+  overflow: hidden;
+  margin-bottom: 0.45rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--sd-gradient-primary);
+  color: #fff;
+  font: 800 1rem 'Sora', sans-serif;
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.8);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.menu-profile-details {
+  min-width: 0;
+  width: 100%;
+
+  h2 {
+    margin: 0;
+    overflow: hidden;
+    color: var(--sd-heading);
+    font: 800 0.72rem/1.35 'Sora', sans-serif;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    max-width: 100%;
+    margin: 0.18rem 0 0.4rem;
+    overflow: hidden;
+    color: var(--sd-muted-foreground);
+    font-size: 0.55rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    display: inline-flex;
+    padding: 0.16rem 0.42rem;
+    border: 1px solid var(--sd-border);
+    border-radius: 999px;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+    font-size: 0.48rem;
+    font-weight: 800;
+  }
+}
+
 .menu-list {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0.15rem 0 0;
   background: transparent;
-  padding-top: 0.5rem;
 
   ion-item {
     --background: transparent;
-    --padding-start: 1.25rem;
-    --min-height: 48px;
+    --background-activated: var(--sd-primary-soft);
+    --background-focused: var(--sd-primary-soft);
+    --background-hover: var(--sd-background-alt);
+    --border-radius: 0.5rem;
     --color: var(--sd-foreground);
-    font-weight: 600;
-    font-size: 0.92rem;
+    --inner-padding-end: 0.4rem;
+    --min-height: 2rem;
+    --padding-start: 0.45rem;
+    margin: 0.12rem 0;
+    border-radius: 0.5rem;
+    font-size: 0.62rem;
+    font-weight: 700;
 
     ion-icon {
       color: var(--sd-muted-foreground);
-      margin-inline-end: 0.85rem;
+      font-size: 0.78rem;
+      margin-inline-end: 0.35rem;
     }
 
     &.selected {
@@ -78,14 +157,37 @@ ion-menu {
 
 .menu-divider {
   height: 1px;
+  margin: 0.4rem 0.15rem 0.55rem;
   background: var(--sd-border);
-  margin: 0.6rem 1.25rem;
 }
 
 .menu-footer {
-  padding: 1rem 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.4rem;
   margin-top: auto;
+  padding: 0.8rem 0 0.1rem;
+
+  ion-button {
+    width: 100%;
+    min-height: 2rem;
+    margin: 0;
+    --border-radius: 0.5rem;
+    --color: var(--sd-foreground);
+    --padding-start: 0.35rem;
+    --padding-end: 0.35rem;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: none;
+  }
+
+  ion-button::part(native) {
+    justify-content: flex-start;
+  }
+
+  .menu-outline-btn {
+    --border-width: 1px;
+    --border-color: var(--sd-primary);
+    --color: var(--sd-primary);
+  }
 }

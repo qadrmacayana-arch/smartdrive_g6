@@ -8,6 +8,12 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+  <main class="booking-page">
+    <nav class="booking-progress" aria-label="Booking progress">
+      <span class="current" aria-current="step"><b>1</b>Dates</span>
+      <span><b>2</b>Details</span>
+      <span><b>3</b>Payment</span>
+    </nav>
   @if (loading()) {
     <p class="sd-muted">Loading...</p>
   } @else if (errorMessage()) {
@@ -87,4 +93,5 @@
 
     <ion-button expand="block" class="sd-gradient-btn continue-btn" (click)="continue()">Continue</ion-button>
   }
+  </main>
 </ion-content>

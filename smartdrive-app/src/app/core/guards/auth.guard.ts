@@ -22,8 +22,19 @@ export const authGuard: CanActivateFn = async () => {
 
   await waitForInit(auth);
 
+  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (auth.currentUser()) return true;
-  return router.createUrlTree(['/login']);
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: router.url } });
+};
+
+export const customerGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  await waitForInit(auth);
+
+  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  return true;
 };
 
 export const guestGuard: CanActivateFn = async () => {
@@ -32,6 +43,17 @@ export const guestGuard: CanActivateFn = async () => {
 
   await waitForInit(auth);
 
+  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (!auth.currentUser()) return true;
   return router.createUrlTree(['/tabs/home']);
+};
+
+export const adminGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  await waitForInit(auth);
+
+  if (auth.currentUser()?.isAdmin) return true;
+  return router.createUrlTree(['/login']);
 };

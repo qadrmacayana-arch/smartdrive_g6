@@ -1,19 +1,9 @@
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonToolbar,
-  IonButtons,
-  IonMenuButton,
-  IonSearchbar,
-  IonChip,
-  IonLabel,
-  IonIcon,
-  IonRefresher,
-  IonRefresherContent,
-  IonSkeletonText,
 } from '@ionic/angular';
 import { VehicleService } from '../../../core/services/vehicle.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -45,19 +35,9 @@ const CATEGORIES: CategoryDef[] = [
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     RouterLink,
     IonContent,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
-    IonMenuButton,
-    IonSearchbar,
-    IonChip,
-    IonLabel,
-    IonIcon,
-    IonRefresher,
-    IonRefresherContent,
-    IonSkeletonText,
   ],
   templateUrl: './home.page.html',
   styleUrl: './home.page.scss',
@@ -70,6 +50,8 @@ export class HomePage implements OnInit {
   readonly searchQuery = signal('');
   readonly mainCategory = signal('All');
   readonly subFilter = signal('All');
+  pickupLocation = '';
+  pickupDate = '';
 
   readonly currentUser = this.auth.currentUser;
 
@@ -128,5 +110,11 @@ export class HomePage implements OnInit {
 
   openVehicle(vehicle: Vehicle): void {
     this.router.navigate(['/vehicle', vehicle.id]);
+  }
+
+  searchFleet(): void {
+    this.router.navigate(['/tabs/rent-a-car'], {
+      queryParams: { location: this.pickupLocation || null, date: this.pickupDate || null },
+    });
   }
 }

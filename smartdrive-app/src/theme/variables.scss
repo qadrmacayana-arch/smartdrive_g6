@@ -1,6 +1,8 @@
 // SmartDrive™ "Amethyst Fresh" theme, ported from the original web app's design tokens.
 
 :root {
+  color-scheme: light;
+
   --sd-primary: #7c3aed;
   --sd-primary-hover: #6d28d9;
   --sd-primary-soft: #ede9fe;
@@ -18,6 +20,8 @@
   --sd-success: #10b981;
   --sd-warning: #f59e0b;
   --sd-radius: 1.1rem;
+  --sd-radius-sm: 0.65rem;
+  --sd-radius-lg: 1.6rem;
   --sd-gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 55%, #c026d3 100%);
   --sd-shadow-md: 0 10px 30px -8px rgba(76, 29, 149, 0.14);
 
@@ -73,27 +77,4 @@
   --ion-card-background: #ffffff;
 
   --ion-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --sd-background: #16101f;
-    --sd-background-alt: #1c1428;
-    --sd-foreground: #f1ecfb;
-    --sd-heading: #ffffff;
-    --sd-card: #1f1730;
-    --sd-muted: #241b38;
-    --sd-muted-foreground: #b7abd6;
-    --sd-border: #322449;
-
-    --ion-background-color: #16101f;
-    --ion-background-color-rgb: 22, 16, 31;
-    --ion-text-color: #f1ecfb;
-    --ion-text-color-rgb: 241, 236, 251;
-
-    --ion-toolbar-background: #1f1730;
-    --ion-item-background: #1f1730;
-    --ion-card-background: #1f1730;
-    --ion-border-color: #322449;
-  }
 }

@@ -17,23 +17,44 @@ export interface PricingBreakdown {
 @Injectable({ providedIn: 'root' })
 export class BookingService {
   /** Carries the in-progress booking across the dates -> details -> payment -> confirmation steps. */
-  readonly draft = signal<BookingDraft | null>(null);
+  readonly draft = signal<BookingDraft | null>(this.readStoredDraft());
 
   constructor(private readonly supabase: SupabaseService) {}
 
   startDraft(vehicle: BookingDraft['vehicle'], pickupDate: string, returnDate: string, pickupLocation: string): void {
     const rentalDays = this.daysBetween(pickupDate, returnDate);
-    this.draft.set({ vehicle, pickupDate, returnDate, rentalDays, pickupLocation });
+    this.setDraft({ vehicle, pickupDate, returnDate, rentalDays, pickupLocation });
   }
 
   updateCustomer(customer: BookingDraft['customer']): void {
     const current = this.draft();
     if (!current) return;
-    this.draft.set({ ...current, customer });
+    this.setDraft({ ...current, customer });
   }
 
   clearDraft(): void {
     this.draft.set(null);
+    sessionStorage.removeItem('bookingData');
+  }
+
+  updateDraft(updater: (draft: BookingDraft) => BookingDraft): void {
+    const current = this.draft();
+    if (current) this.setDraft(updater(current));
+  }
+
+  private readStoredDraft(): BookingDraft | null {
+    try {
+      const stored = sessionStorage.getItem('bookingData');
+      return stored ? (JSON.parse(stored) as BookingDraft) : null;
+    } catch {
+      sessionStorage.removeItem('bookingData');
+      return null;
+    }
+  }
+
+  private setDraft(draft: BookingDraft): void {
+    this.draft.set(draft);
+    sessionStorage.setItem('bookingData', JSON.stringify(draft));
   }
 
   daysBetween(pickupDate: string, returnDate: string): number {

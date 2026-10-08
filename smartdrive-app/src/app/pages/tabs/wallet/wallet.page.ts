@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -28,6 +29,7 @@ import { WalletBalance, WalletTransaction } from '../../../core/models/wallet.mo
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     DatePipe,
     IonContent,
     IonHeader,
@@ -48,6 +50,7 @@ import { WalletBalance, WalletTransaction } from '../../../core/models/wallet.mo
   styleUrl: './wallet.page.scss',
 })
 export class WalletPage implements OnInit {
+  readonly currentUser = this.auth.currentUser;
   readonly balance = signal<WalletBalance | null>(null);
   readonly transactions = signal<WalletTransaction[]>([]);
   readonly loading = signal(true);

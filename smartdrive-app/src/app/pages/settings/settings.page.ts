@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonContent,
   IonHeader,
@@ -38,6 +38,7 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterLink,
     IonContent,
     IonHeader,
     IonToolbar,
@@ -59,7 +60,14 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   templateUrl: './settings.page.html',
   styleUrl: './settings.page.scss',
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage implements OnInit, OnDestroy {
+  readonly currentUser = this.auth.currentUser;
+  readonly avatarPreviewUrl = signal<string | null>(null);
+  readonly uploadingAvatar = signal(false);
+  readonly avatarMessage = signal<string | null>(null);
+  readonly avatarError = signal(false);
+  private selectedAvatar: File | null = null;
+  private avatarPreviewObjectUrl: string | null = null;
   readonly profileForm = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     birthday: [''],
@@ -99,6 +107,68 @@ export class SettingsPage implements OnInit {
       gender: user.gender ?? 'prefer_not_to_say',
       phone: user.phone ?? '',
     });
+  }
+
+  ngOnDestroy(): void {
+    this.revokeAvatarPreview();
+  }
+
+  onAvatarSelected(event: Event): void {
+    const input = event.currentTarget;
+    if (!(input instanceof HTMLInputElement)) return;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.avatarMessage.set(null);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      this.clearSelectedAvatar();
+      this.avatarError.set(true);
+      this.avatarMessage.set('Choose a JPG, PNG, or WebP image.');
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.clearSelectedAvatar();
+      this.avatarError.set(true);
+      this.avatarMessage.set('Choose an image smaller than 5 MB.');
+      input.value = '';
+      return;
+    }
+
+    this.revokeAvatarPreview();
+    this.selectedAvatar = file;
+    this.avatarPreviewObjectUrl = URL.createObjectURL(file);
+    this.avatarPreviewUrl.set(this.avatarPreviewObjectUrl);
+  }
+
+  async uploadAvatar(): Promise<void> {
+    if (!this.selectedAvatar || this.uploadingAvatar()) return;
+
+    this.uploadingAvatar.set(true);
+    this.avatarMessage.set(null);
+    try {
+      await this.auth.updateAvatar(this.selectedAvatar);
+      this.selectedAvatar = null;
+      this.revokeAvatarPreview();
+      this.avatarError.set(false);
+      this.avatarMessage.set('Profile photo updated.');
+    } catch (error) {
+      this.avatarError.set(true);
+      this.avatarMessage.set(error instanceof Error ? error.message : 'Unable to upload your profile photo.');
+    } finally {
+      this.uploadingAvatar.set(false);
+    }
+  }
+
+  private revokeAvatarPreview(): void {
+    if (this.avatarPreviewObjectUrl) URL.revokeObjectURL(this.avatarPreviewObjectUrl);
+    this.avatarPreviewObjectUrl = null;
+    this.avatarPreviewUrl.set(null);
+  }
+
+  private clearSelectedAvatar(): void {
+    this.selectedAvatar = null;
+    this.revokeAvatarPreview();
   }
 
   async saveProfile(): Promise<void> {

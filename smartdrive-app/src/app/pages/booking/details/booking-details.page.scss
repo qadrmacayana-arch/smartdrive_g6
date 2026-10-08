@@ -2,11 +2,63 @@
   --background: var(--sd-background);
 }
 
+.booking-page {
+  width: min(100%, 680px);
+  margin: 0 auto;
+  padding-bottom: 1rem;
+}
+
+.booking-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.1rem 0 1.25rem;
+  padding: 0.7rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+
+  span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--sd-muted-foreground);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  b {
+    display: grid;
+    width: 1.6rem;
+    height: 1.6rem;
+    flex: 0 0 1.6rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sd-muted);
+    color: var(--sd-muted-foreground);
+    font-size: 0.68rem;
+  }
+
+  .completed,
+  .current {
+    color: var(--sd-primary);
+  }
+
+  .completed b,
+  .current b {
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+  }
+}
+
 .auth-item {
   --background: var(--sd-card);
   border: 1px solid var(--sd-border);
   border-radius: var(--sd-radius);
   margin-bottom: 0.75rem;
+  min-height: 3.7rem;
 }
 
 .pwd-block {
@@ -62,4 +114,47 @@
 
 .continue-btn {
   margin-bottom: 1rem;
+}
+.pwd-upload {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  color: var(--sd-foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  input {
+    width: 100%;
+    padding: 0.65rem;
+    border: 1px dashed var(--sd-primary);
+    border-radius: 0.65rem;
+    background: var(--sd-background);
+    color: var(--sd-muted-foreground);
+    font: inherit;
+    font-weight: 500;
+  }
+
+  small {
+    color: var(--sd-primary);
+    font-weight: 600;
+  }
+}
+
+.form-error {
+  margin: 0.75rem 0;
+  color: var(--sd-destructive);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 380px) {
+  .booking-progress {
+    gap: 0.25rem;
+    padding: 0.55rem;
+
+    span {
+      gap: 0.25rem;
+      font-size: 0.65rem;
+    }
+  }
 }

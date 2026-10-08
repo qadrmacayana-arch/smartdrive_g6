@@ -46,6 +46,8 @@ import { BookingService } from '../../../core/services/booking.service';
 export class BookingDetailsPage implements OnInit {
   readonly draft = this.bookingService.draft;
   readonly isPwdSenior = signal(false);
+  readonly pwdFileName = signal<string | null>(null);
+  readonly errorMessage = signal<string | null>(null);
 
   readonly form = this.fb.group({
     name: ['', [Validators.required]],
@@ -80,8 +82,13 @@ export class BookingDetailsPage implements OnInit {
   }
 
   continue(): void {
+    this.errorMessage.set(null);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      return;
+    }
+    if (this.isPwdSenior() && !this.pwdFileName()) {
+      this.errorMessage.set('Please upload your PWD/Senior ID to proceed with the discount.');
       return;
     }
 
@@ -95,5 +102,16 @@ export class BookingDetailsPage implements OnInit {
 
     const vehicleId = this.draft()!.vehicle.id;
     this.router.navigate(['/booking', vehicleId, 'payment']);
+  }
+
+  onPwdSeniorChange(value: string): void {
+    const selected = value === 'yes';
+    this.isPwdSenior.set(selected);
+    if (!selected) this.pwdFileName.set(null);
+  }
+
+  onPwdFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.pwdFileName.set(input.files?.[0]?.name ?? null);
   }
 }

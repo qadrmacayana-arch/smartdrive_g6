@@ -80,6 +80,18 @@ export class BookingDatesPage implements OnInit {
 
   async ngOnInit(): Promise<void> {
     const vehicleId = Number(this.route.snapshot.paramMap.get('vehicleId'));
+    const queryParams = this.route.snapshot.queryParamMap;
+    const requestedDate = queryParams.get('date');
+    const requestedLocation = queryParams.get('location');
+    if (requestedDate) {
+      const date = new Date(`${requestedDate}T00:00:00`);
+      if (!Number.isNaN(date.getTime()) && date >= new Date(new Date().toDateString())) {
+        this.pickupDate.set(requestedDate);
+        this.returnDate.set(this.addDays(date, 1));
+      }
+    }
+    if (requestedLocation) this.pickupLocation.set(requestedLocation);
+
     try {
       const vehicle = await this.vehicleService.getById(vehicleId);
       if (!vehicle) {

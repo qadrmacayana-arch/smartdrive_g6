@@ -8,7 +8,13 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  @if (draft(); as d) {
+  <main class="booking-page">
+    <nav class="booking-progress" aria-label="Booking progress">
+      <span class="completed"><b>✓</b>Dates</span>
+      <span class="current" aria-current="step"><b>2</b>Details</span>
+      <span><b>3</b>Payment</span>
+    </nav>
+    @if (draft(); as d) {
     <form [formGroup]="form" (ngSubmit)="continue()">
       <ion-item class="auth-item" lines="none">
         <ion-icon slot="start" name="person-outline"></ion-icon>
@@ -33,7 +39,7 @@
             <p class="sd-muted">Get 20% off your rental. Present your ID upon vehicle pick-up.</p>
           </div>
         </div>
-        <ion-segment [value]="isPwdSenior() ? 'yes' : 'no'" (ionChange)="isPwdSenior.set($any($event.detail.value) === 'yes')">
+        <ion-segment [value]="isPwdSenior() ? 'yes' : 'no'" (ionChange)="onPwdSeniorChange($any($event.detail.value))">
           <ion-segment-button value="no">
             <ion-label>No</ion-label>
           </ion-segment-button>
@@ -41,7 +47,20 @@
             <ion-label>Yes</ion-label>
           </ion-segment-button>
         </ion-segment>
+        @if (isPwdSenior()) {
+          <label class="pwd-upload">
+            <span>Upload PWD/Senior ID</span>
+            <input type="file" accept="image/*,.pdf" (change)="onPwdFileChange($event)" />
+            @if (pwdFileName()) {
+              <small>{{ pwdFileName() }}</small>
+            }
+          </label>
+        }
       </div>
+
+      @if (errorMessage()) {
+        <p class="form-error">{{ errorMessage() }}</p>
+      }
 
       <div class="sd-card summary-card">
         <div class="summary-row">
@@ -66,5 +85,6 @@
 
       <ion-button expand="block" type="submit" class="sd-gradient-btn continue-btn">Continue to Payment</ion-button>
     </form>
-  }
+    }
+  </main>
 </ion-content>

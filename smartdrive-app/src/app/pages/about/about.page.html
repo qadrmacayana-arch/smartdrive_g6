@@ -1,86 +1,122 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar class="sd-toolbar">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/account" text=""></ion-back-button>
-    </ion-buttons>
-    <ion-title>About SmartDrive™</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content [fullscreen]="true">
-  <div class="hero">
-    <h1>About SmartDrive™</h1>
-    <p>Redefining vehicle rental experiences across the Philippines with innovation, reliability, and exceptional customer service.</p>
-  </div>
-
-  <div class="ion-padding">
-    <div class="pillar-grid">
-      <div class="sd-card pillar-card">
-        <ion-icon name="location-outline"></ion-icon>
-        <h3>Our Mission</h3>
-        <p class="sd-muted">To provide accessible, affordable, and reliable vehicle rental services that empower travelers to explore the Philippines with confidence.</p>
-      </div>
-      <div class="sd-card pillar-card">
-        <ion-icon name="sparkles-outline"></ion-icon>
-        <h3>Our Vision</h3>
-        <p class="sd-muted">To become the Philippines' most trusted and innovative vehicle rental platform.</p>
-      </div>
-      <div class="sd-card pillar-card">
-        <ion-icon name="ribbon-outline"></ion-icon>
-        <h3>Our Values</h3>
-        <p class="sd-muted">Integrity, quality, innovation, and customer-centricity guide every decision we make.</p>
-      </div>
-    </div>
-
-    <h2 class="section-title">Our Story</h2>
-    <p class="story-paragraph">
-      SmartDrive was developed in February 2026 with a single vision: to revolutionize the vehicle rental industry in
-      the Philippines. Our rapidly growing fleet spans over 500 vehicles across major cities including Manila, Cebu,
-      Davao, and Cagayan de Oro — from economical motorcycles for city exploration to premium SUVs for family
-      adventures.
-    </p>
-    <p class="story-paragraph">
-      What sets us apart is our commitment to putting customers first: 24/7 support, transparent pricing,
-      comprehensive insurance coverage, and flexible booking options.
-    </p>
-
-    <h2 class="section-title">By The Numbers</h2>
-    <div class="stats-grid">
-      @for (stat of stats; track stat.label) {
-        <div class="sd-card stat-card">
-          <span class="stat-value">{{ stat.value }}</span>
-          <span class="sd-muted stat-label">{{ stat.label }}</span>
-        </div>
+  <main class="about-page">
+    <header class="about-header">
+      <a routerLink="/tabs/home" class="brand">SmartDrive<sup>TM</sup></a>
+      @if (!currentUser()) {
+        <nav><a routerLink="/login" class="log-in">Log in</a><a routerLink="/signup" class="sign-in">Sign up</a></nav>
       }
-    </div>
+    </header>
 
-    <h2 class="section-title">Why Choose SmartDrive?</h2>
-    <div class="feature-grid">
-      @for (feature of whyChoose; track feature.title) {
-        <div class="sd-card feature-card">
-          <ion-icon [name]="feature.icon"></ion-icon>
-          <h4>{{ feature.title }}</h4>
-          <p class="sd-muted">{{ feature.description }}</p>
-        </div>
-      }
-    </div>
+    <section class="hero">
+      <p class="eyebrow">ABOUT SMARTDRIVE</p>
+      <h1>Moving journeys forward.</h1>
+      <p>Redefining vehicle rental experiences across the Philippines with innovation, reliability, and exceptional customer service.</p>
+    </section>
 
-    <div class="sd-card contact-card">
-      <h3>Contact Us</h3>
-      <div class="contact-row">
-        <ion-icon name="location-outline"></ion-icon>
-        <span>Near Technological Institute of the Philippines, Quezon City</span>
-      </div>
-      <div class="contact-row">
-        <ion-icon name="call-outline"></ion-icon>
-        <span>(+63) 917 123 4567</span>
-      </div>
-      <div class="contact-row">
-        <ion-icon name="mail-outline"></ion-icon>
-        <span>contact&#64;smartdrive.com</span>
-      </div>
-    </div>
+    <nav class="about-subnav" aria-label="About page sections">
+      <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">App History</button>
+      <button type="button" [class.active]="activeTab() === 'contact'" (click)="selectTab('contact')">Contacts</button>
+      <button type="button" [class.active]="activeTab() === 'developers'" (click)="selectTab('developers')">Developers</button>
+    </nav>
 
-    <ion-button expand="block" class="sd-gradient-btn cta-btn" (click)="browseFleet()">Browse Our Fleet</ion-button>
-  </div>
+    @if (activeTab() === 'history') {
+    <section class="tab-content">
+      <section class="pillars">
+        <article><span>◷</span><h2>Our Mission</h2><p>To provide accessible, affordable, and reliable vehicle rental services that empower travelers to explore the Philippines with confidence and comfort.</p></article>
+        <article><span>✦</span><h2>Our Vision</h2><p>To become the Philippines' most trusted and innovative vehicle rental platform, delivering exceptional value and service.</p></article>
+        <article><span>◇</span><h2>Our Values</h2><p>Integrity, quality, innovation, safety, and customer-centricity guide every decision we make.</p></article>
+      </section>
+      <section class="content-section story-section">
+      <p class="eyebrow">OUR HISTORY</p><h2>Built for better journeys</h2>
+      <p>SmartDrive was developed in February 2026 with a single vision: to revolutionize the vehicle rental industry in the Philippines. As a proudly Philippine-based company, we built a service that combines affordability, reliability, and exceptional customer experiences.</p>
+      <p>Our rapidly growing fleet spans major cities including Manila, Cebu, Davao, and Cagayan de Oro. From economical motorcycles for city exploration to premium SUVs for family adventures, we have the right vehicle for every journey.</p>
+      <p>Our 24/7 support team, transparent pricing, comprehensive insurance coverage, and flexible booking options help locals and travelers move with confidence.</p>
+      </section>
+
+      <section class="content-section stats-section">
+      <h2>By the numbers</h2><div class="stats-grid">@for (stat of stats; track stat.label) {<article><strong>{{ stat.value }}</strong><span>{{ stat.label }}</span></article>}</div>
+      </section>
+
+      <section class="content-section benefits-section">
+      <p class="eyebrow">THE SMARTDRIVE DIFFERENCE</p><h2>Why choose SmartDrive?</h2><p class="section-lead">We've built our reputation on trust, quality, and exceptional service.</p>
+      <div class="feature-grid">@for (feature of whyChoose; track feature.title) {<article><ion-icon [name]="feature.icon"></ion-icon><h3>{{ feature.title }}</h3><p>{{ feature.description }}</p></article>}</div>
+      </section>
+    </section>
+    }
+
+    @if (activeTab() === 'contact') {
+    <section class="tab-content content-section contact-section">
+      <div><p class="eyebrow">GET IN TOUCH</p><h2>Contact SmartDrive</h2><p>Have a question about a vehicle, booking, or partnership? Our team is ready to help.</p></div>
+      <div class="contact-list"><div><ion-icon name="location-outline"></ion-icon><span><strong>Visit us</strong>Near Technological Institute of the Philippines, Quezon City</span></div><div><ion-icon name="call-outline"></ion-icon><span><strong>Call us</strong>(+63) 917 123 4567</span></div><div><ion-icon name="mail-outline"></ion-icon><span><strong>Email us</strong>contact&#64;smartdrive.com</span></div></div>
+    </section>
+    }
+
+    @if (activeTab() === 'developers') {
+    <section class="tab-content content-section developers-section">
+      <p class="eyebrow">ABOUT THE DEVELOPERS</p><h2>Built by tech innovators</h2>
+      <p>This SmartDrive website and platform was developed by a talented group of students and developers from the <strong>Technological Institute of the Philippines - Quezon City Campus.</strong></p>
+      <p>Through their passion for technology and innovation, the team transformed the SmartDrive vision into a functional, user-friendly platform with responsive design and a smooth rental experience.</p>
+
+      <div class="developers-grid">
+        <article class="developer-card">
+          <img src="assets/images/anthony-macayana.png" alt="Anthony Macayana portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>Anthony Macayana</h3>
+            <p class="developer-role">Main Developer, Designer &amp; Planner</p>
+            <a href="mailto:qadrmacayana@tip.edu.ph">qadrmacayana@tip.edu.ph</a>
+          </div>
+        </article>
+
+        <article class="developer-card">
+          <img src="assets/images/james-miuel-faa.png" alt="James Miuel Faa portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>James Miuel Faa</h3>
+            <p class="developer-role">Second Lead in Designing Ionic Angular / Web / Mobile Version</p>
+            <a href="mailto:qjmffaa@tip.edu.ph">qjmffaa@tip.edu.ph</a>
+          </div>
+        </article>
+
+        <article class="developer-card">
+          <img src="assets/images/joseph-pj-abus.png" alt="Joseph PJ Abus portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>Joseph P.J. Abus</h3>
+            <p class="developer-role">Developer / Designer (Backend)</p>
+            <a href="mailto:qjppabus@tip.edu.ph">qjppabus@tip.edu.ph</a>
+          </div>
+        </article>
+
+        <article class="developer-card">
+          <img src="assets/images/king-aron-noriega.png" alt="King Aron Noriega portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>King Aron Noriega</h3>
+            <p class="developer-role">Developer / Backend / API / Database</p>
+            <a href="mailto:qkanoriega01@tip.edu.ph">qkanoriega01@tip.edu.ph</a>
+          </div>
+        </article>
+
+        <article class="developer-card">
+          <img src="assets/images/sean-audrey-ferrer.png" alt="Sean Audrey Ferrer portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>Sean Audrey Ferrer</h3>
+            <p class="developer-role">Developer / Backend / Database</p>
+            <a href="mailto:qsarferrer@tip.edu.ph">qsarferrer@tip.edu.ph</a>
+          </div>
+        </article>
+
+        <article class="developer-card">
+          <img src="assets/images/shanice-kyle-dacian.png" alt="Shanice Kyle Dacian portrait" class="developer-photo" />
+          <div class="developer-details">
+            <h3>Shanice Kyle Dacian</h3>
+            <p class="developer-role">Developer / Frontend / API</p>
+            <a href="mailto:qdskfdacian@tip.edu.ph">qdskfdacian@tip.edu.ph</a>
+          </div>
+        </article>
+      </div>
+
+      <div class="technology-list"><span>HTML5</span><span>CSS3</span><span>JavaScript</span><span>Angular</span><span>Ionic</span></div>
+    </section>
+    }
+
+    <div class="cta"><div><h2>Ready to start your journey?</h2><p>Find the right vehicle for your next trip across the Philippines.</p></div><ion-button class="sd-gradient-btn" (click)="browseFleet()">Browse our fleet</ion-button></div>
+  </main>
 </ion-content>

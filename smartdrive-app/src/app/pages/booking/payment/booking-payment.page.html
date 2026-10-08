@@ -8,7 +8,13 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
-  @if (draft(); as d) {
+  <main class="booking-page">
+    <nav class="booking-progress" aria-label="Booking progress">
+      <span class="completed"><b>✓</b>Dates</span>
+      <span class="completed"><b>✓</b>Details</span>
+      <span class="current" aria-current="step"><b>3</b>Payment</span>
+    </nav>
+    @if (draft(); as d) {
     <div class="sd-card vehicle-summary">
       <div class="thumb" [style.background-image]="'url(' + d.vehicle.image + ')'"></div>
       <div>
@@ -128,5 +134,6 @@
         Confirm & Pay
       }
     </ion-button>
-  }
+    }
+  </main>
 </ion-content>

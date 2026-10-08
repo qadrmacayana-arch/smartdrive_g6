@@ -42,6 +42,10 @@ npm install
 ionic serve          # or: ng serve
 ```
 
+### Profile photos
+
+Before users can save a profile photo, run [`supabase/avatar-storage.sql`](./supabase/avatar-storage.sql) in the Supabase SQL Editor for this project. It creates the public `avatars` bucket and limits authenticated uploads and updates to each user's own folder. Profile images are publicly readable so they can appear in the navigation menu.
+
 ## Building for a device
 
 ```bash

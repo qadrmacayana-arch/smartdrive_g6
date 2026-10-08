@@ -105,7 +105,7 @@ export class BookingPaymentPage implements OnInit {
     try {
       const subtotal = this.pricing()?.subtotal ?? 0;
       const promo = await this.bookingService.findPromoCode(code, subtotal);
-      this.bookingService.draft.update((d) => (d ? { ...d, promoCode: promo } : d));
+      this.bookingService.updateDraft((d) => ({ ...d, promoCode: promo }));
       await this.recompute();
     } catch (error) {
       this.promoError.set(error instanceof Error ? error.message : 'Unable to apply that code.');
@@ -115,7 +115,7 @@ export class BookingPaymentPage implements OnInit {
   }
 
   removePromo(): void {
-    this.bookingService.draft.update((d) => (d ? { ...d, promoCode: null } : d));
+    this.bookingService.updateDraft((d) => ({ ...d, promoCode: null }));
     this.promoInput.set('');
     this.recompute();
   }
@@ -141,7 +141,7 @@ export class BookingPaymentPage implements OnInit {
     this.submitting.set(true);
 
     try {
-      this.bookingService.draft.update((d) => (d ? { ...d, pricing } : d));
+      this.bookingService.updateDraft((d) => ({ ...d, pricing }));
 
       const booking = await this.bookingService.createBooking(user.id, this.paymentMethod());
 

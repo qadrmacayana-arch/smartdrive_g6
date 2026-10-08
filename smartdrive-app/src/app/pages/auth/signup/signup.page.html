@@ -1,94 +1,59 @@
-<ion-content [fullscreen]="true" class="ion-padding">
-  <div class="auth-wrap">
-    <div class="auth-brand">
-      <div class="auth-logo">SD</div>
-      <h1 class="sd-section-title">Create your account</h1>
-      <p class="sd-muted">Join SmartDrive™ and start renting in minutes</p>
-    </div>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
-      @if (errorMessage()) {
-        <div class="auth-alert error">{{ errorMessage() }}</div>
-      }
-      @if (successMessage()) {
-        <div class="auth-alert success">{{ successMessage() }}</div>
-      }
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="person-outline"></ion-icon>
-        <ion-input label="Full name" labelPlacement="floating" formControlName="fullName" autocomplete="name"></ion-input>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="calendar-outline"></ion-icon>
-        <ion-label>Birthday</ion-label>
-        <ion-datetime-button datetime="birthday-picker" slot="end"></ion-datetime-button>
-      </ion-item>
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime
-            id="birthday-picker"
-            presentation="date"
-            formControlName="birthday"
-            [showDefaultButtons]="true"
-            max="2020-01-01"
-          ></ion-datetime>
-        </ng-template>
-      </ion-modal>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="location-outline"></ion-icon>
-        <ion-input label="Address" labelPlacement="floating" formControlName="address" autocomplete="street-address"></ion-input>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-        <ion-select label="Gender" labelPlacement="floating" formControlName="gender" interface="popover">
-          <ion-select-option value="male">Male</ion-select-option>
-          <ion-select-option value="female">Female</ion-select-option>
-          <ion-select-option value="other">Other</ion-select-option>
-          <ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option>
-        </ion-select>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="mail-outline"></ion-icon>
-        <ion-input type="email" label="Email" labelPlacement="floating" formControlName="email" autocomplete="email"></ion-input>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="call-outline"></ion-icon>
-        <ion-input type="tel" label="Phone number" labelPlacement="floating" formControlName="phone" autocomplete="tel"></ion-input>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-        <ion-input type="password" label="Password" labelPlacement="floating" formControlName="password" autocomplete="new-password"></ion-input>
-      </ion-item>
-
-      <ion-item class="auth-item" lines="none">
-        <ion-icon slot="start" name="lock-closed-outline"></ion-icon>
-        <ion-input
-          type="password"
-          label="Confirm password"
-          labelPlacement="floating"
-          formControlName="confirmPassword"
-          autocomplete="new-password"
-        ></ion-input>
-      </ion-item>
-
-      <ion-button expand="block" type="submit" class="sd-gradient-btn" [disabled]="submitting()">
-        @if (submitting()) {
-          <ion-spinner name="dots"></ion-spinner>
-        } @else {
-          Sign Up
-        }
-      </ion-button>
-    </form>
-
-    <p class="auth-footer sd-muted">
-      Already have an account?
-      <a routerLink="/login" class="auth-link">Log in</a>
-    </p>
-  </div>
+<ion-content [fullscreen]="true" class="auth-page">
+  <main class="auth-shell signup-shell">
+    <section class="showcase-panel">
+      <div class="brand-pill">✦ SMARTDRIVE</div>
+      <div class="showcase-icon"><ion-icon name="car-outline"></ion-icon></div>
+      <p class="eyebrow">JOIN SMARTDRIVE TODAY</p>
+      <h2>Your Journey.<br />Our Fleet.</h2>
+      <p class="showcase-copy">Unlock instant access to a premium fleet — electric cars, luxury sedans, SUVs, and more — with flexible booking and rewards on every ride.</p>
+      <div class="feature-list">
+        <div><ion-icon name="checkmark-circle-outline"></ion-icon><span>Create your account in minutes</span></div>
+        <div><ion-icon name="time-outline"></ion-icon><span>Earn rewards on every rental</span></div>
+        <div><ion-icon name="card-outline"></ion-icon><span>Smart wallet for instant payments</span></div>
+        <div><ion-icon name="shield-checkmark-outline"></ion-icon><span>Trusted by thousands of drivers</span></div>
+      </div>
+    </section>
+    <section class="form-panel">
+      <div class="form-content">
+        <div class="form-heading"><div class="form-logo"><ion-icon name="car-outline"></ion-icon></div><div><h1>Create Account</h1><p>START YOUR SMARTDRIVE JOURNEY</p></div></div>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
+          @if (errorMessage()) { <div id="signup-error" class="auth-alert error" role="alert" tabindex="-1">{{ errorMessage() }}</div> }
+          @if (successMessage()) { <div class="auth-alert success">{{ successMessage() }}</div> }
+          @if (locationError()) { <div class="auth-alert error" role="alert">{{ locationError() }} <button type="button" class="inline-link" (click)="loadLocations()">Retry</button></div> }
+          <div class="field-grid">
+            <label>First Name<ion-item class="field" lines="none"><ion-input placeholder="Juan" formControlName="firstName" autocomplete="given-name"></ion-input></ion-item></label>
+            <label>Middle Name<ion-item class="field" lines="none"><ion-input placeholder="Santos" formControlName="middleName" autocomplete="additional-name"></ion-input></ion-item></label>
+            <label>Surname<ion-item class="field" lines="none"><ion-input placeholder="Dela Cruz" formControlName="surname" autocomplete="family-name"></ion-input></ion-item></label>
+            <label>Suffix <small>(optional)</small><ion-item class="field" lines="none"><ion-select placeholder="No suffix" formControlName="suffix" interface="popover"><ion-select-option value="">No suffix</ion-select-option><ion-select-option value="Jr.">Jr.</ion-select-option><ion-select-option value="Sr.">Sr.</ion-select-option><ion-select-option value="II">II</ion-select-option><ion-select-option value="III">III</ion-select-option></ion-select></ion-item></label>
+          </div>
+          <label>Birthday<ion-item class="field" lines="none"><ion-input type="date" formControlName="birthday"></ion-input></ion-item></label>
+          <label>Street / House No.<ion-item class="field" lines="none"><ion-input placeholder="House no., street, subdivision" formControlName="address" autocomplete="street-address"></ion-input></ion-item></label>
+          <div class="field-grid">
+            <label>Region<ion-item class="field" lines="none"><ion-select placeholder="Select region" formControlName="region" interface="popover" [disabled]="locationsLoading()" (ionChange)="updateRegion()">@for (region of regions(); track region.code) { <ion-select-option [value]="region.code">{{ region.islandGroup }} — {{ region.name }} ({{ region.regionName }})</ion-select-option> }</ion-select></ion-item></label>
+            @if (form.controls.region.value !== ncrRegionCode) {
+              <label>Province<ion-item class="field" lines="none"><ion-select placeholder="Select province" formControlName="province" interface="popover" [disabled]="provincesLoading() || !provinces().length" (ionChange)="updateProvince()">@for (province of provinces(); track province.code) { <ion-select-option [value]="province.code">{{ province.name }}</ion-select-option> }</ion-select></ion-item></label>
+            }
+            <label>City / Municipality<ion-item class="field" lines="none"><ion-select placeholder="Select city or municipality" formControlName="city" interface="popover" [disabled]="citiesLoading() || !cities().length" (ionChange)="updateCity()">@for (city of cities(); track city.code) { <ion-select-option [value]="city.code">{{ city.name }} ({{ city.isCity ? 'City' : 'Municipality' }})</ion-select-option> }</ion-select></ion-item></label>
+            <label>Barangay<ion-item class="field" lines="none"><ion-select placeholder="Select barangay" formControlName="barangay" interface="popover" [disabled]="barangaysLoading() || !barangays().length">@for (barangay of barangays(); track barangay.code) { <ion-select-option [value]="barangay.code">{{ barangay.name }}</ion-select-option> }</ion-select><ion-text slot="end">@if (barangaysLoading()) { Loading… }</ion-text></ion-item></label>
+          </div>
+          <label>Gender<ion-item class="field short" lines="none"><ion-select placeholder="Select Gender" formControlName="gender" interface="popover"><ion-select-option value="male">Male</ion-select-option><ion-select-option value="female">Female</ion-select-option><ion-select-option value="other">Other</ion-select-option><ion-select-option value="prefer_not_to_say">Prefer not to say</ion-select-option></ion-select></ion-item></label>
+          <label>Email Address<ion-item class="field" lines="none"><ion-input type="email" placeholder="name@example.com" formControlName="email" autocomplete="email"></ion-input></ion-item></label>
+          <label>Phone Number<ion-item class="field" lines="none"><ion-input type="tel" placeholder="+63 912 345 6789" formControlName="phone" autocomplete="tel"></ion-input></ion-item></label>
+          <div class="field-grid">
+            <label>Password<ion-item class="field" lines="none"><ion-input [type]="showPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="password" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('password')" class="toggle-icon"></ion-icon></ion-item></label>
+            <label>Confirm Password<ion-item class="field" lines="none"><ion-input [type]="showConfirmPassword() ? 'text' : 'password'" placeholder="••••••••" formControlName="confirmPassword" autocomplete="new-password" maxlength="16"></ion-input><ion-icon slot="end" [name]="showConfirmPassword() ? 'eye-off-outline' : 'eye-outline'" (click)="togglePassword('confirmPassword')" class="toggle-icon"></ion-icon></ion-item></label>
+          </div>
+          <p class="field-hint" [class.strong]="passwordStrength() === 'Strong password.'">{{ passwordStrength() }}</p>
+          <ion-item lines="none" class="remember-item"><ion-checkbox formControlName="agreeToTerms" slot="start"></ion-checkbox><ion-text>I agree to the <button type="button" class="inline-link" (click)="legalOpen.set('terms')">Terms</button> and <button type="button" class="inline-link" (click)="legalOpen.set('privacy')">Privacy Policy</button>.</ion-text></ion-item>
+          <div class="divider"><span>OR</span></div>
+          <ion-button expand="block" fill="outline" type="button" class="google-button" (click)="continueWithGoogle()" [disabled]="submitting() || oauthSubmitting()"><ion-icon slot="start" name="logo-google"></ion-icon>Continue with Google</ion-button>
+          <ion-button expand="block" type="submit" class="primary-button" [disabled]="submitting() || oauthSubmitting()">@if (submitting()) { <ion-spinner name="dots"></ion-spinner> } @else { Sign Up Now <span>→</span> }</ion-button>
+        </form>
+      </div>
+      <div class="form-footer">Already a member? <a routerLink="/login">Log in</a></div>
+    </section>
+  </main>
 </ion-content>
+@if (legalOpen(); as document) {
+  <ion-modal [isOpen]="true" (didDismiss)="closeLegal()"><ng-template><ion-header><ion-toolbar><ion-title>{{ document === 'terms' ? 'Terms of Use' : 'Privacy Policy' }}</ion-title><ion-buttons slot="end"><ion-button (click)="closeLegal()">Close</ion-button></ion-buttons></ion-toolbar></ion-header><ion-content class="ion-padding legal-content">@if (document === 'terms') {<h2>SmartDrive terms</h2><p>Use SmartDrive responsibly and provide accurate account and booking information. Rentals remain subject to vehicle availability, verification, and the booking rules shown before payment.</p>} @else {<h2>Your privacy</h2><p>SmartDrive uses your account, contact, and booking information to provide rentals, payments, support, and security. We do not sell your personal information.</p>}<p class="sd-muted">Last updated: March 15, 2026.</p></ion-content></ng-template></ion-modal>
+}

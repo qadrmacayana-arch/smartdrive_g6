@@ -71,6 +71,11 @@ export class VehicleDetailPage implements OnInit {
       return;
     }
 
-    this.router.navigate(['/booking', vehicle.id, 'dates']);
+    this.router.navigate(['/booking', vehicle.id, 'dates'], {
+      queryParams: {
+        location: this.route.snapshot.queryParamMap.get('location'),
+        date: this.route.snapshot.queryParamMap.get('date'),
+      },
+    });
   }
 }

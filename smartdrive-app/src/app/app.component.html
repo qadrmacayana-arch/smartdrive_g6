@@ -1,103 +1,166 @@
 <ion-app>
-  <ion-menu contentId="main-content" menuId="main-menu">
-    <ion-header class="ion-no-border">
-      <ion-toolbar class="menu-toolbar">
-        <div class="menu-brand">
-          <div class="menu-logo">SD</div>
-          <div>
-            <h2>SmartDrive™</h2>
-            @if (currentUser(); as user) {
-              <p class="sd-muted">{{ user.email }}</p>
-            } @else {
-              <p class="sd-muted">Welcome, guest</p>
-            }
-          </div>
-        </div>
-      </ion-toolbar>
-    </ion-header>
-
+  <ion-menu contentId="main-content" menuId="main-menu" side="start" swipeGesture="false">
     <ion-content class="menu-content">
-      <ion-list lines="none" class="menu-list">
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/tabs/home" routerLinkActive="selected" button detail="false">
-            <ion-icon slot="start" name="home-outline"></ion-icon>
-            <ion-label>Home</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
+      <div class="menu-panel">
+        <div class="menu-profile">
+          @if (currentUser(); as user) {
+            <ion-menu-toggle auto-hide="false">
+              <a class="menu-profile-link" routerLink="/tabs/account" aria-label="Open account dashboard">
+                <div class="menu-avatar">
+                  @if (user.avatarUrl && avatarLoadFailedUrl() !== user.avatarUrl) {
+                    <img
+                      [src]="user.avatarUrl"
+                      [alt]="user.fullName + ' profile picture'"
+                      (error)="onAvatarError(user.avatarUrl)"
+                    />
+                  } @else {
+                    {{ user.fullName.charAt(0) }}
+                  }
+                </div>
+                <div class="menu-profile-details">
+                  <h2>{{ user.fullName }}</h2>
+                  <p>{{ user.email }}</p>
+                  <span>{{ user.memberType || 'Premium' }} Member</span>
+                </div>
+              </a>
+            </ion-menu-toggle>
+          } @else {
+            <div class="menu-avatar" aria-hidden="true">SD</div>
+            <div class="menu-profile-details">
+              <h2>SmartDrive™</h2>
+              <p>Welcome, guest</p>
+            </div>
+          }
+        </div>
 
-        @if (currentUser()) {
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tabs/bookings" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="calendar-outline"></ion-icon>
-              <ion-label>My Bookings</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+        <ion-list lines="none" class="menu-list">
+          @if (currentUser()?.isAdmin) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/admin" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="speedometer-outline"></ion-icon>
+                <ion-label>Admin Workspace</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          } @else {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/tabs/home" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="home-outline"></ion-icon>
+                <ion-label>Home</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
 
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tabs/wallet" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="wallet-outline"></ion-icon>
-              <ion-label>SR Wallet</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+          @if (currentUser() && !currentUser()?.isAdmin) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/tabs/bookings" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="calendar-outline"></ion-icon>
+                <ion-label>My Bookings</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/tabs/wallet" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="wallet-outline"></ion-icon>
+                <ion-label>SR Wallet</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/offers" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="pricetag-outline"></ion-icon>
+                <ion-label>Offers &amp; Promos</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
 
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tabs/account" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="person-circle-outline"></ion-icon>
-              <ion-label>Account</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+            <div class="menu-divider"></div>
 
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/settings" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="settings-outline"></ion-icon>
-              <ion-label>Settings</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
-        }
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/settings" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="settings-outline"></ion-icon>
+                <ion-label>Settings</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/faq" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="help-circle-outline"></ion-icon>
+                <ion-label>Help &amp; FAQs</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/reviews" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="star-outline"></ion-icon>
+                <ion-label>Reviews &amp; Ratings</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item
+                routerLink="/about"
+                routerLinkActive="selected"
+                [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored' }"
+                button
+                detail="false"
+              >
+                <ion-icon slot="start" name="information-circle-outline"></ion-icon>
+                <ion-label>About SmartDrive™</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item
+                routerLink="/about"
+                [queryParams]="{ section: 'developers' }"
+                routerLinkActive="selected"
+                [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored' }"
+                button
+                detail="false"
+              >
+                <ion-icon slot="start" name="people-outline"></ion-icon>
+                <ion-label>About the Developers</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item
+                routerLink="/about"
+                [queryParams]="{ section: 'contact' }"
+                routerLinkActive="selected"
+                [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored' }"
+                button
+                detail="false"
+              >
+                <ion-icon slot="start" name="mail-outline"></ion-icon>
+                <ion-label>Contacts</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        </ion-list>
 
-        <div class="menu-divider"></div>
-
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/reviews" routerLinkActive="selected" button detail="false">
-            <ion-icon slot="start" name="star-outline"></ion-icon>
-            <ion-label>Reviews & Ratings</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
-
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/faq" routerLinkActive="selected" button detail="false">
-            <ion-icon slot="start" name="help-circle-outline"></ion-icon>
-            <ion-label>Help & FAQs</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
-
-        <ion-menu-toggle auto-hide="false">
-          <ion-item routerLink="/about" routerLinkActive="selected" button detail="false">
-            <ion-icon slot="start" name="information-circle-outline"></ion-icon>
-            <ion-label>About SmartDrive™</ion-label>
-          </ion-item>
-        </ion-menu-toggle>
-      </ion-list>
-
-      <div class="menu-footer">
-        @if (currentUser()) {
-          <ion-menu-toggle auto-hide="false">
-            <ion-button expand="block" fill="outline" color="danger" (click)="logout()">
-              <ion-icon slot="start" name="log-out-outline"></ion-icon>
-              Log Out
-            </ion-button>
-          </ion-menu-toggle>
-        } @else {
-          <ion-menu-toggle auto-hide="false">
-            <ion-button expand="block" class="sd-gradient-btn" routerLink="/login">Log In</ion-button>
-          </ion-menu-toggle>
-          <ion-menu-toggle auto-hide="false">
-            <ion-button expand="block" fill="outline" routerLink="/signup">Sign Up</ion-button>
-          </ion-menu-toggle>
-        }
+        <div class="menu-footer">
+          @if (currentUser()) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-button expand="block" fill="clear" (click)="logout()">
+                <ion-icon slot="start" name="log-out-outline"></ion-icon>
+                Log Out
+              </ion-button>
+            </ion-menu-toggle>
+          } @else {
+            <ion-menu-toggle auto-hide="false">
+              <ion-button expand="block" class="sd-gradient-btn" routerLink="/login">Log In</ion-button>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-button expand="block" fill="outline" class="menu-outline-btn" routerLink="/signup">Sign Up</ion-button>
+            </ion-menu-toggle>
+          }
+        </div>
       </div>
     </ion-content>
   </ion-menu>
 
   <ion-router-outlet id="main-content"></ion-router-outlet>
+
+  @if (showGlobalMenuButton()) {
+    <ion-menu-button
+      class="global-menu-button"
+      menu="main-menu"
+      menuIcon="menu-outline"
+      auto-hide="false"
+      aria-label="Open navigation menu"
+    ></ion-menu-button>
+  }
 </ion-app>
