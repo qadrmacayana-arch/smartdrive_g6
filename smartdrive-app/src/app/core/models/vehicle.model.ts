@@ -14,4 +14,5 @@ export interface Vehicle {
   seats: number;
   status: 'available' | 'booked' | 'maintenance' | 'archived';
   is_featured: boolean;
+  created_at?: string | null;
 }

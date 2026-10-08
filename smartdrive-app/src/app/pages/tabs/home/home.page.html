@@ -40,7 +40,7 @@
       <div class="picks-grid">
         @for (vehicle of filteredVehicles().slice(0, 3); track vehicle.id) {
           <article class="pick-card" role="link" tabindex="0" (click)="openVehicle(vehicle)" (keydown.enter)="openVehicle(vehicle)" (keydown.space)="openVehicle(vehicle); $event.preventDefault()">
-              <div class="pick-image"><img [src]="vehicle.image || ''" [alt]="vehicle.name" loading="lazy"><em><ion-icon name="sparkles-outline"></ion-icon>{{ vehicle.is_featured ? 'Featured choice' : 'Recommended' }}</em></div>
+              <div class="pick-image"><img [src]="vehicle.image || ''" [alt]="vehicle.name" loading="lazy"><em><ion-icon name="sparkles-outline"></ion-icon>{{ vehicle.is_featured ? 'Featured choice' : 'Recommended' }}</em>@if (isNewVehicle(vehicle)) { <span class="home-new-vehicle">New</span> }</div>
               <div class="pick-body"><div class="vehicle-type">{{ vehicle.type }}</div><h3>{{ vehicle.name }}</h3><div class="specs"><span><ion-icon name="people-outline"></ion-icon>{{ vehicle.seats }} seats</span><span><ion-icon name="speedometer-outline"></ion-icon>{{ vehicle.transmission }}</span><span><ion-icon name="flash-outline"></ion-icon>{{ vehicle.fuel }}</span></div><p class="description">{{ vehicle.description || 'Experience a premium, comfortable, and reliable journey.' }}</p><div class="price-row"><span><small>DAILY RATE</small><strong>₱{{ vehicle.price | number }}<small> / day</small></strong></span><button type="button">View vehicle <ion-icon name="arrow-forward-outline"></ion-icon></button></div></div>
             </article>
           }

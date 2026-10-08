@@ -140,6 +140,14 @@ export class SignupPage implements OnInit, OnDestroy {
     private readonly locationService: PhilippineLocationService,
   ) {
     effect(() => {
+      if (!this.auth.initialized() || this.auth.currentUser() || !this.router.url.startsWith('/signup')) return;
+      if (this.route.snapshot.queryParamMap.has('googleError')) return;
+      if (localStorage.getItem('smartdrive_google_oauth_intent') !== 'registration') return;
+      this.auth.clearGoogleOAuthIntent();
+      this.errorMessage.set('Google sign-up was cancelled. You can try again or create an account with email.');
+    });
+
+    effect(() => {
       if (!this.googleRegistration() || !this.auth.initialized()) return;
       const user = this.auth.currentUser();
       if (!user?.email) {

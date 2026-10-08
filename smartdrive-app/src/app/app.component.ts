@@ -20,6 +20,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from './core/services/auth.service';
 import { MobileFeedbackService } from './core/services/mobile-feedback.service';
+import { NotificationCenterService } from './core/services/notification-center.service';
 
 @Component({
   selector: 'app-root',
@@ -58,6 +59,7 @@ export class AppComponent {
     private readonly alertCtrl: AlertController,
     private readonly menuCtrl: MenuController,
     private readonly mobileFeedback: MobileFeedbackService,
+    readonly notificationCenter: NotificationCenterService,
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -72,6 +74,12 @@ export class AppComponent {
       document.body.style.colorScheme = theme;
       localStorage.setItem('smartdrive-theme', theme);
       this.updateNativeStatusBar(theme);
+    });
+    effect(() => {
+      if (!this.auth.initialized()) return;
+      const userId = this.currentUser()?.id ?? 'guest';
+      void this.notificationCenter.load(userId);
+      this.notificationCenter.startRealtimeUpdates(userId);
     });
     effect(() => {
       if (!this.auth.initialized()) return;
@@ -168,6 +176,18 @@ export class AppComponent {
       && !url.startsWith('/forgot-password')
       && !url.startsWith('/vehicle/')
       && !url.startsWith('/booking/');
+  }
+
+  showNotificationButton(): boolean {
+    const url = this.currentRouteUrl();
+    return Boolean(this.currentUser())
+      && !this.currentUser()?.isAdmin
+      && (
+        url.startsWith('/tabs/home')
+        || url.startsWith('/tabs/rent-a-car')
+        || url.startsWith('/offers')
+        || url.startsWith('/notifications')
+      );
   }
 
   openMainMenu(): void {

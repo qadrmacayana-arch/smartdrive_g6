@@ -35,6 +35,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/offers/offers.page').then((m) => m.OffersPage),
   },
   {
+    path: 'notifications',
+    canActivate: [customerGuard],
+    loadComponent: () => import('./pages/notifications/notifications.page').then((m) => m.NotificationsPage),
+  },
+  {
     path: 'tabs',
     canActivate: [customerGuard],
     loadComponent: () => import('./pages/tabs/tabs.page').then((m) => m.TabsPage),

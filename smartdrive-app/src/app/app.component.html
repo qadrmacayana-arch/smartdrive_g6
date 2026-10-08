@@ -80,6 +80,15 @@
                 <ion-label>Offers &amp; Promos</ion-label>
               </ion-item>
             </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/notifications" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="notifications-outline"></ion-icon>
+                <ion-label>Notifications</ion-label>
+                @if (notificationCenter.unreadCount()) {
+                  <span slot="end" class="menu-notification-count">{{ notificationCenter.unreadCount() }}</span>
+                }
+              </ion-item>
+            </ion-menu-toggle>
 
             <div class="menu-divider"></div>
 
@@ -177,6 +186,22 @@
   </ion-menu>
 
   <ion-router-outlet id="main-content"></ion-router-outlet>
+
+  @if (showNotificationButton()) {
+    <a
+      class="notification-corner-button"
+      routerLink="/notifications"
+      routerLinkActive="active"
+      aria-label="Open notifications"
+    >
+      <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+      @if (notificationCenter.unreadCount()) {
+        <span class="notification-corner-count" aria-label="Unread notifications">
+          {{ notificationCenter.unreadCount() > 99 ? '99+' : notificationCenter.unreadCount() }}
+        </span>
+      }
+    </a>
+  }
 
   @if (showCustomerNavigation() && !mainMenuOpen()) {
     <nav class="customer-bottom-nav" aria-label="Customer navigation">

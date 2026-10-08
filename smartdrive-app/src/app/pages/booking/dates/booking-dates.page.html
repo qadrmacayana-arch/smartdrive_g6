@@ -21,6 +21,7 @@
       <div class="sd-empty-state">
         <ion-icon name="alert-circle-outline"></ion-icon>
         <p>{{ errorMessage() }}</p>
+        <ion-button fill="outline" (click)="goToFleet()">Back to vehicles</ion-button>
       </div>
     } @else if (vehicle(); as v) {
       <header class="page-heading">

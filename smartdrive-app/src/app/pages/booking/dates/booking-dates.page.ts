@@ -14,6 +14,7 @@ import { VehicleService } from '../../../core/services/vehicle.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { BookingDateEstimate, PredictiveInsightsService } from '../../../core/services/predictive-insights.service';
 import { Vehicle } from '../../../core/models/vehicle.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-booking-dates',
@@ -82,6 +83,7 @@ export class BookingDatesPage implements OnInit {
     private readonly vehicleService: VehicleService,
     private readonly bookingService: BookingService,
     private readonly insights: PredictiveInsightsService,
+    private readonly auth: AuthService,
   ) {}
 
   private addDays(date: Date, days: number): string {
@@ -123,6 +125,12 @@ export class BookingDatesPage implements OnInit {
       if (!vehicle) {
         this.errorMessage.set('This vehicle could not be found.');
       } else {
+        const user = this.auth.currentUser();
+        if (user && await this.bookingService.hasOngoingBooking(user.id, vehicle.id)) {
+          this.errorMessage.set('You already have an ongoing booking for this vehicle. Complete or return your current rental before booking it again.');
+          this.vehicle.set(vehicle);
+          return;
+        }
         this.vehicle.set(vehicle);
         void this.loadBookingEstimate();
       }

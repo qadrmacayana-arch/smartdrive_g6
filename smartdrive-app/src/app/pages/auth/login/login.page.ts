@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, signal } from '@angular/core';
+import { Component, effect, HostListener, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -53,6 +53,14 @@ export class LoginPage implements OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
   ) {
+    effect(() => {
+      if (!this.auth.initialized() || this.auth.currentUser() || !this.router.url.startsWith('/login')) return;
+      if (this.route.snapshot.queryParamMap.has('googleError')) return;
+      if (localStorage.getItem('smartdrive_google_oauth_intent') !== 'login') return;
+      this.auth.clearGoogleOAuthIntent();
+      this.errorMessage.set('Google sign-in was cancelled. You can try again or sign in with email.');
+    });
+
     const rememberedEmail =
       localStorage.getItem('smartdrive_remembered_email') ||
       localStorage.getItem('rememberedEmail');

@@ -129,6 +129,13 @@ export class HomePage implements OnInit {
     }
   }
 
+  isNewVehicle(vehicle: Vehicle): boolean {
+    const createdAt = Date.parse(vehicle.created_at ?? '');
+    return Number.isFinite(createdAt)
+      && createdAt <= Date.now()
+      && Date.now() - createdAt <= 30 * 24 * 60 * 60 * 1000;
+  }
+
   private async loadRecommendations(vehicles: Vehicle[]): Promise<void> {
     const request = ++this.recommendationRequest;
     const user = this.currentUser();

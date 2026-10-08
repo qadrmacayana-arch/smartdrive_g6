@@ -12,6 +12,7 @@ import {
 } from '@ionic/angular';
 import { VehicleService } from '../../core/services/vehicle.service';
 import { AuthService } from '../../core/services/auth.service';
+import { BookingService } from '../../core/services/booking.service';
 import { Vehicle } from '../../core/models/vehicle.model';
 
 @Component({
@@ -34,12 +35,15 @@ export class VehicleDetailPage implements OnInit {
   readonly vehicle = signal<Vehicle | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly bookingCheckLoading = signal(false);
+  readonly alreadyRented = signal(false);
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly vehicleService: VehicleService,
     private readonly auth: AuthService,
+    private readonly bookingService: BookingService,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -50,6 +54,10 @@ export class VehicleDetailPage implements OnInit {
         this.errorMessage.set('This vehicle could not be found.');
       } else {
         this.vehicle.set(vehicle);
+        const user = this.auth.currentUser();
+        if (user) {
+          this.alreadyRented.set(await this.bookingService.hasOngoingBooking(user.id, vehicle.id));
+        }
       }
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load this vehicle.');
@@ -58,13 +66,25 @@ export class VehicleDetailPage implements OnInit {
     }
   }
 
-  bookNow(): void {
+  async bookNow(): Promise<void> {
     const vehicle = this.vehicle();
     if (!vehicle) return;
 
-    if (!this.auth.currentUser()) {
+    const user = this.auth.currentUser();
+    if (!user) {
       this.router.navigate(['/login']);
       return;
+    }
+
+    this.bookingCheckLoading.set(true);
+    try {
+      this.alreadyRented.set(await this.bookingService.hasOngoingBooking(user.id, vehicle.id));
+      if (this.alreadyRented()) return;
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Could not verify your current bookings.');
+      return;
+    } finally {
+      this.bookingCheckLoading.set(false);
     }
 
     this.router.navigate(['/booking', vehicle.id, 'dates'], {

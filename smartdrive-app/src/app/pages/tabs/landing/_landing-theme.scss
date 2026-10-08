@@ -63,6 +63,8 @@
 .vehicle-image .vehicle-type,.points-badge { position: absolute; z-index: 1; left: .65rem; display: inline-flex; max-width: calc(100% - 1.3rem); align-items: center; gap: .25rem; overflow: hidden; padding: .32rem .48rem; border: 1px solid rgba(255,255,255,.5); border-radius: 99px; font-size: .54rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; backdrop-filter: blur(6px); }
 .vehicle-image .vehicle-type { top: .65rem; background: rgba(248,244,255,.94); color: var(--sd-primary-hover); text-transform: uppercase; }
 .vehicle-image .points-badge { top: 2.65rem; background: rgba(255,255,255,.92); color: #76552a; }
+.vehicle-image .vehicle-new-badge { position: absolute; z-index: 2; top: 2.65rem; right: .65rem; display: inline-flex; padding: .32rem .48rem; border: 1px solid rgba(255,255,255,.5); border-radius: 99px; background: #e9f9f0; color: #17663a; font-size: .58rem; font-weight: 850; text-transform: uppercase; }
+.new-vehicle-label { display: inline-block; margin-left: .3rem; padding: .12rem .3rem; border-radius: 99px; background: #e9f9f0; color: #17663a; font-size: .48rem; font-weight: 850; text-transform: uppercase; }
 .points-badge ion-icon { color: #e9a329; font-size: .72rem; }
 .vehicle-content { display: flex; min-width: 0; flex: 1; flex-direction: column; padding: .85rem; }
 .vehicle-heading { display: flex; align-items: center; justify-content: space-between; gap: .4rem; }

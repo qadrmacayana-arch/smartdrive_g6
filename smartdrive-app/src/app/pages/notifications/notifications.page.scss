@@ -1,0 +1,174 @@
+.notifications-content {
+  --background: var(--sd-background);
+}
+
+.notifications-page {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 0 0 2rem;
+}
+
+.notifications-heading {
+  margin: 0.25rem 0 1.25rem;
+
+  .eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--sd-primary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--sd-heading);
+    font: 800 clamp(1.55rem, 5vw, 2.1rem)/1.2 'Sora', sans-serif;
+    letter-spacing: -0.04em;
+  }
+
+  > p:last-child {
+    margin: 0.45rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.85rem;
+  }
+}
+
+.notification-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.notification-card {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+  color: var(--sd-foreground);
+  text-align: left;
+  box-shadow: var(--sd-shadow-md);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--sd-primary);
+    outline: none;
+  }
+}
+
+.notification-icon {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 2.75rem;
+  place-items: center;
+  border-radius: 0.85rem;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+
+  ion-icon {
+    font-size: 1.3rem;
+  }
+}
+
+.vehicle-notification .notification-icon {
+  background: #e9f9f0;
+  color: #20834b;
+}
+
+.notification-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  strong {
+    color: var(--sd-heading);
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  > span:not(.notification-kind) {
+    color: var(--sd-muted-foreground);
+    font-size: 0.73rem;
+    line-height: 1.45;
+  }
+
+  small {
+    margin-top: 0.2rem;
+    color: var(--sd-muted-foreground);
+    font-size: 0.65rem;
+  }
+}
+
+.notification-kind {
+  color: var(--sd-primary);
+  font-size: 0.59rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notification-code {
+  font-weight: 800;
+}
+
+.notification-arrow {
+  flex: 0 0 auto;
+  color: var(--sd-muted-foreground);
+}
+
+.notifications-state,
+.notifications-empty,
+.notifications-error {
+  display: flex;
+  min-height: 12rem;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+  color: var(--sd-muted-foreground);
+  text-align: center;
+
+  > ion-icon {
+    color: var(--sd-primary);
+    font-size: 2rem;
+  }
+
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h2 {
+    color: var(--sd-heading);
+    font-size: 1rem;
+  }
+}
+
+.notifications-error {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+@media (max-width: 380px) {
+  .notification-card {
+    gap: 0.55rem;
+    padding: 0.7rem;
+  }
+
+  .notification-icon {
+    width: 2.35rem;
+    height: 2.35rem;
+    flex-basis: 2.35rem;
+  }
+}

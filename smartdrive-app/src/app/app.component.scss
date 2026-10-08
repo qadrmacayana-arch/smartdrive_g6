@@ -4,6 +4,51 @@ ion-menu {
   --border: 0;
 }
 
+.notification-corner-button {
+  position: fixed;
+  z-index: 999;
+  top: calc(var(--android-safe-area-top, var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) + 0.7rem);
+  right: max(0.8rem, env(safe-area-inset-right, 0px));
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border: 1px solid var(--sd-border);
+  border-radius: 50%;
+  background: var(--sd-card);
+  color: var(--sd-primary);
+  box-shadow: var(--sd-shadow-md);
+  text-decoration: none;
+
+  ion-icon {
+    font-size: 1.35rem;
+  }
+
+  &.active {
+    background: var(--sd-primary-soft);
+  }
+}
+
+.notification-corner-count,
+.menu-notification-count {
+  display: inline-grid;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  place-items: center;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.notification-corner-count {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.25rem;
+  padding: 0 0.22rem;
+}
+
 .menu-open .customer-bottom-nav {
   display: none;
 }

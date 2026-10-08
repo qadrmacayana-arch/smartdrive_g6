@@ -54,7 +54,7 @@
               <div class="pick-list">
                 @for (vehicle of group.vehicles; track vehicle.id) {
                   <button class="pick-item" (click)="openVehicle(vehicle)">
-                    <span class="rank">{{ $index + 1 | number:'2.0-0' }}</span><img [src]="vehicle.image || ''" [alt]="vehicle.name"><span class="pick-info"><strong>{{ vehicle.name }}</strong><small>{{ vehicle.type }} · ₱{{ vehicle.price | number }}/day</small></span><span class="arrow">↗</span>
+                    <span class="rank">{{ $index + 1 | number:'2.0-0' }}</span><img [src]="vehicle.image || ''" [alt]="vehicle.name"><span class="pick-info"><strong>{{ vehicle.name }} @if (isNewVehicle(vehicle)) { <small class="new-vehicle-label">New</small> }</strong><small>{{ vehicle.type }} · ₱{{ vehicle.price | number }}/day</small></span><span class="arrow">↗</span>
                   </button>
                 }
               </div>
@@ -65,6 +65,9 @@
     </section>
 
     <div class="results-heading"><div><span class="section-kicker">THE SMARTDRIVE COLLECTION</span><h2>All vehicles</h2><p>Find the right fit for your next trip.</p></div><span class="results-count">{{ filteredVehicles().length }} {{ filteredVehicles().length === 1 ? 'vehicle' : 'vehicles' }}</span></div>
+    @if (bookingActionMessage()) {
+      <p class="booking-action-message" role="status">{{ bookingActionMessage() }}</p>
+    }
     @if (loading()) {
       <div class="vehicle-grid"><div class="vehicle-loading" *ngFor="let item of [1,2,3,4,5,6]"></div></div>
     } @else if (filteredVehicles().length) {
@@ -74,6 +77,9 @@
             <div class="vehicle-image">
               <img [src]="vehicle.image || ''" [alt]="vehicle.name" loading="lazy">
               <span class="vehicle-type">{{ vehicle.type }}</span>
+              @if (isNewVehicle(vehicle)) {
+                <span class="vehicle-new-badge">New</span>
+              }
               @if (vehicle.sr_points > 0) {
                 <span class="points-badge">
                   <ion-icon name="star"></ion-icon>
@@ -94,10 +100,10 @@
                 <button
                   type="button"
                   class="book-vehicle-button"
-                  [disabled]="vehicle.status !== 'available'"
+                  [disabled]="vehicle.status !== 'available' || isAlreadyOngoing(vehicle)"
                   (click)="bookVehicle(vehicle, $event)"
                 >
-                  {{ vehicle.status === 'available' ? 'Book Now' : (vehicle.status | titlecase) }}
+                  {{ isAlreadyOngoing(vehicle) ? 'Already rented' : vehicle.status === 'available' ? 'Book Now' : (vehicle.status | titlecase) }}
                 </button>
                 <button
                   type="button"

@@ -33,6 +33,7 @@ import {
   PhilippineRegion,
 } from '../../core/services/philippine-location.service';
 import { Profile } from '../../core/models/profile.model';
+import { NotificationCenterService } from '../../core/services/notification-center.service';
 
 function profileGender(value: string | null | undefined): Profile['gender'] {
   if (value === 'male' || value === 'female' || value === 'other') return value;
@@ -130,14 +131,16 @@ export class SettingsPage implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly alertCtrl: AlertController,
     private readonly locationService: PhilippineLocationService,
+    private readonly notificationCenter: NotificationCenterService,
   ) {}
 
   ngOnInit(): void {
     const user = this.auth.currentUser();
     if (!user) return;
     this.notificationsEnabled.set(
-      localStorage.getItem(this.notificationPreferenceKey(user.id)) === 'true',
+      this.notificationCenter.notificationsEnabled(user.id),
     );
+    void this.refreshNotificationPermission(user.id);
     const nameParts = this.nameParts(user.fullName);
     this.profileForm.patchValue({
       firstName: user.firstName || nameParts.firstName,
@@ -152,7 +155,22 @@ export class SettingsPage implements OnInit, OnDestroy {
     void this.loadLocations();
   }
 
-  setNotifications(event: CustomEvent<{ checked: boolean }>): void {
+  private async refreshNotificationPermission(userId: string): Promise<void> {
+    try {
+      const permissionGranted = await this.notificationCenter.checkPermission();
+      this.notificationsEnabled.set(
+        permissionGranted && this.notificationCenter.notificationsEnabled(userId),
+      );
+      if (this.notificationCenter.notificationsEnabled(userId) && !permissionGranted) {
+        this.notificationStatus.set('Notifications are blocked by device/browser settings.');
+      }
+    } catch (error) {
+      console.error('Unable to check notification permission.', error);
+      this.notificationStatus.set('Could not check notification permission.');
+    }
+  }
+
+  async setNotifications(event: CustomEvent<{ checked: boolean }>): Promise<void> {
     const user = this.currentUser();
     if (!user) {
       this.notificationStatus.set('Sign in again to update notification settings.');
@@ -160,21 +178,18 @@ export class SettingsPage implements OnInit, OnDestroy {
     }
 
     const enabled = event.detail.checked;
+    const wasEnabled = this.notificationsEnabled();
+    this.notificationStatus.set(null);
     try {
-      localStorage.setItem(this.notificationPreferenceKey(user.id), String(enabled));
+      await this.notificationCenter.setEnabled(user.id, enabled);
       this.notificationsEnabled.set(enabled);
       this.notificationStatus.set(
         enabled ? 'Notifications are on for this device.' : 'Notifications are turned off.',
       );
     } catch (error) {
-      console.error('Unable to save notification preferences.', error);
-      this.notificationsEnabled.set(!enabled);
-      this.notificationStatus.set('Unable to save this notification preference. Please try again.');
+      this.notificationsEnabled.set(wasEnabled);
+      this.notificationStatus.set(error instanceof Error ? error.message : 'Unable to update notifications.');
     }
-  }
-
-  private notificationPreferenceKey(userId: string): string {
-    return `smartdrive_notifications_enabled:${userId}`;
   }
 
   ngOnDestroy(): void {

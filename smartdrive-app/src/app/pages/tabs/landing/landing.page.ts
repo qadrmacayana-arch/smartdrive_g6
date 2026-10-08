@@ -8,6 +8,7 @@ import { Vehicle } from '../../../core/models/vehicle.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { MobileFeedbackService } from '../../../core/services/mobile-feedback.service';
 import { PickupPreferencesService } from '../../../core/services/pickup-preferences.service';
+import { BookingService } from '../../../core/services/booking.service';
 
 interface CategoryDef {
   key: string;
@@ -46,6 +47,8 @@ export class LandingPage implements OnInit {
   readonly mainCategory = signal('All');
   readonly subFilter = signal('All');
   readonly favorites = signal<string[]>([]);
+  readonly ongoingVehicleIds = signal<number[]>([]);
+  readonly bookingActionMessage = signal<string | null>(null);
 
   readonly activeSubTypes = computed(() => this.categories.find((category) => category.key === this.mainCategory())?.subTypes ?? []);
   readonly pickGroups: PickGroup[] = [
@@ -76,6 +79,7 @@ export class LandingPage implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly mobileFeedback: MobileFeedbackService,
     private readonly pickupPreferences: PickupPreferencesService,
+    private readonly bookingService: BookingService,
   ) {}
 
   ngOnInit(): void {
@@ -86,6 +90,16 @@ export class LandingPage implements OnInit {
     this.savePickupPreferences();
     this.favorites.set(this.vehicleService.getFavorites());
     this.loadVehicles();
+    const user = this.currentUser();
+    if (user) void this.loadOngoingVehicles(user.id);
+  }
+
+  private async loadOngoingVehicles(userId: string): Promise<void> {
+    try {
+      this.ongoingVehicleIds.set(await this.bookingService.getOngoingVehicleIds(userId));
+    } catch (error) {
+      this.bookingActionMessage.set(error instanceof Error ? error.message : 'Could not verify your current bookings.');
+    }
   }
 
   async loadVehicles(event?: CustomEvent): Promise<void> {
@@ -132,10 +146,25 @@ export class LandingPage implements OnInit {
     });
   }
 
-  bookVehicle(vehicle: Vehicle, event: Event): void {
+  async bookVehicle(vehicle: Vehicle, event: Event): Promise<void> {
     event.stopPropagation();
     if (vehicle.status !== 'available') return;
     this.mobileFeedback.mediumImpact();
+
+    const user = this.currentUser();
+    if (user) {
+      try {
+        const alreadyOngoing = await this.bookingService.hasOngoingBooking(user.id, vehicle.id);
+        if (alreadyOngoing) {
+          this.ongoingVehicleIds.update((ids) => ids.includes(vehicle.id) ? ids : [...ids, vehicle.id]);
+          this.bookingActionMessage.set('You already have an ongoing booking for this vehicle. Complete or return it before booking again.');
+          return;
+        }
+      } catch (error) {
+        this.bookingActionMessage.set(error instanceof Error ? error.message : 'Could not verify your current bookings.');
+        return;
+      }
+    }
 
     this.router.navigate(['/booking', vehicle.id, 'dates'], {
       queryParams: {
@@ -143,6 +172,17 @@ export class LandingPage implements OnInit {
         date: this.pickupDate() || null,
       },
     });
+  }
+
+  isNewVehicle(vehicle: Vehicle): boolean {
+    const createdAt = Date.parse(vehicle.created_at ?? '');
+    return Number.isFinite(createdAt)
+      && createdAt <= Date.now()
+      && Date.now() - createdAt <= 30 * 24 * 60 * 60 * 1000;
+  }
+
+  isAlreadyOngoing(vehicle: Vehicle): boolean {
+    return this.ongoingVehicleIds().includes(vehicle.id);
   }
 
   toggleFavorite(vehicle: Vehicle, event: Event): void {

@@ -89,8 +89,14 @@
         <span class="price">₱{{ v.price | number }}</span>
         <span class="sd-muted">/ day</span>
       </div>
-      <ion-button class="sd-gradient-btn" (click)="bookNow()" [disabled]="v.status !== 'available'">
-        {{ v.status === 'available' ? 'Book Now' : (v.status | titlecase) }}
+      <ion-button class="sd-gradient-btn" (click)="bookNow()" [disabled]="v.status !== 'available' || bookingCheckLoading() || alreadyRented()">
+        @if (bookingCheckLoading()) {
+          Checking…
+        } @else if (alreadyRented()) {
+          Already rented
+        } @else {
+          {{ v.status === 'available' ? 'Book Now' : (v.status | titlecase) }}
+        }
       </ion-button>
     </div>
   }

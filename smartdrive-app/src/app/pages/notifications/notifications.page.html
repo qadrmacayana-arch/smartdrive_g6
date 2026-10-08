@@ -1,0 +1,70 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Notifications</ion-title>
+    <ion-buttons slot="end">
+      <ion-button aria-label="Refresh notifications" (click)="loadNotifications()">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding notifications-content">
+  <ion-refresher slot="fixed" (ionRefresh)="loadNotifications($event)" aria-label="Refresh notifications">
+    <ion-refresher-content pullingText="Check for updates" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <main class="notifications-page">
+    <header class="notifications-heading">
+      <p class="eyebrow">SMARTDRIVE UPDATES</p>
+      <h1>Good things for your next ride.</h1>
+      <p>New vehicles, promo codes, and current deals in one place.</p>
+    </header>
+
+    @if (notificationCenter.loading() && !notificationCenter.notifications().length) {
+      <div class="notifications-state"><ion-spinner name="crescent"></ion-spinner><span>Loading updates…</span></div>
+    } @else if (notificationCenter.errorMessage()) {
+      <div class="notifications-error" role="alert">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <p>{{ notificationCenter.errorMessage() }}</p>
+        <ion-button fill="outline" (click)="loadNotifications()">Try again</ion-button>
+      </div>
+    } @else if (notificationCenter.notifications().length) {
+      <section class="notification-list" aria-label="Latest SmartDrive updates">
+        @for (notification of notificationCenter.notifications(); track notification.id) {
+          <button
+            class="notification-card"
+            [class.vehicle-notification]="notification.kind === 'vehicle'"
+            type="button"
+            (click)="openNotification(notification.route)"
+          >
+            <span class="notification-icon">
+              <ion-icon
+                [name]="notification.kind === 'vehicle' ? 'car-sport-outline' : notification.kind === 'promo' ? 'pricetag-outline' : 'sparkles-outline'"
+              ></ion-icon>
+            </span>
+            <span class="notification-copy">
+              <span class="notification-kind">{{ kindLabel(notification.kind) }}</span>
+              <strong>{{ notification.title }}</strong>
+              <span>{{ notification.message }}</span>
+              @if (notification.code) {
+                <span class="notification-code">Code: {{ notification.code }}</span>
+              }
+              <small>{{ notification.createdAt | date:'mediumDate' }}</small>
+            </span>
+            <ion-icon class="notification-arrow" name="chevron-forward-outline"></ion-icon>
+          </button>
+        }
+      </section>
+    } @else {
+      <div class="notifications-empty">
+        <ion-icon name="notifications-outline"></ion-icon>
+        <h2>You're all caught up</h2>
+        <p>New vehicles and offers will show up here.</p>
+      </div>
+    }
+  </main>
+</ion-content>

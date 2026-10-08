@@ -170,6 +170,28 @@ export class BookingService {
     return `SD-${year}-${random}`;
   }
 
+  async hasOngoingBooking(userId: string, vehicleId: number): Promise<boolean> {
+    const { data, error } = await this.supabase.client
+      .from('bookings')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('vehicle_id', vehicleId)
+      .eq('booking_status', 'ongoing')
+      .limit(1);
+    if (error) throw new Error(`Could not verify your current vehicle bookings: ${error.message}`);
+    return (data?.length ?? 0) > 0;
+  }
+
+  async getOngoingVehicleIds(userId: string): Promise<number[]> {
+    const { data, error } = await this.supabase.client
+      .from('bookings')
+      .select('vehicle_id')
+      .eq('user_id', userId)
+      .eq('booking_status', 'ongoing');
+    if (error) throw new Error(`Could not load your current vehicle bookings: ${error.message}`);
+    return [...new Set((data ?? []).map((booking) => Number(booking.vehicle_id)))];
+  }
+
   async createBooking(
     userId: string | null,
     paymentMethod: string,
@@ -181,6 +203,9 @@ export class BookingService {
     if (sessionError) throw new Error(`Your sign-in could not be verified: ${sessionError.message}`);
     if (!sessionData.session || !userId || sessionData.session.user.id !== userId) {
       throw new Error('Your account is not connected to a secure booking session. Please sign in with your online account before booking.');
+    }
+    if (await this.hasOngoingBooking(userId, draft.vehicle.id)) {
+      throw new Error('You already have an ongoing booking for this vehicle. Complete or return your current rental before booking it again.');
     }
 
     const booking: Booking = {

@@ -60,6 +60,7 @@
 .pick-card:hover .pick-image img { transform: scale(1.035); }
 .pick-image em { position: absolute; z-index: 1; top: .7rem; left: .7rem; display: inline-flex; align-items: center; gap: .25rem; padding: .34rem .5rem; border: 1px solid rgba(255,255,255,.35); border-radius: 99px; background: rgba(42,24,75,.83); color: white; font-size: .57rem; font-style: normal; font-weight: 750; backdrop-filter: blur(6px); }
 .pick-image em ion-icon { font-size: .72rem; }
+.home-new-vehicle { position: absolute; z-index: 1; top: .7rem; right: .7rem; padding: .34rem .5rem; border: 1px solid rgba(255,255,255,.55); border-radius: 99px; background: #e9f9f0; color: #17663a; font-size: .57rem; font-weight: 850; text-transform: uppercase; }
 .pick-body { padding: .95rem; }
 .vehicle-type,.pick-body > div > small { color: var(--home-purple); font-size: .57rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .pick-body h3 { overflow: hidden; margin: .3rem 0 .65rem; color: var(--home-ink); font: 750 1rem 'Sora',sans-serif; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
