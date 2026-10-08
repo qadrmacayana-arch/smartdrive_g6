@@ -2,5 +2,11 @@
   "private": true,
   "engines": {
     "node": "24.x"
+  },
+  "workspaces": [
+    "smartdrive-app"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=smartdrive-app"
   }
 }

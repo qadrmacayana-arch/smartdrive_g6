@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm ci --prefix smartdrive-app",
-  "buildCommand": "npm run build --prefix smartdrive-app",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
   "outputDirectory": "smartdrive-app/www",
   "rewrites": [
     {
