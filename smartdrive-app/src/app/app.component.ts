@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import {
   IonApp,
@@ -13,8 +13,8 @@ import {
   IonIcon,
   IonLabel,
   IonButton,
-  IonMenuButton,
   AlertController,
+  MenuController,
 } from '@ionic/angular';
 import { AuthService } from './core/services/auth.service';
 
@@ -44,20 +44,38 @@ export class AppComponent {
   readonly currentUser = this.auth.currentUser;
   readonly avatarLoadFailedUrl = signal<string | null>(null);
   readonly isAndroid = Capacitor.getPlatform() === 'android';
+  readonly mainMenuOpen = signal(false);
+  private readonly currentRouteUrl = signal(this.router.url);
 
   constructor(
     private readonly auth: AuthService,
     private readonly router: Router,
     private readonly alertCtrl: AlertController,
-  ) {}
+    private readonly menuCtrl: MenuController,
+  ) {
+    this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.currentRouteUrl.set(event.urlAfterRedirects);
+      }
+    });
+  }
 
   onAvatarError(url: string): void {
     this.avatarLoadFailedUrl.set(url);
   }
 
-  showGlobalMenuButton(): boolean {
-    const url = this.router.url;
-    return Boolean(this.currentUser()) && !url.startsWith('/tabs') && !url.startsWith('/admin');
+  showCustomerNavigation(): boolean {
+    const url = this.currentRouteUrl();
+    return !url.startsWith('/admin')
+      && !url.startsWith('/login')
+      && !url.startsWith('/signup')
+      && !url.startsWith('/forgot-password')
+      && !url.startsWith('/vehicle/')
+      && !url.startsWith('/booking/');
+  }
+
+  openMainMenu(): void {
+    void this.menuCtrl.open('main-menu');
   }
 
   async logout(): Promise<void> {

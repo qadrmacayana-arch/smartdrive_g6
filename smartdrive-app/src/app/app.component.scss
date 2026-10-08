@@ -4,21 +4,69 @@ ion-menu {
   --border: 0;
 }
 
-.global-menu-button {
+.menu-open .customer-bottom-nav {
+  display: none;
+}
+
+.customer-bottom-nav {
   position: fixed;
-  z-index: 20;
-  top: max(0.75rem, env(safe-area-inset-top));
-  right: 0.75rem;
-  width: 3.5rem;
-  height: 3.5rem;
+  z-index: 1000;
+  right: 0.7rem;
+  bottom: calc(0.45rem + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px))));
+  left: 0.7rem;
+  display: flex;
+  width: auto;
+  max-width: 1400px;
+  height: 62px;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(0.25rem, 2vw, 1.4rem);
+  margin: 0 auto;
+  padding: 0 clamp(0.35rem, 2vw, 1.25rem);
   border: 1px solid var(--sd-border);
-  border-radius: 1rem;
+  border-radius: 22px;
   background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+  backdrop-filter: blur(14px);
+}
+
+.customer-bottom-nav > a,
+.customer-bottom-nav > .customer-nav-menu {
+  display: flex;
+  flex: 1 1 0;
+  max-width: 168px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--sd-muted-foreground);
+  font: 750 0.65rem/1.2 'Plus Jakarta Sans', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.customer-bottom-nav > a ion-icon,
+.customer-bottom-nav > .customer-nav-menu ion-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  font-size: 1.45rem;
+}
+
+.customer-bottom-nav > .customer-nav-menu {
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.customer-bottom-nav > a.active,
+.customer-bottom-nav > a:hover,
+.customer-bottom-nav > .customer-nav-menu:hover {
+  background: var(--sd-primary-soft);
   color: var(--sd-primary);
-  box-shadow: 0 8px 24px rgba(76, 29, 149, 0.18);
-  --background: var(--sd-card);
-  --color: var(--sd-primary);
-  --border-radius: 1rem;
 }
 
 .menu-content {
