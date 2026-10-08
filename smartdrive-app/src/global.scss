@@ -1,3 +1,5 @@
+@use './app/pages/admin/admin-theme' as admin;
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -353,4 +355,8 @@ ion-content {
     color: var(--sd-accent);
     margin-bottom: 0.75rem;
   }
+}
+
+.admin-page-theme {
+  @include admin.styles;
 }
