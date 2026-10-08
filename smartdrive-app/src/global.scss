@@ -111,13 +111,33 @@ ion-app.android-native ion-header {
   padding-top: var(--android-safe-area-top);
 }
 
-ion-app.android-native ion-content[fullscreen]:not(.menu-content) {
+ion-app.android-native ion-router-outlet ion-content:not(.menu-content) {
   --padding-top: var(--android-safe-area-top);
   --padding-bottom: var(--android-safe-area-bottom);
 }
 
-ion-app.android-native.customer-navigation-visible ion-content[fullscreen]:not(.menu-content) {
-  --padding-bottom: calc(96px + var(--android-safe-area-bottom));
+ion-app.android-native ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content) {
+  --padding-top: calc(var(--android-safe-area-top) + var(--ion-toolbar-min-height, 56px));
+}
+
+ion-app.android-native.customer-navigation-visible ion-router-outlet ion-content:not(.menu-content) {
+  --padding-bottom: calc(112px + var(--android-safe-area-bottom));
+}
+
+ion-app:not(.android-native) ion-router-outlet ion-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+ion-app:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
+  --padding-top: env(safe-area-inset-top, 0px);
+}
+
+ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content) {
+  --padding-top: calc(env(safe-area-inset-top, 0px) + var(--ion-toolbar-min-height, 56px));
+}
+
+ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
+  --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
 }
 
 ion-app.android-native .about-subnav {
