@@ -266,3 +266,5 @@ with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
   or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
 );
+
+notify pgrst, 'reload schema';

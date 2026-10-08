@@ -46,6 +46,11 @@ export class SupportConversationService {
 
   async startOrResume(): Promise<SupportConversation> {
     const { data, error } = await this.supabase.client.rpc('start_or_resume_support_conversation');
+    if (error?.code === 'PGRST202') {
+      throw new Error(
+        'Support chat is not set up in Supabase yet. Run smartdrive-app/supabase/support-conversations.sql in the Supabase SQL Editor, then try again.',
+      );
+    }
     if (error) throw new Error(`Could not start your support conversation: ${error.message}`);
     const conversation = Array.isArray(data) ? data[0] : data;
     if (!conversation) throw new Error('Could not start your support conversation.');
