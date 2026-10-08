@@ -120,6 +120,10 @@ ion-app.android-native ion-router-outlet ion-header:not(.transparent-header) + i
   --padding-top: calc(var(--android-safe-area-top) + var(--ion-toolbar-min-height, 56px));
 }
 
+ion-app.android-native ion-router-outlet ion-content.booking-content {
+  --padding-top: 0;
+}
+
 ion-app.android-native.customer-navigation-visible ion-router-outlet ion-content:not(.menu-content) {
   --padding-bottom: calc(112px + var(--android-safe-area-bottom));
 }
@@ -134,6 +138,10 @@ ion-app:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
 
 ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content) {
   --padding-top: calc(env(safe-area-inset-top, 0px) + var(--ion-toolbar-min-height, 56px));
+}
+
+ion-app:not(.android-native) ion-router-outlet ion-content.booking-content {
+  --padding-top: 0;
 }
 
 ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
