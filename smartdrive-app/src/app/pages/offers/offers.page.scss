@@ -107,6 +107,43 @@
   gap: 0.9rem;
 }
 
+.offers-state {
+  display: flex;
+  min-height: 7rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.25rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1rem;
+  background: var(--sd-card);
+  color: var(--sd-muted-foreground);
+  font-size: 0.82rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  ion-spinner {
+    flex: 0 0 auto;
+    color: var(--sd-primary);
+  }
+
+  ion-button {
+    flex: 0 0 auto;
+    margin: 0;
+    text-transform: none;
+  }
+}
+
+.offers-error {
+  border-color: #f2d3ce;
+  background: #fff8f6;
+  color: #aa493c;
+}
+
 .offer-card {
   position: relative;
   display: flex;

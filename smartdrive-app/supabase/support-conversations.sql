@@ -267,4 +267,23 @@ with check (
   or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
 );
 
+drop policy if exists discount_codes_select_active on public.discount_codes;
+drop policy if exists "discount_codes_select_active" on public.discount_codes;
+create policy "discount_codes_select_active"
+on public.discount_codes for select
+using (is_active = true);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'discount_codes'
+  ) then
+    alter publication supabase_realtime add table public.discount_codes;
+  end if;
+end;
+$$;
+
 notify pgrst, 'reload schema';

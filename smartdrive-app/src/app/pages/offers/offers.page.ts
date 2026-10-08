@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -18,6 +18,20 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { RewardDefinition, RewardKey, RewardService } from '../../core/services/reward.service';
+import { SupabaseService } from '../../core/services/supabase.service';
+
+interface PromoOffer {
+  id: number;
+  code: string;
+  description: string | null;
+  discount_percent: number;
+  max_uses: number | null;
+  current_uses: number;
+  min_spend: number | null;
+  valid_from: string | null;
+  valid_until: string | null;
+  created_at: string | null;
+}
 
 @Component({
   selector: 'app-offers',
@@ -40,8 +54,11 @@ import { RewardDefinition, RewardKey, RewardService } from '../../core/services/
   templateUrl: './offers.page.html',
   styleUrl: './offers.page.scss',
 })
-export class OffersPage implements OnInit {
+export class OffersPage implements OnInit, OnDestroy {
   readonly currentUser = this.auth.currentUser;
+  readonly offers = signal<PromoOffer[]>([]);
+  readonly offersLoading = signal(true);
+  readonly offersError = signal<string | null>(null);
   readonly promoCode = signal('');
   readonly promoMessage = signal<string | null>(null);
   readonly promoValid = signal(false);
@@ -50,24 +67,68 @@ export class OffersPage implements OnInit {
   readonly claimingReward = signal<RewardKey | null>(null);
   readonly promoValidating = signal(false);
   readonly rewardError = signal<string | null>(null);
-  readonly offers = [
-    ['New Members', '15% OFF Your First Ride', 'Enjoy 15% off your first booking.', 'WELCOME15'],
-    ['Weekend Deal', 'Weekend SUV Special', 'Rent any SUV for three days and get the third day at 50% off.', 'Valid Fri-Sun'],
-    ['Long-Term', 'Weekly Rental Discount', 'Rent for seven days or more and receive 20% off.', 'Min. 7 days'],
-    ['Premium Members', 'Free Upgrade', 'Premium members receive a complimentary one-class upgrade.', 'Premium only'],
-    ['Holiday Promo', 'Extended Weekend Getaway', 'Book a four-day weekend and save 25%.', 'Limited time'],
-    ['Corporate', 'Business Travel Package', 'Book three or more vehicles and receive 15% off.', 'Business accounts'],
-  ];
+  private promoChannel: ReturnType<SupabaseService['client']['channel']> | null = null;
 
   constructor(
     private readonly auth: AuthService,
     private readonly bookingService: BookingService,
     private readonly rewardService: RewardService,
     private readonly toastCtrl: ToastController,
+    private readonly supabase: SupabaseService,
   ) {}
 
   ngOnInit(): void {
     void this.loadRewards();
+    void this.loadOffers();
+    this.promoChannel = this.supabase.client
+      .channel('customer-offer-promos')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'discount_codes' }, () => {
+        void this.loadOffers();
+      })
+      .subscribe((status, error) => {
+        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && error) {
+          console.error('Live offer updates are unavailable.', error);
+        }
+      });
+  }
+
+  ionViewWillEnter(): void {
+    if (!this.offersLoading()) void this.loadOffers();
+  }
+
+  ngOnDestroy(): void {
+    if (this.promoChannel) void this.supabase.client.removeChannel(this.promoChannel);
+  }
+
+  async loadOffers(): Promise<void> {
+    this.offersLoading.set(true);
+    this.offersError.set(null);
+    try {
+      const { data, error } = await this.supabase.client
+        .from('discount_codes')
+        .select('id,code,description,discount_percent,max_uses,current_uses,min_spend,valid_from,valid_until,created_at')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      if (error) {
+        const details = error.code === '42501'
+          ? ' Check that customer-notifications-and-booking-guard.sql has been run in Supabase.'
+          : '';
+        throw new Error(`Could not load current promo codes: ${error.message}.${details}`);
+      }
+
+      const now = Date.now();
+      this.offers.set(((data ?? []) as PromoOffer[]).filter((promo) => {
+        const startsAt = promo.valid_from ? Date.parse(promo.valid_from) : null;
+        const endsAt = promo.valid_until ? Date.parse(promo.valid_until) : null;
+        return (startsAt === null || (Number.isFinite(startsAt) && startsAt <= now))
+          && (endsAt === null || (Number.isFinite(endsAt) && endsAt >= now))
+          && (promo.max_uses == null || promo.current_uses < promo.max_uses);
+      }));
+    } catch (error) {
+      this.offersError.set(error instanceof Error ? error.message : 'Unable to load current promo codes.');
+    } finally {
+      this.offersLoading.set(false);
+    }
   }
 
   async loadRewards(): Promise<void> {

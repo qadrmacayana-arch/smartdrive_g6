@@ -13,25 +13,42 @@
       <section class="offers-shell" aria-label="Available offers">
         <div class="offers-section-heading">
           <div><span class="offers-kicker">MADE FOR THE ROAD</span><h2>Current promotions</h2></div>
-          <span>{{ offers.length }} offers</span>
+          <span>{{ offers().length }} offers</span>
         </div>
-        <div class="offers-grid">
-          @for (offer of offers; track offer[1]) {
+        @if (offersLoading() && !offers().length) {
+          <div class="offers-state"><ion-spinner name="crescent"></ion-spinner><span>Loading current promotions…</span></div>
+        } @else if (offersError()) {
+          <div class="offers-state offers-error" role="alert">
+            <p>{{ offersError() }}</p>
+            <ion-button size="small" fill="outline" (click)="loadOffers()">Try again</ion-button>
+          </div>
+        } @else if (offers().length) {
+          <div class="offers-grid">
+          @for (offer of offers(); track offer.id) {
             <article class="offer-card">
               <div class="offer-card-top">
-                <span class="offer-tag">{{ offer[0] }}</span>
+                <span class="offer-tag">{{ offer.discount_percent }}% OFF</span>
                 <span class="offer-card-icon" aria-hidden="true"><ion-icon name="pricetag-outline"></ion-icon></span>
               </div>
-              <h3>{{ offer[1] }}</h3>
-              <p>{{ offer[2] }}</p>
-              <strong class="offer-detail">{{ offer[3] }}</strong>
+              <h3>{{ offer.code }}</h3>
+              <p>{{ offer.description || 'Use this promo code on an eligible booking.' }}</p>
+              <strong class="offer-detail">
+                {{ offer.code }}
+                @if (offer.min_spend && offer.min_spend > 0) { <span> · Min. ₱{{ offer.min_spend | number:'1.0-2' }}</span> }
+              </strong>
               <a routerLink="/tabs/rent-a-car">
                 Find a vehicle
                 <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
               </a>
             </article>
           }
-        </div>
+          </div>
+        } @else {
+          <div class="offers-state">
+            <span class="offer-card-icon" aria-hidden="true"><ion-icon name="pricetag-outline"></ion-icon></span>
+            <p>No active promo codes right now. If you recently added one, make sure <code>customer-notifications-and-booking-guard.sql</code> has been run in Supabase so customers can read active offers.</p>
+          </div>
+        }
 
         <section class="rewards-section" aria-labelledby="rewards-title">
           <div class="rewards-heading">

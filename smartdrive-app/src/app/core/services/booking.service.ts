@@ -93,7 +93,11 @@ export class BookingService {
       if (claimedError) throw new Error(claimedError.message);
       promo = claimedPromo;
     }
-    if (!promo) throw new Error('That promo code was not found.');
+    if (!promo) {
+      throw new Error(
+        'That promo code is unavailable. If an admin just added it, make sure customer-notifications-and-booking-guard.sql has been run in Supabase so customers can read active promo codes.',
+      );
+    }
 
     if ('valid_from' in promo && promo.valid_from && now < new Date(promo.valid_from)) {
       throw new Error('This promo code is not active yet.');
