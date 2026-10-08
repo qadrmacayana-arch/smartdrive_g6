@@ -162,6 +162,11 @@ ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-heade
   --padding-top: calc(env(safe-area-inset-top, 0px) + var(--ion-toolbar-min-height, 56px));
 }
 
+ion-app.android-native ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content):is(.notifications-content, .faq-content, .reviews-content),
+ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content):is(.notifications-content, .faq-content, .reviews-content) {
+  --padding-top: 0;
+}
+
 ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {
   --padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
 }

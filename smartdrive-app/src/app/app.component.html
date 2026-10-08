@@ -82,7 +82,7 @@
             </ion-menu-toggle>
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/notifications" routerLinkActive="selected" button detail="false">
-                <ion-icon slot="start" name="notifications-outline"></ion-icon>
+                <ion-icon slot="start" [icon]="notificationIcon"></ion-icon>
                 <ion-label>Notifications</ion-label>
                 @if (notificationCenter.unreadCount()) {
                   <span slot="end" class="menu-notification-count">{{ notificationCenter.unreadCount() }}</span>
@@ -94,7 +94,7 @@
 
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/settings" routerLinkActive="selected" button detail="false">
-                <ion-icon slot="start" name="settings-outline"></ion-icon>
+                <ion-icon slot="start" [icon]="settingsIcon"></ion-icon>
                 <ion-label>Settings</ion-label>
               </ion-item>
             </ion-menu-toggle>
@@ -194,7 +194,7 @@
       routerLinkActive="active"
       aria-label="Open notifications"
     >
-      <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+      <ion-icon [icon]="notificationIcon" aria-hidden="true"></ion-icon>
       @if (notificationCenter.unreadCount()) {
         <span class="notification-corner-count" aria-label="Unread notifications">
           {{ notificationCenter.unreadCount() > 99 ? '99+' : notificationCenter.unreadCount() }}

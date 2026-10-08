@@ -11,6 +11,7 @@ import {
   IonButton,
   IonInput,
 } from '@ionic/angular';
+import { chatbubblesOutline, sendOutline } from 'ionicons/icons';
 
 interface FaqItem {
   q: string;
@@ -65,6 +66,8 @@ const SUGGESTED_QUESTIONS = [
   styleUrl: './faq.page.scss',
 })
 export class FaqPage {
+  readonly chatIcon = chatbubblesOutline;
+  readonly sendIcon = sendOutline;
   @ViewChild('chatMessages') private chatMessages?: ElementRef<HTMLDivElement>;
 
   readonly items = FAQ_ITEMS;

@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="faq-content">
+<ion-content class="faq-content">
   <main class="faq-page">
     <header class="faq-intro">
       <span class="faq-kicker">WE'RE HERE TO HELP</span>
@@ -17,7 +17,7 @@
 
     <section class="sd-card chatbot" aria-label="SmartDrive help chatbot">
       <header class="chatbot-heading">
-        <span class="chatbot-icon"><ion-icon name="chatbubbles-outline"></ion-icon></span>
+        <span class="chatbot-icon"><ion-icon [icon]="chatIcon"></ion-icon></span>
         <div>
           <h2>Chat with SmartDrive</h2>
           <p>Instant answers to common questions</p>
@@ -51,7 +51,7 @@
           maxlength="500"
         ></ion-input>
         <ion-button type="submit" aria-label="Send message" [disabled]="!draft().trim()">
-          <ion-icon slot="icon-only" name="send-outline"></ion-icon>
+          <ion-icon slot="icon-only" [icon]="sendIcon"></ion-icon>
         </ion-button>
       </form>
     </section>

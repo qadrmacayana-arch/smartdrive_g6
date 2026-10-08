@@ -21,6 +21,7 @@ import {
 import { AuthService } from './core/services/auth.service';
 import { MobileFeedbackService } from './core/services/mobile-feedback.service';
 import { NotificationCenterService } from './core/services/notification-center.service';
+import { notificationsOutline, settingsOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-root',
@@ -45,6 +46,8 @@ import { NotificationCenterService } from './core/services/notification-center.s
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
+  readonly notificationIcon = notificationsOutline;
+  readonly settingsIcon = settingsOutline;
   readonly isAndroid = Capacitor.getPlatform() === 'android';
   readonly currentUser = this.auth.currentUser;
   readonly avatarLoadFailedUrl = signal<string | null>(null);
