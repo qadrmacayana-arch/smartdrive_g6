@@ -10,30 +10,38 @@
 <ion-content [fullscreen]="true">
   <main class="planner-shell">
     <section class="planner-hero">
-      <div class="hero-icon" aria-hidden="true">
-        <ion-icon name="map-outline"></ion-icon>
+      <div class="hero-copy">
+        <p class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> SMARTDRIVE · PHILIPPINES</p>
+        <h1>Your next escape<br>starts here.</h1>
+        <p>Pick a place, set your dates, and let the road-trip ideas come to you.</p>
       </div>
-      <p class="eyebrow">YOUR NEXT LITTLE ADVENTURE</p>
-      <h1>Where would you like to go?</h1>
-      <p>Search popular Philippine destinations, build your itinerary, and explore real photos of the stops.</p>
     </section>
 
     <form class="planner-form" (ngSubmit)="createPlan()">
+      <div class="planner-form-heading">
+        <div>
+          <p class="eyebrow">LET'S GET YOU OUT THERE</p>
+          <h2>Plan your getaway</h2>
+        </div>
+      </div>
       <div class="destination-picker">
         <label class="field">
-          <span>Search a destination or place</span>
-          <input
-            type="search"
-            name="destinationSearch"
-            role="combobox"
-            aria-controls="destination-suggestions"
-            [attr.aria-expanded]="suggestionsVisible()"
-            [ngModel]="destinationSearch()"
-            (ngModelChange)="updateDestinationSearch($event)"
-            (focus)="suggestionsVisible.set(true)"
-            autocomplete="off"
-            placeholder="Try Baguio, Boracay, Intramuros…"
-          />
+          <span>Where to?</span>
+          <span class="destination-input-wrap">
+            <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+            <input
+              type="search"
+              name="destinationSearch"
+              role="combobox"
+              aria-controls="destination-suggestions"
+              [attr.aria-expanded]="suggestionsVisible()"
+              [ngModel]="destinationSearch()"
+              (ngModelChange)="updateDestinationSearch($event)"
+              (focus)="suggestionsVisible.set(true)"
+              autocomplete="off"
+              placeholder="Search a city, island, or landmark"
+            />
+          </span>
         </label>
         @if (suggestionsVisible()) {
           <div class="destination-suggestions" id="destination-suggestions" role="listbox" aria-label="Suggested destinations">
@@ -59,39 +67,52 @@
         @if (selectedDestination(); as destination) {
           <p class="selected-destination">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
-            {{ destination.name }} selected · {{ destination.region }}
+            {{ destination.name }} · {{ destination.region }}
           </p>
+        } @else if (!destinationSearch().trim()) {
+          <div class="popular-destinations">
+            <span>POPULAR</span>
+            @for (destination of destinations.slice(0, 4); track destination.id) {
+              <button type="button" (click)="selectDestination(destination)">{{ destination.name }}</button>
+            }
+          </div>
         }
       </div>
 
       <div class="form-row">
         <label class="field">
-          <span>How many days?</span>
-          <select name="days" [ngModel]="numberOfDays()" (ngModelChange)="numberOfDays.set($event)">
-            <option [ngValue]="1">1 day</option>
-            <option [ngValue]="2">2 days</option>
-            <option [ngValue]="3">3 days</option>
-          </select>
+          <span>Trip length</span>
+          <span class="select-wrap">
+            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+            <select name="days" [ngModel]="numberOfDays()" (ngModelChange)="numberOfDays.set($event)">
+              <option [ngValue]="1">1 day</option>
+              <option [ngValue]="2">2 days</option>
+              <option [ngValue]="3">3 days</option>
+            </select>
+          </span>
         </label>
         <label class="field">
-          <span>Starting point <small>(optional)</small></span>
-          <input
-            type="text"
-            name="startingPoint"
-            [ngModel]="startingPoint()"
-            (ngModelChange)="startingPoint.set($event)"
-            maxlength="100"
-            placeholder="e.g. Quezon City"
-            autocomplete="address-level2"
-          />
+          <span>Starting from <small>optional</small></span>
+          <span class="starting-point-wrap">
+            <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+            <input
+              type="text"
+              name="startingPoint"
+              [ngModel]="startingPoint()"
+              (ngModelChange)="startingPoint.set($event)"
+              maxlength="100"
+              placeholder="e.g. Quezon City"
+              autocomplete="address-level2"
+            />
+          </span>
         </label>
       </div>
 
-      <section class="calendar-field" aria-label="Choose trip start date">
-        <div class="calendar-heading">
-          <span>When does your trip start?</span>
-          <strong>{{ tripStartDate() | date:'EEE, MMM d, y' }}</strong>
-        </div>
+      <details class="calendar-field">
+        <summary class="calendar-heading">
+          <span class="calendar-label"><ion-icon name="calendar-outline"></ion-icon> Travel date</span>
+          <strong>{{ tripStartDate() | date:'EEE, MMM d, y' }}<ion-icon name="chevron-down-outline"></ion-icon></strong>
+        </summary>
         <ion-datetime
           presentation="date"
           locale="en-PH"
@@ -100,11 +121,12 @@
           (ionChange)="updateTripStartDate($event)"
           aria-label="Trip start date calendar"
         ></ion-datetime>
-      </section>
+      </details>
 
       <button class="plan-button" type="submit" [disabled]="!selectedDestination()">
         <ion-icon name="sparkles-outline"></ion-icon>
-        {{ planCreated() ? 'Update my trip plan' : 'Plan my trip' }}
+        {{ planCreated() ? 'Refresh my itinerary' : 'Build my itinerary' }}
+        <ion-icon class="button-arrow" name="arrow-forward-outline"></ion-icon>
       </button>
     </form>
 
@@ -112,8 +134,8 @@
       <section class="itinerary" aria-live="polite">
         <header class="itinerary-heading">
           <div>
-            <p class="eyebrow">YOUR {{ numberOfDays() }}-DAY GETAWAY</p>
-            <h2>{{ destination.name }}</h2>
+            <p class="eyebrow"><ion-icon name="sparkles-outline"></ion-icon> YOUR ROAD TRIP, MAPPED OUT</p>
+            <h2>{{ destination.name }} <span>{{ numberOfDays() }} {{ numberOfDays() === 1 ? 'day' : 'days' }}</span></h2>
           </div>
           <div class="itinerary-actions">
             <span class="region-badge">{{ destination.region }}</span>
@@ -183,11 +205,6 @@
           Stop photos are retrieved from Wikimedia Commons and linked to their original pages. Itinerary ideas aren’t live traffic estimates; check opening hours, road conditions, and local guidance before you go.
         </p>
       </section>
-    } @else {
-      <p class="planner-prompt">
-        <ion-icon name="compass-outline"></ion-icon>
-        Start typing to see destination and landmark suggestions from around the Philippines.
-      </p>
     }
 
     @if (selectedImage(); as image) {
