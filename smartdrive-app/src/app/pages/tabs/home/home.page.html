@@ -21,6 +21,43 @@
       </div>
     </section>
 
+    <section class="home-promo" aria-label="SmartDrive promotions" aria-roledescription="carousel">
+      @for (promotion of promotions; track promotion.title; let index = $index) {
+        @if (activePromotionIndex() === index) {
+          <article class="promo-slide" [attr.aria-label]="'Promotion ' + (index + 1) + ' of ' + promotions.length">
+            <img class="promo-image" [src]="promotion.image" [alt]="promotion.imageAlt">
+            <div class="promo-copy">
+              <span>{{ promotion.eyebrow }}</span>
+              <h2>{{ promotion.title }}</h2>
+              <p>{{ promotion.description }}</p>
+              <a [routerLink]="promotion.link">{{ promotion.action }} <ion-icon name="arrow-forward-outline"></ion-icon></a>
+            </div>
+          </article>
+        }
+      }
+      <div class="promo-controls">
+        <div class="promo-dots" aria-label="Choose a promotion">
+          @for (promotion of promotions; track promotion.title; let index = $index) {
+            <button
+              type="button"
+              [class.active]="activePromotionIndex() === index"
+              [attr.aria-label]="'Show promotion ' + (index + 1) + ': ' + promotion.title"
+              [attr.aria-current]="activePromotionIndex() === index ? 'true' : null"
+              (click)="selectPromotion(index)"
+            ></button>
+          }
+        </div>
+        <button
+          class="promo-rotation"
+          type="button"
+          [attr.aria-label]="carouselRotationEnabled() ? 'Pause promotions' : 'Play promotions'"
+          (click)="togglePromotionRotation()"
+        >
+          <ion-icon [name]="carouselRotationEnabled() ? 'pause-outline' : 'play-outline'"></ion-icon>
+        </button>
+      </div>
+    </section>
+
     <section class="categories">
       @for (category of categories.slice(1); track category.key) {
         <button [class.active]="mainCategory() === category.key" (click)="selectMainCategory(category.key)">
@@ -33,7 +70,7 @@
     <section class="picks">
       <div class="section-title"><div><span>CURATED FOR YOUR NEXT TRIP</span><h2>Featured vehicles</h2></div><a routerLink="/tabs/rent-a-car">Explore the fleet <ion-icon name="arrow-forward-outline"></ion-icon></a></div>
       @if (loading()) {
-        <div class="picks-grid"><div class="pick-card loading" *ngFor="let item of [1,2,3]"></div></div>
+        <div class="picks-grid">@for (item of [1, 2, 3]; track item) { <div class="pick-card loading"></div> }</div>
     } @else if (errorMessage()) {
       <div class="home-empty"><ion-icon name="alert-circle-outline"></ion-icon><strong>Vehicles are taking a break</strong><p>{{ errorMessage() }}</p><button type="button" (click)="loadVehicles()">Try again</button></div>
     } @else {

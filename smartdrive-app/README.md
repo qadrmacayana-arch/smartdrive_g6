@@ -55,6 +55,7 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 - `resources/icon.png` is the master app icon; keep the Android launcher variants and browser favicon in sync with it. Rebuild the Android project after changing native assets.
 - Trip Planner creates curated one-to-three-day stop suggestions for Tagaytay, Baguio, La Union, and Cebu City, with links to open each day's route in Google Maps.
 - Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
+- The Home screen includes an auto-rotating illustrated promotions carousel with links to the fleet, offers, and Trip Planner. Carousel rotation pauses automatically when reduced motion is preferred and can be paused manually.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
 - Full-screen Android pages reserve space below the status bar and above the home/gesture bar and app navigation, including vehicle-detail booking controls. Insets use Ionic's content padding variables so they are applied inside the actual scroll area.
 

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="704" y1="0" x2="974" y2="558" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5064A7"/>
+      <stop offset=".5" stop-color="#A66BC2"/>
+      <stop offset="1" stop-color="#F4A277"/>
+    </linearGradient>
+    <linearGradient id="mountain" x1="876" y1="190" x2="1061" y2="478" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7864A6"/>
+      <stop offset="1" stop-color="#403A72"/>
+    </linearGradient>
+    <linearGradient id="road" x1="870" y1="380" x2="1072" y2="556" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5D5576"/>
+      <stop offset="1" stop-color="#25213F"/>
+    </linearGradient>
+    <linearGradient id="car" x1="795" y1="389" x2="1002" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#66D6CF"/>
+      <stop offset="1" stop-color="#397DB7"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h1200v560H0z"/>
+  <circle cx="1021" cy="138" r="64" fill="#FFE6AF" fill-opacity=".92"/>
+  <path d="m382 348 187-228 136 149 135-194 231 254 129-136v367H311z" fill="#625782"/>
+  <path d="m570 365 135-180 86 94 49-70 139 163 121-108v296H496z" fill="url(#mountain)"/>
+  <path d="m566 121 29 43-34-8-26 23 34-57zm274-46 29 43-34-8-26 23 34-57z" fill="#E9E6FB" fill-opacity=".83"/>
+  <path d="M0 389c147-45 263-53 385-18 132 38 213 36 343-11 122-44 244-43 472 16v184H0z" fill="#35486F"/>
+  <path d="M0 459c174-73 298-58 426-27 161 39 269 20 406-40 125-54 233-42 368 5v163H0z" fill="#293B62"/>
+  <path d="M654 560c67-88 133-151 211-181 91-34 197-22 373 65v116H654z" fill="url(#road)"/>
+  <path d="M967 405c92 14 168 51 270 101" stroke="#F6D9A0" stroke-width="7" stroke-dasharray="28 27"/>
+  <path d="M757 404c12-24 32-38 61-41l84-5c19-1 35 7 48 22l32 35 43 10c16 4 28 17 31 33l4 27-293-4z" fill="url(#car)"/>
+  <path d="m838 371 60-3c13-1 25 5 34 15l24 29-139-2z" fill="#D7F2FF"/>
+  <path d="m831 404-61-3-8 19 121 8zm198 14 37 8c12 3 20 12 22 24l1 9-89-2z" fill="#D8FCF2"/>
+  <circle cx="807" cy="485" r="24" fill="#201E39"/>
+  <circle cx="807" cy="485" r="11" fill="#E3E8F3"/>
+  <circle cx="989" cy="491" r="24" fill="#201E39"/>
+  <circle cx="989" cy="491" r="11" fill="#E3E8F3"/>
+  <path d="M1112 75v36m-18-18h36M699 102v25m-13-13h26M572 242v20m-10-10h20" stroke="#FFF" stroke-opacity=".76" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="735" cy="137" r="4" fill="#FFF" fill-opacity=".8"/>
+</svg>

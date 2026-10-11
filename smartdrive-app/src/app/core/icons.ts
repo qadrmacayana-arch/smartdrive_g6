@@ -82,6 +82,8 @@ import {
   mapOutline,
   navigateOutline,
   compassOutline,
+  pauseOutline,
+  playOutline,
 } from 'ionicons/icons';
 
 export function registerIcons(): void {
@@ -168,5 +170,7 @@ export function registerIcons(): void {
     'map-outline': mapOutline,
     'navigate-outline': navigateOutline,
     'compass-outline': compassOutline,
+    'pause-outline': pauseOutline,
+    'play-outline': playOutline,
   });
 }

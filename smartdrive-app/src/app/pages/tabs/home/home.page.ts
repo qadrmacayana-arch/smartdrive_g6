@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, effect, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -53,7 +53,45 @@ const CATEGORIES: CategoryDef[] = [
   styleUrl: './home.page.scss',
 })
 export class HomePage implements OnInit {
+  private readonly vehicleService = inject(VehicleService);
+  private readonly bookingService = inject(BookingService);
+  private readonly insights = inject(PredictiveInsightsService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly mobileFeedback = inject(MobileFeedbackService);
+  private readonly pickupPreferences = inject(PickupPreferencesService);
   readonly categories = CATEGORIES;
+  readonly promotions = [
+    {
+      eyebrow: 'YOUR NEXT ESCAPE STARTS HERE',
+      title: 'A better view is just a drive away.',
+      description: 'Pick a ride and make the long weekend yours.',
+      image: 'assets/images/smartdrive-promo-coast.svg',
+      imageAlt: 'Illustration of a car driving along a coastal road at sunset',
+      link: '/trip-planner',
+      action: 'Plan a trip',
+    },
+    {
+      eyebrow: 'A LITTLE SOMETHING FOR YOUR FIRST RIDE',
+      title: 'Take 15% off your first rental.',
+      description: 'Use promo code FIRST15 at checkout.',
+      image: 'assets/images/smartdrive-promo-city.svg',
+      imageAlt: 'Illustration of a car on a city street at dusk',
+      link: '/offers',
+      action: 'Explore offers',
+    },
+    {
+      eyebrow: 'FIND YOUR KIND OF DRIVE',
+      title: 'The right ride changes everything.',
+      description: 'Browse cars, motorcycles, and more in one place.',
+      image: 'assets/images/smartdrive-promo-mountains.svg',
+      imageAlt: 'Illustration of a vehicle winding through mountain scenery',
+      link: '/tabs/rent-a-car',
+      action: 'Explore the fleet',
+    },
+  ];
+  readonly activePromotionIndex = signal(0);
+  readonly carouselRotationEnabled = signal(true);
   readonly vehicles = signal<Vehicle[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
@@ -61,6 +99,7 @@ export class HomePage implements OnInit {
   readonly recommendationError = signal<string | null>(null);
   readonly hasBookingHistory = signal(false);
   private recommendationRequest = 0;
+  private carouselTimer: ReturnType<typeof setInterval> | null = null;
   readonly searchQuery = signal('');
   readonly mainCategory = signal('All');
   readonly subFilter = signal('All');
@@ -90,15 +129,7 @@ export class HomePage implements OnInit {
 
   readonly featuredVehicles = computed(() => this.vehicles().filter((v) => v.is_featured).slice(0, 6));
 
-  constructor(
-    private readonly vehicleService: VehicleService,
-    private readonly bookingService: BookingService,
-    private readonly insights: PredictiveInsightsService,
-    private readonly auth: AuthService,
-    private readonly router: Router,
-    private readonly mobileFeedback: MobileFeedbackService,
-    private readonly pickupPreferences: PickupPreferencesService,
-  ) {
+  constructor() {
     effect(() => {
       this.currentUser();
       const vehicles = this.vehicles();
@@ -111,6 +142,49 @@ export class HomePage implements OnInit {
     this.pickupLocation = savedPickup.location;
     this.pickupDate = savedPickup.date;
     this.loadVehicles();
+  }
+
+  ionViewWillEnter(): void {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.carouselRotationEnabled.set(false);
+      return;
+    }
+    this.carouselRotationEnabled.set(true);
+    this.startPromotionRotation();
+  }
+
+  ionViewWillLeave(): void {
+    this.stopPromotionRotation();
+  }
+
+  selectPromotion(index: number): void {
+    this.activePromotionIndex.set(index);
+    this.mobileFeedback.selection();
+    if (this.carouselRotationEnabled()) this.startPromotionRotation();
+  }
+
+  togglePromotionRotation(): void {
+    const shouldPlay = !this.carouselRotationEnabled();
+    this.carouselRotationEnabled.set(shouldPlay);
+    if (shouldPlay) {
+      this.startPromotionRotation();
+    } else {
+      this.stopPromotionRotation();
+    }
+  }
+
+  private startPromotionRotation(): void {
+    this.stopPromotionRotation();
+    if (this.promotions.length < 2) return;
+    this.carouselTimer = window.setInterval(() => {
+      this.activePromotionIndex.update((index) => (index + 1) % this.promotions.length);
+    }, 6000);
+  }
+
+  private stopPromotionRotation(): void {
+    if (this.carouselTimer === null) return;
+    window.clearInterval(this.carouselTimer);
+    this.carouselTimer = null;
   }
 
   async loadVehicles(event?: CustomEvent): Promise<void> {
