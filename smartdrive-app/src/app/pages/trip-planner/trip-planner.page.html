@@ -14,24 +14,60 @@
         <ion-icon name="map-outline"></ion-icon>
       </div>
       <p class="eyebrow">YOUR NEXT LITTLE ADVENTURE</p>
-      <h1>Make the ride part of the fun.</h1>
-      <p>Pick a destination and we’ll line up a few local favorites for the road.</p>
+      <h1>Where would you like to go?</h1>
+      <p>Search popular Philippine destinations, build your itinerary, and explore real photos of the stops.</p>
     </section>
 
     <form class="planner-form" (ngSubmit)="createPlan()">
-      <label class="field">
-        <span>Where do you want to go?</span>
-        <select name="destination" [(ngModel)]="selectedDestinationId">
-          @for (destination of destinations; track destination.id) {
-            <option [ngValue]="destination.id">{{ destination.name }}, {{ destination.region }}</option>
-          }
-        </select>
-      </label>
+      <div class="destination-picker">
+        <label class="field">
+          <span>Search a destination or place</span>
+          <input
+            type="search"
+            name="destinationSearch"
+            role="combobox"
+            aria-controls="destination-suggestions"
+            [attr.aria-expanded]="suggestionsVisible()"
+            [ngModel]="destinationSearch()"
+            (ngModelChange)="updateDestinationSearch($event)"
+            (focus)="suggestionsVisible.set(true)"
+            autocomplete="off"
+            placeholder="Try Baguio, Boracay, Intramuros…"
+          />
+        </label>
+        @if (suggestionsVisible()) {
+          <div class="destination-suggestions" id="destination-suggestions" role="listbox" aria-label="Suggested destinations">
+            @for (destination of matchingDestinations(); track destination.id) {
+              <button
+                type="button"
+                role="option"
+                [attr.aria-selected]="selectedDestinationId() === destination.id"
+                (mousedown)="$event.preventDefault()"
+                (click)="selectDestination(destination)"
+              >
+                <span>
+                  <strong>{{ destination.name }}</strong>
+                  <small>{{ destination.region }} · {{ destination.days[0].stops[0].name }}, {{ destination.days[0].stops[1].name }} + more</small>
+                </span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+              </button>
+            } @empty {
+              <p class="no-destinations">No suggestions yet. Try Manila, Cebu, Baguio, Palawan, or Boracay.</p>
+            }
+          </div>
+        }
+        @if (selectedDestination(); as destination) {
+          <p class="selected-destination">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            {{ destination.name }} selected · {{ destination.region }}
+          </p>
+        }
+      </div>
 
       <div class="form-row">
         <label class="field">
           <span>How many days?</span>
-          <select name="days" [(ngModel)]="numberOfDays">
+          <select name="days" [ngModel]="numberOfDays()" (ngModelChange)="numberOfDays.set($event)">
             <option [ngValue]="1">1 day</option>
             <option [ngValue]="2">2 days</option>
             <option [ngValue]="3">3 days</option>
@@ -42,7 +78,8 @@
           <input
             type="text"
             name="startingPoint"
-            [(ngModel)]="startingPoint"
+            [ngModel]="startingPoint()"
+            (ngModelChange)="startingPoint.set($event)"
             maxlength="100"
             placeholder="e.g. Quezon City"
             autocomplete="address-level2"
@@ -50,24 +87,45 @@
         </label>
       </div>
 
-      <button class="plan-button" type="submit">
+      <section class="calendar-field" aria-label="Choose trip start date">
+        <div class="calendar-heading">
+          <span>When does your trip start?</span>
+          <strong>{{ tripStartDate() | date:'EEE, MMM d, y' }}</strong>
+        </div>
+        <ion-datetime
+          presentation="date"
+          locale="en-PH"
+          [min]="minimumTripDate"
+          [value]="tripStartDate()"
+          (ionChange)="updateTripStartDate($event)"
+          aria-label="Trip start date calendar"
+        ></ion-datetime>
+      </section>
+
+      <button class="plan-button" type="submit" [disabled]="!selectedDestination()">
         <ion-icon name="sparkles-outline"></ion-icon>
-        Plan my trip
+        {{ planCreated() ? 'Update my trip plan' : 'Plan my trip' }}
       </button>
     </form>
 
-    @if (planCreated) {
+    @if (planCreated() && selectedDestination(); as destination) {
       <section class="itinerary" aria-live="polite">
         <header class="itinerary-heading">
           <div>
-            <p class="eyebrow">YOUR {{ numberOfDays }}-DAY GETAWAY</p>
-            <h2>{{ selectedDestination.name }}</h2>
+            <p class="eyebrow">YOUR {{ numberOfDays() }}-DAY GETAWAY</p>
+            <h2>{{ destination.name }}</h2>
           </div>
-          <span class="region-badge">{{ selectedDestination.region }}</span>
+          <div class="itinerary-actions">
+            <span class="region-badge">{{ destination.region }}</span>
+            <button class="delete-plan-button" type="button" (click)="deletePlan()">
+              <ion-icon name="trash-outline"></ion-icon>
+              Clear plan
+            </button>
+          </div>
         </header>
-        <p class="destination-intro">{{ selectedDestination.introduction }}</p>
+        <p class="destination-intro">{{ destination.introduction }}</p>
 
-        @for (day of selectedDestination.days.slice(0, numberOfDays); track day.title; let dayIndex = $index) {
+        @for (day of destination.days.slice(0, numberOfDays()); track day.title; let dayIndex = $index) {
           <article class="day-card">
             <div class="day-heading">
               <span class="day-number">0{{ dayIndex + 1 }}</span>
@@ -75,14 +133,34 @@
                 <p>DAY {{ dayIndex + 1 }}</p>
                 <h3>{{ day.title }}</h3>
               </div>
+              <time [attr.datetime]="tripStartDate()">{{ getDateLabel(dayIndex) }}</time>
             </div>
             <ol class="stop-list">
               @for (stop of day.stops; track stop.name; let stopIndex = $index) {
                 <li>
                   <span class="stop-marker" aria-hidden="true">{{ stopIndex + 1 }}</span>
-                  <div>
-                    <h4>{{ stop.name }}</h4>
-                    <p>{{ stop.description }}</p>
+                  <div class="stop-content">
+                    <div>
+                      <h4>{{ stop.name }}</h4>
+                      <p>{{ stop.description }}</p>
+                    </div>
+                    @if (getPhotoState(stop); as photo) {
+                      @if (photo.status === 'loaded') {
+                        <button
+                          class="stop-photo"
+                          type="button"
+                          [attr.aria-label]="'View photo of ' + stop.name"
+                          (click)="openPhoto(stop)"
+                        >
+                          <img [src]="photo.image.thumbnail" [alt]="'Photo of ' + stop.name" loading="lazy" (error)="onPhotoError(stop)">
+                          <span><ion-icon name="expand-outline"></ion-icon> Tap to enlarge</span>
+                        </button>
+                      } @else if (photo.status === 'loading') {
+                        <p class="photo-status" role="status">Finding a photo of this place…</p>
+                      } @else {
+                        <p class="photo-status photo-error" role="status">No place photo found. Check your internet and try planning again.</p>
+                      }
+                    }
                   </div>
                 </li>
               }
@@ -102,14 +180,30 @@
 
         <p class="planner-note">
           <ion-icon name="information-circle-outline"></ion-icon>
-          These are inspiration stops, not live route or traffic estimates. Check opening hours, road conditions, and local guidance before you go.
+          Stop photos are retrieved from Wikimedia Commons and linked to their original pages. Itinerary ideas aren’t live traffic estimates; check opening hours, road conditions, and local guidance before you go.
         </p>
       </section>
     } @else {
       <p class="planner-prompt">
         <ion-icon name="compass-outline"></ion-icon>
-        Your suggested stops will show up here. Pick a place to get started!
+        Start typing to see destination and landmark suggestions from around the Philippines.
       </p>
+    }
+
+    @if (selectedImage(); as image) {
+      <div class="image-lightbox" role="dialog" aria-modal="true" aria-label="Place photo" (click)="selectedImage.set(null)">
+        <div class="lightbox-card" (click)="$event.stopPropagation()">
+          <button class="lightbox-close" type="button" aria-label="Close photo" (click)="selectedImage.set(null)">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+          <img class="lightbox-image" [src]="image.thumbnail" [alt]="image.fileName">
+          <div class="lightbox-credit">
+            <strong>{{ image.fileName }}</strong>
+            <span>Photo by {{ image.artist }} · {{ image.license }}</span>
+            <a [href]="image.filePage" target="_blank" rel="noopener noreferrer">View original and license on Wikimedia Commons</a>
+          </div>
+        </div>
+      </div>
     }
   </main>
 </ion-content>
