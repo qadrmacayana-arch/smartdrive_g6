@@ -52,7 +52,7 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 
 - Pull down on Home or the vehicle fleet to refresh the latest available vehicles.
 - Android haptic feedback is used for navigation, filters, refresh, and booking actions.
-- Android uses the SmartDrive launcher icon and branded launch screen. Rebuild the Android project after changing native assets.
+- `resources/icon.png` is the master app icon; keep the Android launcher variants and browser favicon in sync with it. Rebuild the Android project after changing native assets.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
 - Full-screen Android pages reserve space below the status bar and above the home/gesture bar and app navigation, including vehicle-detail booking controls. Insets use Ionic's content padding variables so they are applied inside the actual scroll area.
 
@@ -85,6 +85,8 @@ Until a payment provider is configured, card, GCash, and Maya use demo-only test
 The home page can recommend currently available vehicles using only the signed-in customer's own booking history. The booking calendar can show a conflict check and a historical weekday-demand signal for the selected vehicle and dates. For that date estimate, run [`supabase/vehicle-booking-signal.sql`](./supabase/vehicle-booking-signal.sql) in the Supabase SQL Editor; it returns only an overlap flag and a coarse aggregate, not other customers' booking details. The admin overview also shows a 30-day pickup-demand estimate and a relative vehicle-interest index from recorded bookings. These are transparent, in-app heuristics—not a trained AI model, individual booking probabilities, or guarantees. Estimates are withheld when historical data is too sparse. No external AI provider or customer-data sharing is used.
 
 ## Building for a device
+
+Android builds with Capacitor 8 require JDK 21 or newer. Before building, make sure `JAVA_HOME` points to a JDK 21+ installation or Android Studio's bundled JBR.
 
 ```bash
 npx cap add ios       # or android
