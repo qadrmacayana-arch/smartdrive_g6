@@ -54,6 +54,8 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 - Android haptic feedback is used for navigation, filters, refresh, and booking actions.
 - `resources/icon.png` is the master app icon; keep the Android launcher variants and browser favicon in sync with it. Rebuild the Android project after changing native assets.
 - Registered customers can use Trip Planner to search and select from 12 curated Philippine destinations and nearby landmarks, choose trip dates from an in-app calendar, see attributed Wikimedia Commons place photos, and clear their itinerary. The planner uses a refreshed, mobile-friendly travel layout with quick destination picks.
+- Bookings has an at-a-glance trip summary and redesigned reservation cards; Offers & Promos has a refreshed campaign header and coordinated reward and promo-code styling.
+- Notifications has additional spacing between the app toolbar and its page heading for clearer visual hierarchy.
 - Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
 - The Home screen includes an auto-rotating illustrated promotions carousel with links to the fleet, offers, and Trip Planner. Carousel rotation pauses automatically when reduced motion is preferred and can be paused manually.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.

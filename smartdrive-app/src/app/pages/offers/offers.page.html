@@ -3,17 +3,17 @@
     <section class="dashboard-page-main">
       <header class="dashboard-page-heading">
         <div class="offers-intro-copy">
-          <p class="eyebrow">SMARTDRIVE REWARDS</p>
-          <h1>Offers for your next ride</h1>
-          <p>Explore member perks, seasonal deals, and rewards you can claim.</p>
+          <p class="eyebrow"><ion-icon name="sparkles-outline"></ion-icon> GOOD THINGS COME WITH THE JOURNEY</p>
+          <h1>A little extra for the road.</h1>
+          <p>Find a fresh deal, unlock a member reward, and make your next ride go further.</p>
         </div>
-        <span class="offers-intro-mark" aria-hidden="true"><ion-icon name="pricetag-outline"></ion-icon></span>
+        <span class="offers-intro-mark" aria-hidden="true"><ion-icon name="gift-outline"></ion-icon></span>
       </header>
 
       <section class="offers-shell" aria-label="Available offers">
         <div class="offers-section-heading">
-          <div><span class="offers-kicker">MADE FOR THE ROAD</span><h2>Current promotions</h2></div>
-          <span>{{ offers().length }} offers</span>
+          <div><span class="offers-kicker">A GOOD TIME TO BOOK</span><h2>Deals for your next ride</h2></div>
+          <span>{{ offers().length }} {{ offers().length === 1 ? 'offer' : 'offers' }}</span>
         </div>
         @if (offersLoading() && !offers().length) {
           <div class="offers-state"><ion-spinner name="crescent"></ion-spinner><span>Loading current promotions…</span></div>

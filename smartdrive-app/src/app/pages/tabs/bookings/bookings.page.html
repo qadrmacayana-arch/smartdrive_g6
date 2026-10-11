@@ -2,10 +2,28 @@
   <main class="dashboard-page-shell">
     <section class="dashboard-page-main">
       <header class="dashboard-page-heading">
-        <p class="eyebrow">SMARTDRIVE ACCOUNT</p>
-        <h1>My Bookings</h1>
-        <p>View your past and upcoming SmartDrive reservations.</p>
+        <div class="booking-heading-copy">
+          <p class="eyebrow"><ion-icon name="compass-outline"></ion-icon> YOUR SMARTDRIVE JOURNEYS</p>
+          <h1>Every trip, all in one place.</h1>
+          <p>Keep track of upcoming rides and revisit your past reservations.</p>
+        </div>
+        <span class="booking-heading-mark" aria-hidden="true"><ion-icon name="car-sport-outline"></ion-icon></span>
       </header>
+
+      <section class="booking-overview" aria-label="Booking summary">
+        <article>
+          <span class="overview-icon"><ion-icon name="receipt-outline"></ion-icon></span>
+          <span><strong>{{ bookings().length }}</strong><small>Total trips</small></span>
+        </article>
+        <article>
+          <span class="overview-icon active"><ion-icon name="time-outline"></ion-icon></span>
+          <span><strong>{{ activeBookingCount() }}</strong><small>Upcoming &amp; active</small></span>
+        </article>
+        <article>
+          <span class="overview-icon past"><ion-icon name="checkmark-circle-outline"></ion-icon></span>
+          <span><strong>{{ pastBookingCount() }}</strong><small>Past trips</small></span>
+        </article>
+      </section>
 
       <div class="booking-filter">
         <ion-segment [value]="filter()" (ionChange)="filter.set($any($event.detail.value))">
@@ -43,18 +61,23 @@
           @for (booking of filteredBookings; track booking.id) {
             <article class="sd-card booking-card" (click)="viewConfirmation(booking)">
               <div class="booking-top">
+                <span class="booking-vehicle-icon" aria-hidden="true"><ion-icon name="car-sport-outline"></ion-icon></span>
                 <div class="booking-title">
                   <h2>{{ booking.vehicle_name }}</h2>
-                  <p class="sd-muted ref">{{ booking.reference_number }}</p>
+                  <p class="booking-trip-label">SMARTDRIVE RESERVATION</p>
                 </div>
                 <span class="status-badge" [attr.data-status]="booking.booking_status">{{ booking.booking_status }}</span>
               </div>
               <div class="booking-dates">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <span>{{ booking.pickup_date }} → {{ booking.return_date }}</span>
+                <span class="booking-date-icon"><ion-icon name="calendar-outline"></ion-icon></span>
+                <span class="booking-date-copy">
+                  <small>YOUR TRIP DATES</small>
+                  <strong>{{ booking.pickup_date }} <span>→</span> {{ booking.return_date }}</strong>
+                </span>
               </div>
               <div class="booking-bottom">
-                <span class="total">₱{{ booking.total_price | number }}</span>
+                <span class="booking-reference"><small>BOOKING REF</small><strong>{{ booking.reference_number }}</strong></span>
+                <span class="booking-total"><small>TOTAL</small><strong>₱{{ booking.total_price | number }}</strong></span>
                 @if (booking.booking_status === 'confirmed') {
                   <button class="cancel-btn" (click)="cancel(booking, $event)">Cancel</button>
                 }

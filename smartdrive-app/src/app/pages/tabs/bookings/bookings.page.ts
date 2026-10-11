@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -47,18 +47,21 @@ type StatusFilter = 'all' | 'active' | 'past';
   styleUrls: ['./bookings.page.scss'],
 })
 export class BookingsPage implements OnInit {
+  private readonly auth = inject(AuthService);
+  private readonly bookingService = inject(BookingService);
+  private readonly router = inject(Router);
+  private readonly alertCtrl = inject(AlertController);
   readonly currentUser = this.auth.currentUser;
   readonly bookings = signal<Booking[]>([]);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly filter = signal<StatusFilter>('all');
-
-  constructor(
-    private readonly auth: AuthService,
-    private readonly bookingService: BookingService,
-    private readonly router: Router,
-    private readonly alertCtrl: AlertController,
-  ) {}
+  readonly activeBookingCount = computed(
+    () => this.bookings().filter((booking) => ['confirmed', 'ongoing'].includes(booking.booking_status)).length,
+  );
+  readonly pastBookingCount = computed(
+    () => this.bookings().filter((booking) => ['completed', 'cancelled'].includes(booking.booking_status)).length,
+  );
 
   ngOnInit(): void {
     this.load();
