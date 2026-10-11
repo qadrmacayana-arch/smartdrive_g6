@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="sd-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Trip Planner</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <main class="planner-shell">
+    <section class="planner-hero">
+      <div class="hero-icon" aria-hidden="true">
+        <ion-icon name="map-outline"></ion-icon>
+      </div>
+      <p class="eyebrow">YOUR NEXT LITTLE ADVENTURE</p>
+      <h1>Make the ride part of the fun.</h1>
+      <p>Pick a destination and we’ll line up a few local favorites for the road.</p>
+    </section>
+
+    <form class="planner-form" (ngSubmit)="createPlan()">
+      <label class="field">
+        <span>Where do you want to go?</span>
+        <select name="destination" [(ngModel)]="selectedDestinationId">
+          @for (destination of destinations; track destination.id) {
+            <option [ngValue]="destination.id">{{ destination.name }}, {{ destination.region }}</option>
+          }
+        </select>
+      </label>
+
+      <div class="form-row">
+        <label class="field">
+          <span>How many days?</span>
+          <select name="days" [(ngModel)]="numberOfDays">
+            <option [ngValue]="1">1 day</option>
+            <option [ngValue]="2">2 days</option>
+            <option [ngValue]="3">3 days</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Starting point <small>(optional)</small></span>
+          <input
+            type="text"
+            name="startingPoint"
+            [(ngModel)]="startingPoint"
+            maxlength="100"
+            placeholder="e.g. Quezon City"
+            autocomplete="address-level2"
+          />
+        </label>
+      </div>
+
+      <button class="plan-button" type="submit">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        Plan my trip
+      </button>
+    </form>
+
+    @if (planCreated) {
+      <section class="itinerary" aria-live="polite">
+        <header class="itinerary-heading">
+          <div>
+            <p class="eyebrow">YOUR {{ numberOfDays }}-DAY GETAWAY</p>
+            <h2>{{ selectedDestination.name }}</h2>
+          </div>
+          <span class="region-badge">{{ selectedDestination.region }}</span>
+        </header>
+        <p class="destination-intro">{{ selectedDestination.introduction }}</p>
+
+        @for (day of selectedDestination.days.slice(0, numberOfDays); track day.title; let dayIndex = $index) {
+          <article class="day-card">
+            <div class="day-heading">
+              <span class="day-number">0{{ dayIndex + 1 }}</span>
+              <div>
+                <p>DAY {{ dayIndex + 1 }}</p>
+                <h3>{{ day.title }}</h3>
+              </div>
+            </div>
+            <ol class="stop-list">
+              @for (stop of day.stops; track stop.name; let stopIndex = $index) {
+                <li>
+                  <span class="stop-marker" aria-hidden="true">{{ stopIndex + 1 }}</span>
+                  <div>
+                    <h4>{{ stop.name }}</h4>
+                    <p>{{ stop.description }}</p>
+                  </div>
+                </li>
+              }
+            </ol>
+            <a
+              class="maps-link"
+              [href]="getMapsUrl(dayIndex)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ion-icon name="navigate-outline"></ion-icon>
+              Open Day {{ dayIndex + 1 }} route in Google Maps
+              <ion-icon name="arrow-forward-outline"></ion-icon>
+            </a>
+          </article>
+        }
+
+        <p class="planner-note">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          These are inspiration stops, not live route or traffic estimates. Check opening hours, road conditions, and local guidance before you go.
+        </p>
+      </section>
+    } @else {
+      <p class="planner-prompt">
+        <ion-icon name="compass-outline"></ion-icon>
+        Your suggested stops will show up here. Pick a place to get started!
+      </p>
+    }
+  </main>
+</ion-content>

@@ -16,6 +16,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { Booking } from '../../core/models/booking.model';
+import { Vehicle } from '../../core/models/vehicle.model';
 import { DemoTrackingService } from '../../core/services/demo-tracking.service';
 import { FleetForecast, PredictiveInsightsService } from '../../core/services/predictive-insights.service';
 import {
@@ -61,6 +62,20 @@ interface AdminPromo {
   valid_from: string | null;
   valid_until: string | null;
   is_active: boolean;
+}
+interface VehicleEditDraft {
+  id: number;
+  name: string;
+  type: string;
+  main_category: string;
+  price: number;
+  image: string;
+  description: string;
+  features: string;
+  transmission: string;
+  fuel: string;
+  seats: number;
+  is_featured: boolean;
 }
 
 @Component({
@@ -114,7 +129,7 @@ export class AdminPage implements OnInit {
   readonly section = signal<AdminSection>('overview');
   readonly bookings = signal<Booking[]>([]);
   readonly users = signal<AdminUser[]>([]);
-  readonly vehicles = signal<any[]>([]);
+  readonly vehicles = signal<Vehicle[]>([]);
   readonly reviews = signal<AdminReview[]>([]);
   readonly supportConversations = signal<SupportConversation[]>([]);
   readonly supportTickets = signal<SupportTicket[]>([]);
@@ -172,6 +187,9 @@ export class AdminPage implements OnInit {
   readonly hasTransactionDemos = signal(false);
   readonly search = signal('');
   readonly selectedUser = signal<AdminUser | null>(null);
+  readonly editingVehicle = signal<VehicleEditDraft | null>(null);
+  readonly vehicleEditError = signal<string | null>(null);
+  readonly savingVehicleEdit = signal(false);
   readonly newVehicle = { name: '', type: '', price: 0, image: '', status: 'available' };
 
   ngOnInit(): void {
@@ -534,7 +552,7 @@ export class AdminPage implements OnInit {
     return this.users().filter((user) => !term || [user.full_name, user.email, user.phone].some((value) => String(value ?? '').toLowerCase().includes(term)));
   }
 
-  filteredVehicles(): any[] {
+  filteredVehicles(): Vehicle[] {
     const term = this.search().trim().toLowerCase();
     return this.vehicles().filter((vehicle) => !term || [vehicle.name, vehicle.type, vehicle.vehicle_id].some((value) => String(value ?? '').toLowerCase().includes(term)));
   }
@@ -575,13 +593,85 @@ export class AdminPage implements OnInit {
     Object.assign(this.newVehicle, { name: '', type: '', price: 0, image: '', status: 'available' });
   }
 
-  async archiveVehicle(vehicle: any): Promise<void> {
+  openVehicleEditor(vehicle: Vehicle): void {
+    this.vehicleEditError.set(null);
+    this.editingVehicle.set({
+      id: vehicle.id,
+      name: vehicle.name,
+      type: vehicle.type,
+      main_category: vehicle.main_category,
+      price: vehicle.price,
+      image: vehicle.image ?? '',
+      description: vehicle.description ?? '',
+      features: (vehicle.features ?? []).join('\n'),
+      transmission: vehicle.transmission,
+      fuel: vehicle.fuel,
+      seats: vehicle.seats,
+      is_featured: vehicle.is_featured,
+    });
+  }
+
+  closeVehicleEditor(): void {
+    if (this.savingVehicleEdit()) return;
+    this.editingVehicle.set(null);
+    this.vehicleEditError.set(null);
+  }
+
+  async saveVehicleEdits(): Promise<void> {
+    const draft = this.editingVehicle();
+    if (!draft || this.savingVehicleEdit()) return;
+
+    const name = draft.name.trim();
+    const type = draft.type.trim();
+    const mainCategory = draft.main_category.trim();
+    const price = Number(draft.price);
+    const seats = Number(draft.seats);
+    if (!name || !type || !mainCategory || !Number.isFinite(price) || price <= 0 || !Number.isInteger(seats) || seats < 1) {
+      this.vehicleEditError.set('Enter a name, type, category, positive daily rate, and seat capacity of at least 1.');
+      return;
+    }
+
+    this.savingVehicleEdit.set(true);
+    this.vehicleEditError.set(null);
+    try {
+      const updates = {
+        name,
+        type,
+        main_category: mainCategory,
+        price,
+        image: draft.image.trim() || null,
+        description: draft.description.trim() || null,
+        features: draft.features.split(/\r?\n/).map((feature) => feature.trim()).filter(Boolean),
+        transmission: draft.transmission.trim(),
+        fuel: draft.fuel.trim(),
+        seats,
+        is_featured: draft.is_featured,
+      };
+      const { data, error } = await this.supabase.client
+        .from('vehicles')
+        .update(updates)
+        .eq('id', draft.id)
+        .select()
+        .single();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('The updated vehicle was not returned by the database.');
+      const savedVehicle = data as Vehicle;
+      this.vehicles.update((items) => items.map((vehicle) => vehicle.id === savedVehicle.id ? savedVehicle : vehicle));
+      this.editingVehicle.set(null);
+    } catch (error) {
+      this.vehicleEditError.set(error instanceof Error ? error.message : 'Unable to save vehicle details.');
+    } finally {
+      this.savingVehicleEdit.set(false);
+    }
+  }
+
+  async archiveVehicle(vehicle: Vehicle): Promise<void> {
     const { error } = await this.supabase.client.from('vehicles').update({ status: vehicle.status === 'archived' ? 'available' : 'archived' }).eq('id', vehicle.id);
     if (error) throw new Error(error.message);
     this.vehicles.update((items) => items.map((item) => item.id === vehicle.id ? { ...item, status: vehicle.status === 'archived' ? 'available' : 'archived' } : item));
   }
 
-  async deleteVehicle(vehicle: any): Promise<void> {
+  async deleteVehicle(vehicle: Vehicle): Promise<void> {
     if (!vehicle.id || !confirm(`Delete ${vehicle.name}? This cannot be undone.`)) return;
     const { error } = await this.supabase.client.from('vehicles').delete().eq('id', vehicle.id);
     if (error) throw new Error(error.message);

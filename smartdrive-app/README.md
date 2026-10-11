@@ -53,6 +53,8 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 - Pull down on Home or the vehicle fleet to refresh the latest available vehicles.
 - Android haptic feedback is used for navigation, filters, refresh, and booking actions.
 - `resources/icon.png` is the master app icon; keep the Android launcher variants and browser favicon in sync with it. Rebuild the Android project after changing native assets.
+- Trip Planner creates curated one-to-three-day stop suggestions for Tagaytay, Baguio, La Union, and Cebu City, with links to open each day's route in Google Maps.
+- Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
 - Full-screen Android pages reserve space below the status bar and above the home/gesture bar and app navigation, including vehicle-detail booking controls. Insets use Ionic's content padding variables so they are applied inside the actual scroll area.
 
@@ -86,7 +88,7 @@ The home page can recommend currently available vehicles using only the signed-i
 
 ## Building for a device
 
-Android builds with Capacitor 8 require JDK 21 or newer. Before building, make sure `JAVA_HOME` points to a JDK 21+ installation or Android Studio's bundled JBR.
+Android builds with Capacitor 8 require JDK 21. Use a JDK 21 installation for this Gradle wrapper and set `JAVA_HOME` to its path before building.
 
 ```bash
 npx cap add ios       # or android

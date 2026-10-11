@@ -79,6 +79,9 @@ import {
   heartOutline,
   heart,
   moonOutline,
+  mapOutline,
+  navigateOutline,
+  compassOutline,
 } from 'ionicons/icons';
 
 export function registerIcons(): void {
@@ -162,5 +165,8 @@ export function registerIcons(): void {
     'heart-outline': heartOutline,
     heart,
     'moon-outline': moonOutline,
+    'map-outline': mapOutline,
+    'navigate-outline': navigateOutline,
+    'compass-outline': compassOutline,
   });
 }

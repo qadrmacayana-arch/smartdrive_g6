@@ -328,7 +328,7 @@
           </form>
           <div class="table-scroll"><table><thead><tr><th>Vehicle</th><th>Category</th><th>Daily rate</th><th>Availability</th><th>Actions</th></tr></thead><tbody>
             @for (vehicle of filteredVehicles(); track vehicle.id) {
-              <tr [class.archived-row]="vehicle.status === 'archived'"><td><span class="vehicle-cell-icon"><ion-icon name="car-outline"></ion-icon></span><strong>{{ vehicle.name }}</strong></td><td>{{ vehicle.type }}</td><td class="amount-cell">₱{{ vehicle.price | number }}</td><td><span class="status-pill" [class.suspended]="vehicle.status === 'archived'">{{ vehicle.status | titlecase }}</span></td><td><button class="table-action" type="button" (click)="archiveVehicle(vehicle)">{{ vehicle.status === 'archived' ? 'Restore' : 'Archive' }}</button><button class="table-action danger" type="button" (click)="deleteVehicle(vehicle)">Delete</button></td></tr>
+              <tr [class.archived-row]="vehicle.status === 'archived'"><td><span class="vehicle-cell-icon"><ion-icon name="car-outline"></ion-icon></span><strong>{{ vehicle.name }}</strong></td><td>{{ vehicle.type }}</td><td class="amount-cell">₱{{ vehicle.price | number }}</td><td><span class="status-pill" [class.suspended]="vehicle.status === 'archived'">{{ vehicle.status | titlecase }}</span></td><td><button class="table-action" type="button" (click)="openVehicleEditor(vehicle)">Edit</button><button class="table-action" type="button" (click)="archiveVehicle(vehicle)">{{ vehicle.status === 'archived' ? 'Restore' : 'Archive' }}</button><button class="table-action danger" type="button" (click)="deleteVehicle(vehicle)">Delete</button></td></tr>
             } @empty { <tr><td colspan="5" class="empty">No vehicles found. Add one using the form above.</td></tr> }
           </tbody></table></div>
         </section>
@@ -459,6 +459,44 @@
             <label>Phone number<input [(ngModel)]="user.phone" name="phone"></label>
             <label class="checkbox-label"><input type="checkbox" [(ngModel)]="user.is_active" name="active"> Account is active</label>
             <div class="edit-actions"><button type="button" class="secondary-action" (click)="selectedUser.set(null)">Cancel</button><button type="submit" class="primary-action">Save changes</button></div>
+          </form>
+        </div>
+      }
+
+      @if (editingVehicle(); as vehicle) {
+        <div class="edit-overlay" (click)="closeVehicleEditor()">
+          <form class="edit-card vehicle-edit-card" (submit)="$event.preventDefault(); saveVehicleEdits()" (click)="$event.stopPropagation()">
+            <div class="edit-heading">
+              <span class="section-kicker">FLEET INVENTORY</span>
+              <h2>Edit vehicle</h2>
+              <p>Update the details customers see when browsing your fleet.</p>
+            </div>
+            <div class="vehicle-edit-grid">
+              <label>Vehicle name<input [(ngModel)]="vehicle.name" name="editVehicleName" maxlength="100" required></label>
+              <label>Vehicle type<input [(ngModel)]="vehicle.type" name="editVehicleType" maxlength="80" required></label>
+              <label>Category
+                <select [(ngModel)]="vehicle.main_category" name="editVehicleCategory" required>
+                  <option value="Cars">Cars</option>
+                  <option value="Motorcycles">Motorcycles</option>
+                  <option value="Recreational">Recreational Vehicles</option>
+                </select>
+              </label>
+              <label>Daily rate (₱)<input type="number" min="1" step="0.01" [(ngModel)]="vehicle.price" name="editVehiclePrice" required></label>
+              <label>Seat capacity<input type="number" min="1" step="1" [(ngModel)]="vehicle.seats" name="editVehicleSeats" required></label>
+              <label>Transmission<input [(ngModel)]="vehicle.transmission" name="editVehicleTransmission" maxlength="50" placeholder="e.g. Automatic"></label>
+              <label>Fuel type<input [(ngModel)]="vehicle.fuel" name="editVehicleFuel" maxlength="50" placeholder="e.g. Gasoline"></label>
+              <label class="vehicle-edit-wide">Image URL<input type="url" [(ngModel)]="vehicle.image" name="editVehicleImage" maxlength="1000" placeholder="https://..."></label>
+              <label class="vehicle-edit-wide">Description<textarea [(ngModel)]="vehicle.description" name="editVehicleDescription" maxlength="1000" rows="3"></textarea></label>
+              <label class="vehicle-edit-wide">Features <small>One feature per line</small><textarea [(ngModel)]="vehicle.features" name="editVehicleFeatures" maxlength="1000" rows="4" placeholder="Air conditioning&#10;Bluetooth audio&#10;Backup camera"></textarea></label>
+              <label class="checkbox-label vehicle-edit-wide"><input type="checkbox" [(ngModel)]="vehicle.is_featured" name="editVehicleFeatured"> Show as a featured vehicle</label>
+            </div>
+            @if (vehicleEditError()) {
+              <p class="vehicle-edit-error" role="alert">{{ vehicleEditError() }}</p>
+            }
+            <div class="edit-actions">
+              <button type="button" class="secondary-action" [disabled]="savingVehicleEdit()" (click)="closeVehicleEditor()">Cancel</button>
+              <button type="submit" class="primary-action" [disabled]="savingVehicleEdit()">{{ savingVehicleEdit() ? 'Saving…' : 'Save changes' }}</button>
+            </div>
           </form>
         </div>
       }

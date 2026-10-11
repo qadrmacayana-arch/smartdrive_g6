@@ -213,6 +213,16 @@ tbody tr:hover { background: #fafcfb; }
 .vehicle-form input,.edit-card input:not([type="checkbox"]) { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
 .vehicle-form input:focus,.edit-card input:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
 .vehicle-form .primary-action { min-height: 2.45rem; }
+.vehicle-edit-card { max-height: min(90vh, 850px); overflow-y: auto; }
+.vehicle-edit-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
+.vehicle-edit-grid label { align-content: start; }
+.vehicle-edit-grid label small { color: var(--admin-muted); font-weight: 500; }
+.vehicle-edit-grid input:not([type="checkbox"]),.vehicle-edit-grid select,.vehicle-edit-grid textarea { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
+.vehicle-edit-grid input:focus,.vehicle-edit-grid select:focus,.vehicle-edit-grid textarea:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
+.vehicle-edit-grid textarea { resize: vertical; }
+.vehicle-edit-wide { grid-column: 1 / -1; }
+.vehicle-edit-error { margin: .75rem 0 0; color: #aa493c; font-size: .72rem; }
+.edit-actions button:disabled { opacity: .6; cursor: not-allowed; }
 .archived-row { opacity: .62; }
 .transaction-list { display: grid; gap: .8rem; }
 .transaction-card { overflow: hidden; border: 1px solid var(--admin-border); border-radius: .75rem; }
@@ -381,5 +391,7 @@ tbody tr:hover { background: #fafcfb; }
   .map-card,.map-card iframe { min-height: 330px; height: 330px; }
   .map-location-label { top: .5rem; left: .5rem; padding: .55rem .65rem; }
   .edit-card { padding: 1.15rem; }
+  .vehicle-edit-grid { grid-template-columns: 1fr; }
+  .vehicle-edit-wide { grid-column: auto; }
 }
 }

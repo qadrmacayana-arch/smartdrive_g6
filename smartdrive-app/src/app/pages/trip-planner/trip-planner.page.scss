@@ -1,0 +1,315 @@
+.sd-toolbar {
+  --background: var(--sd-background);
+}
+
+.planner-shell {
+  width: min(100% - 2rem, 760px);
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.planner-hero {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.5rem, 6vw, 2.5rem);
+  border: 1px solid var(--sd-border);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(ellipse at 92% 5%, color-mix(in srgb, var(--sd-primary) 16%, transparent), transparent 42%),
+    var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+
+  h1 {
+    max-width: 520px;
+    margin: 0;
+    color: var(--sd-heading);
+    font: 800 clamp(1.8rem, 6vw, 2.65rem)/1.15 'Sora', sans-serif;
+    letter-spacing: -0.045em;
+  }
+
+  > p:last-child {
+    max-width: 510px;
+    margin: 0.75rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+}
+
+.hero-icon {
+  display: grid;
+  width: 3.2rem;
+  height: 3.2rem;
+  place-items: center;
+  margin-bottom: 1.3rem;
+  border-radius: 1rem;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font-size: 1.65rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.45rem;
+  color: var(--sd-primary);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.planner-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.15rem;
+  padding: clamp(1rem, 4vw, 1.5rem);
+  border: 1px solid var(--sd-border);
+  border-radius: 1.2rem;
+  background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 0.85rem;
+}
+
+.field {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+  color: var(--sd-heading);
+  font-size: 0.78rem;
+  font-weight: 750;
+
+  small {
+    color: var(--sd-muted-foreground);
+    font-size: 0.68rem;
+    font-weight: 500;
+  }
+
+  select,
+  input {
+    width: 100%;
+    min-height: 2.9rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--sd-border);
+    border-radius: 0.75rem;
+    outline: none;
+    background: var(--sd-background);
+    color: var(--sd-foreground);
+    font: 500 0.82rem 'Plus Jakarta Sans', sans-serif;
+
+    &:focus {
+      border-color: var(--sd-primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--sd-primary) 16%, transparent);
+    }
+  }
+}
+
+.plan-button,
+.maps-link {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: var(--sd-gradient-primary);
+  box-shadow: var(--sd-shadow-md);
+  color: #fff;
+  font: 800 0.82rem 'Plus Jakarta Sans', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 160ms ease, transform 160ms ease;
+
+  &:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+  }
+
+  ion-icon {
+    font-size: 1.05rem;
+  }
+}
+
+.itinerary {
+  margin-top: 1.5rem;
+}
+
+.itinerary-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  h2 {
+    margin: 0;
+    color: var(--sd-heading);
+    font: 800 clamp(1.45rem, 5vw, 1.9rem)/1.2 'Sora', sans-serif;
+  }
+}
+
+.region-badge {
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.destination-intro {
+  margin: 0.4rem 0 1rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.day-card {
+  margin-top: 0.85rem;
+  padding: clamp(1rem, 4vw, 1.35rem);
+  border: 1px solid var(--sd-border);
+  border-radius: 1.15rem;
+  background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+}
+
+.day-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--sd-border);
+
+  p {
+    margin: 0 0 0.2rem;
+    color: var(--sd-primary);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+  }
+
+  h3 {
+    margin: 0;
+    color: var(--sd-heading);
+    font: 750 1rem 'Sora', sans-serif;
+  }
+}
+
+.day-number {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+  font: 800 0.9rem 'Sora', sans-serif;
+}
+
+.stop-list {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 1.7rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.65rem;
+  }
+
+  h4 {
+    margin: 0;
+    color: var(--sd-heading);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+}
+
+.stop-marker {
+  display: grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border: 1px solid var(--sd-border);
+  border-radius: 50%;
+  background: var(--sd-background);
+  color: var(--sd-primary);
+  font-size: 0.67rem;
+  font-weight: 800;
+}
+
+.maps-link {
+  min-height: 2.65rem;
+  font-size: 0.73rem;
+
+  ion-icon:last-child {
+    margin-left: auto;
+  }
+}
+
+.planner-note,
+.planner-prompt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.72rem;
+  line-height: 1.55;
+
+  ion-icon {
+    flex: 0 0 auto;
+    margin-top: 0.05rem;
+    color: var(--sd-primary);
+    font-size: 1rem;
+  }
+}
+
+.planner-note {
+  margin: 1rem 0;
+}
+
+.planner-prompt {
+  align-items: center;
+  justify-content: center;
+  margin: 1.2rem 0 0;
+  padding: 1rem;
+  border: 1px dashed var(--sd-border);
+  border-radius: 0.9rem;
+}
+
+@media (max-width: 540px) {
+  .planner-shell {
+    width: min(100% - 1.5rem, 480px);
+    padding-top: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-button,
+  .maps-link {
+    transition: none;
+  }
+
+  .plan-button:hover,
+  .maps-link:hover {
+    transform: none;
+  }
+}
