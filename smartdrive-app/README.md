@@ -57,6 +57,7 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 - Bookings has an at-a-glance trip summary and redesigned reservation cards; Offers & Promos has a refreshed campaign header and coordinated reward and promo-code styling.
 - Notifications has additional spacing between the app toolbar and its page heading for clearer visual hierarchy.
 - Android content reserves extra scroll space above the fixed customer navigation bar; Trip Planner uses standard header flow to avoid overlapping its hero with the native status-bar inset.
+- The customer menu panel expands around its footer controls, and the fixed bottom navigation has an opaque lower backing so scrolled content does not show through around it.
 - Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
 - The Home screen includes an auto-rotating illustrated promotions carousel with links to the fleet, offers, and Trip Planner. Carousel rotation pauses automatically when reduced motion is preferred and can be paused manually.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.

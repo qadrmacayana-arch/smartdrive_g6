@@ -56,6 +56,7 @@ ion-menu {
 .customer-bottom-nav {
   position: fixed;
   z-index: 1000;
+  isolation: isolate;
   right: 0.7rem;
   bottom: calc(
     0.45rem
@@ -76,6 +77,21 @@ ion-menu {
   background: var(--sd-card);
   box-shadow: var(--sd-shadow-md);
   backdrop-filter: blur(14px);
+}
+
+.customer-bottom-nav::before {
+  position: fixed;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: calc(
+    104px
+    + var(--android-safe-area-bottom, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)))
+  );
+  background: var(--sd-background);
+  content: '';
+  pointer-events: none;
 }
 
 .customer-bottom-nav > a,
@@ -157,7 +173,8 @@ ion-menu {
 }
 
 .menu-content::part(scroll) {
-  display: flex;
+  display: block;
+  box-sizing: border-box;
   padding:
     calc(var(--android-safe-area-top, var(--safe-area-inset-top, env(safe-area-inset-top, 0px))) + 0.75rem)
     0.75rem
@@ -166,8 +183,9 @@ ion-menu {
 
 .menu-panel {
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
+  height: max-content;
   min-height: 100%;
   box-sizing: border-box;
   padding: 1rem;
