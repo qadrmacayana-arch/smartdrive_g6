@@ -189,7 +189,6 @@ export class AppComponent {
         url.startsWith('/tabs/home')
         || url.startsWith('/tabs/rent-a-car')
         || url.startsWith('/offers')
-        || url.startsWith('/notifications')
       );
   }
 

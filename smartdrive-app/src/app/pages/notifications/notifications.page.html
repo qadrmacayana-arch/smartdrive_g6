@@ -1,9 +1,9 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
+<ion-header class="ion-no-border notifications-header">
+  <ion-toolbar class="notifications-toolbar">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title><ion-icon class="notifications-title-icon" [icon]="notificationIcon" aria-hidden="true"></ion-icon>Notifications</ion-title>
+    <ion-title>Updates</ion-title>
     <ion-buttons slot="end">
       <ion-button aria-label="Refresh notifications" (click)="loadNotifications()">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -12,16 +12,28 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding notifications-content">
+<ion-content class="notifications-content">
   <ion-refresher slot="fixed" (ionRefresh)="loadNotifications($event)" aria-label="Refresh notifications">
     <ion-refresher-content pullingText="Check for updates" refreshingSpinner="crescent"></ion-refresher-content>
   </ion-refresher>
 
   <main class="notifications-page">
     <header class="notifications-heading">
-      <p class="eyebrow">SMARTDRIVE UPDATES</p>
-      <h1>Good things for your next ride.</h1>
-      <p>New vehicles, promo codes, and current deals in one place.</p>
+      <div class="notifications-heading-copy">
+        <p class="eyebrow"><ion-icon name="sparkles-outline"></ion-icon> THE LATEST FROM SMARTDRIVE</p>
+        <h1>A little good news<br>for the road ahead.</h1>
+        <p>New rides, special deals, and promo codes worth a look.</p>
+      </div>
+      <span class="notifications-heading-icon" aria-hidden="true">
+        <ion-icon [icon]="notificationIcon"></ion-icon>
+      </span>
+      <span class="updates-count">
+        @if (notificationCenter.notifications().length) {
+          {{ notificationCenter.notifications().length }} {{ notificationCenter.notifications().length === 1 ? 'update' : 'updates' }}
+        } @else {
+          YOUR SMARTDRIVE INBOX
+        }
+      </span>
     </header>
 
     @if (notificationCenter.loading() && !notificationCenter.notifications().length) {
@@ -33,11 +45,19 @@
         <ion-button fill="outline" (click)="loadNotifications()">Try again</ion-button>
       </div>
     } @else if (notificationCenter.notifications().length) {
+      <div class="notification-section-heading">
+        <div>
+          <span>FRESH OFF THE ROAD</span>
+          <h2>Latest updates</h2>
+        </div>
+        <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+      </div>
       <section class="notification-list" aria-label="Latest SmartDrive updates">
         @for (notification of notificationCenter.notifications(); track notification.id) {
           <button
             class="notification-card"
             [class.vehicle-notification]="notification.kind === 'vehicle'"
+            [class.promo-notification]="notification.kind === 'promo'"
             type="button"
             (click)="openNotification(notification.route)"
           >
@@ -53,9 +73,9 @@
               @if (notification.code) {
                 <span class="notification-code">Code: {{ notification.code }}</span>
               }
-              <small>{{ notification.createdAt | date:'mediumDate' }}</small>
+              <small><ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>{{ notification.createdAt | date:'mediumDate' }}</small>
             </span>
-            <ion-icon class="notification-arrow" name="chevron-forward-outline"></ion-icon>
+            <span class="notification-arrow"><ion-icon name="chevron-forward-outline"></ion-icon></span>
           </button>
         }
       </section>
