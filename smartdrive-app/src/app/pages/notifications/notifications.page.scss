@@ -18,7 +18,7 @@
 }
 
 .notifications-page {
-  width: min(100%, 760px);
+  width: min(calc(100% - 2rem), 760px);
   margin: 0 auto;
   padding: 1rem 0 1.25rem;
 }

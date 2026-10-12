@@ -58,7 +58,7 @@ To deploy, import this GitHub repository into Vercel and keep the project root s
 - Notifications has additional spacing between the app toolbar and its page heading for clearer visual hierarchy.
 - Android content reserves extra scroll space above the fixed customer navigation bar; Trip Planner uses standard header flow to avoid overlapping its hero with the native status-bar inset.
 - The customer menu panel expands around its footer controls, and scrollable pages reserve enough space above the fixed customer navigation.
-- Notifications uses a dedicated update banner and easier-to-scan update cards, hides the redundant floating bell while open, and reserves additional scroll room above the customer navigation.
+- Notifications uses a dedicated update banner and easier-to-scan update cards with consistent side gutters, hides the redundant floating bell while open, and reserves additional scroll room above the customer navigation.
 - Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
 - The Home screen includes an auto-rotating illustrated promotions carousel with links to the fleet, offers, and Trip Planner. Carousel rotation pauses automatically when reduced motion is preferred and can be paused manually.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
