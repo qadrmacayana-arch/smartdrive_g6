@@ -17,10 +17,11 @@ import {
   IonRadio,
   IonSpinner,
 } from '@ionic/angular';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingService, PricingBreakdown } from '../../../core/services/booking.service';
 import { WalletService } from '../../../core/services/wallet.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
 import { WalletBalance } from '../../../core/models/wallet.model';
 
 type PaymentMethod = 'credit-card' | 'gcash' | 'maya' | 'srpoints';
@@ -49,8 +50,18 @@ type PaymentMethod = 'credit-card' | 'gcash' | 'maya' | 'srpoints';
   styleUrl: './booking-payment.page.scss',
 })
 export class BookingPaymentPage implements OnInit {
+  private readonly supabase: SupabaseClient = createClient(
+  environment.supabaseUrl,
+  environment.supabaseAnonKey
+  );
+
   readonly draft = this.bookingService.draft;
   readonly paymentMethod = signal<PaymentMethod>('credit-card');
+  readonly cardholderName = signal('');
+  readonly cardNumber = signal('');
+  readonly cardExpiry = signal('');
+  readonly cardCvv = signal('');
+  readonly walletMobile = signal('');
   readonly promoInput = signal('');
   readonly promoError = signal<string | null>(null);
   readonly promoApplying = signal(false);
@@ -59,19 +70,16 @@ export class BookingPaymentPage implements OnInit {
   readonly walletBalance = signal<WalletBalance | null>(null);
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly paymentCancelled = signal(false);
 
   constructor(
     private readonly auth: AuthService,
     private readonly bookingService: BookingService,
     private readonly walletService: WalletService,
-    private readonly supabase: SupabaseService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
   ) {}
 
   async ngOnInit(): Promise<void> {
-    this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
     const draft = this.draft();
     if (!draft?.customer) {
       const vehicleId = this.route.snapshot.paramMap.get('vehicleId');
@@ -135,6 +143,11 @@ export class BookingPaymentPage implements OnInit {
     this.errorMessage.set(null);
   }
 
+  get paymentDetailsError(): string | null {
+    // Online payments (Card/GCash/Maya) are completed on PayMongo's secure hosted page
+    return null;
+  }
+
   async confirmPayment(): Promise<void> {
     const draft = this.draft();
     const pricing = this.pricing();
@@ -170,48 +183,39 @@ export class BookingPaymentPage implements OnInit {
           booking.reference_number,
         );
 
+        this.clearPaymentDetails();
         this.bookingService.clearDraft();
         this.router.navigate(['/booking/confirmation', booking.reference_number]);
       } else {
-        const customer = draft.customer;
-        const { data, error } = await this.supabase.client.functions.invoke('create-checkout', {
+        // PayMongo Payment (Card, GCash, Maya)
+        const booking = await this.bookingService.createBooking(
+          user.id,
+          this.paymentMethod(),
+          'pending',
+        );
+
+        const successUrl = `${window.location.origin}/booking/confirmation/${booking.reference_number}`;
+        const cancelUrl = `${window.location.origin}/booking/payment`;
+
+        const { data, error } = await this.supabase.functions.invoke('create-checkout', {
           body: {
-            vehicleId: draft.vehicle.id,
-            pickupDate: draft.pickupDate,
-            returnDate: draft.returnDate,
-            pickupLocation: draft.pickupLocation,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            customerPhone: customer.phone,
-            isPwdSenior: customer.isPwdSenior,
-            paymentMethod: this.paymentMethod(),
-            promoCode: draft.promoCode?.code ?? null,
+            amount: pricing.total,
+            description: `SmartDrive Booking #${booking.reference_number} - ${draft.vehicle.name}`,
+            successUrl,
+            cancelUrl,
           },
         });
 
-        let responseError: string | null = null;
-        let responseStatus: number | null = null;
-        if (error && 'context' in error && error.context instanceof Response) {
-          responseStatus = error.context.status;
-          const body: unknown = await error.context.clone().json().catch(() => null);
-          if (
-            body
-            && typeof body === 'object'
-            && 'error' in body
-            && typeof body.error === 'string'
-          ) {
-            responseError = body.error;
-          }
+        if (error || !data?.checkoutUrl) {
+          throw new Error(
+            error?.message || data?.error || 'Failed to initialize PayMongo checkout session.'
+          );
         }
 
-        if (error || typeof data?.checkoutUrl !== 'string') {
-          const message = responseError
-            || data?.error
-            || error?.message
-            || 'Failed to initialize PayMongo checkout session.';
-          throw new Error(responseStatus ? `${message} (HTTP ${responseStatus})` : message);
-        }
+        this.clearPaymentDetails();
+        this.bookingService.clearDraft();
 
+        // Redirect user to PayMongo Hosted Checkout page
         window.location.href = data.checkoutUrl;
       }
     } catch (error) {
@@ -223,4 +227,11 @@ export class BookingPaymentPage implements OnInit {
     }
   }
 
+  private clearPaymentDetails(): void {
+    this.cardholderName.set('');
+    this.cardNumber.set('');
+    this.cardExpiry.set('');
+    this.cardCvv.set('');
+    this.walletMobile.set('');
+  }
 }

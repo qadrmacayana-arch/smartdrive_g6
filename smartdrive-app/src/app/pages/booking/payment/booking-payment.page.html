@@ -96,21 +96,86 @@
       <p class="promo-error">Insufficient SR Points for this total. Choose another payment method.</p>
     }
 
-    @if (paymentCancelled()) {
-      <div class="demo-notice" role="status">
-        <ion-icon name="information-circle-outline"></ion-icon>
-        <p>Checkout was cancelled. No booking was created, and you can continue when you’re ready.</p>
-      </div>
-    }
-
-    @if (paymentMethod() !== 'srpoints') {
-      <div class="demo-notice" role="note">
-        <ion-icon name="shield-checkmark-outline"></ion-icon>
-        <p>
-          You’ll complete {{ paymentMethod() === 'credit-card' ? 'card' : paymentMethod() === 'gcash' ? 'GCash' : 'Maya' }}
-          payment on PayMongo’s secure checkout page. Your booking stays pending until PayMongo confirms payment.
-        </p>
-      </div>
+    @if (paymentMethod() === 'credit-card') {
+      <section class="demo-payment-form" aria-label="Demo credit card details">
+        <div class="demo-notice">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>
+            Demo only — no payment API is connected. Use the test values shown; real card details are not accepted,
+            sent, or saved.
+          </p>
+        </div>
+        <label class="payment-field">
+          <span>Cardholder name</span>
+          <input
+            type="text"
+            autocomplete="off"
+            [ngModel]="cardholderName()"
+            (ngModelChange)="cardholderName.set($event)"
+            placeholder="Demo User"
+          />
+        </label>
+        <label class="payment-field">
+          <span>Test card number</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="19"
+            [ngModel]="cardNumber()"
+            (ngModelChange)="cardNumber.set($event)"
+            placeholder="4242 4242 4242 4242"
+          />
+        </label>
+        <div class="payment-field-row">
+          <label class="payment-field">
+            <span>Expiry (MM/YY)</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="5"
+              [ngModel]="cardExpiry()"
+              (ngModelChange)="cardExpiry.set($event)"
+              placeholder="12/30"
+            />
+          </label>
+          <label class="payment-field">
+            <span>Test CVV</span>
+            <input
+              type="password"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="3"
+              [ngModel]="cardCvv()"
+              (ngModelChange)="cardCvv.set($event)"
+              placeholder="123"
+            />
+          </label>
+        </div>
+      </section>
+    } @else if (paymentMethod() === 'gcash' || paymentMethod() === 'maya') {
+      <section class="demo-payment-form" aria-label="Demo e-wallet details">
+        <div class="demo-notice">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>
+            Demo only — no {{ paymentMethod() === 'gcash' ? 'GCash' : 'Maya' }} API is connected. Use the sample
+            number shown; never enter your real wallet number, password, or OTP.
+          </p>
+        </div>
+        <label class="payment-field">
+          <span>{{ paymentMethod() === 'gcash' ? 'GCash' : 'Maya' }} test mobile number</span>
+          <input
+            type="tel"
+            inputmode="numeric"
+            autocomplete="off"
+            maxlength="11"
+            [ngModel]="walletMobile()"
+            (ngModelChange)="walletMobile.set($event)"
+            placeholder="09170000000"
+          />
+        </label>
+      </section>
     } @else {
       <div class="demo-notice points-notice">
         <ion-icon name="shield-checkmark-outline"></ion-icon>
@@ -154,7 +219,7 @@
       @if (submitting()) {
         <ion-spinner name="dots"></ion-spinner>
       } @else {
-        {{ paymentMethod() === 'srpoints' ? 'Pay with SR Points' : 'Continue to PayMongo' }}
+        {{ paymentMethod() === 'srpoints' ? 'Pay with SR Points' : 'Save Demo Booking' }}
       }
     </ion-button>
     }

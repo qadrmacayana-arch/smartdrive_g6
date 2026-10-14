@@ -19,7 +19,6 @@ export interface Booking {
   total_price: number;
   payment_method: string;
   payment_status: 'pending' | 'completed' | 'failed' | 'refunded';
-  paymongo_checkout_session_id?: string | null;
   booking_status: 'confirmed' | 'ongoing' | 'completed' | 'cancelled';
   is_pwd_senior: boolean;
   rating?: number | null;

@@ -7,11 +7,6 @@
       <ion-icon name="alert-circle-outline"></ion-icon>
       <p>{{ errorMessage() }}</p>
     </div>
-  } @else if (checkingPayment()) {
-    <div class="sd-empty-state">
-      <ion-spinner name="dots"></ion-spinner>
-      <p>Waiting for PayMongo to confirm payment. Your booking will appear here after payment is verified.</p>
-    </div>
   } @else if (booking(); as b) {
     <nav class="booking-progress" aria-label="Booking progress">
       <span class="completed"><b>✓</b>Dates</span>
@@ -34,17 +29,10 @@
       <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
     } @else {
       <p class="sd-muted confirm-sub">
-        @if (paymentCancelled()) {
-          Checkout was cancelled. Your reservation is saved, but payment has not been confirmed.
-        } @else {
-          Your reservation is saved. Waiting for PayMongo to confirm your payment…
-        }
+        This demo reservation is saved, but payment is still pending. No payment was taken.
       </p>
     }
     </div>
-    @if (b.payment_status === 'pending' && paymentStatusError()) {
-      <p class="sd-muted" role="status">{{ paymentStatusError() }}</p>
-    }
 
     <div class="sd-card ref-card">
       <span class="sd-muted">Reference Number</span>
