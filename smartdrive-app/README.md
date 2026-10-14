@@ -116,4 +116,3 @@ npx cap open ios      # or android
 - Admin panel and live user-location tracking (`admin.php`, `vehicletracking.php`, `manage*.php`) — ops tooling, not a mobile end-user feature.
 - The FAQ page's scripted "AI assistant" chat widget — replaced with a plain accordion using the same Q&A content.
 - Google OAuth buttons — Supabase supports `signInWithOAuth('google')` the same way, but wiring up native OAuth redirect handling for Capacitor needs an extra deep-link plugin, so it was left as a follow-up rather than half-done.
-- Real payment gateway integration — the original app also only simulated card/GCash/Maya payments client-side; this build keeps that same "select a method and confirm" simulation.

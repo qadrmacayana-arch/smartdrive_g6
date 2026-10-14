@@ -189,10 +189,27 @@ export class BookingPaymentPage implements OnInit {
           },
         });
 
+        let responseError: string | null = null;
+        let responseStatus: number | null = null;
+        if (error && 'context' in error && error.context instanceof Response) {
+          responseStatus = error.context.status;
+          const body: unknown = await error.context.clone().json().catch(() => null);
+          if (
+            body
+            && typeof body === 'object'
+            && 'error' in body
+            && typeof body.error === 'string'
+          ) {
+            responseError = body.error;
+          }
+        }
+
         if (error || typeof data?.checkoutUrl !== 'string') {
-          throw new Error(
-            error?.message || data?.error || 'Failed to initialize PayMongo checkout session.'
-          );
+          const message = responseError
+            || data?.error
+            || error?.message
+            || 'Failed to initialize PayMongo checkout session.';
+          throw new Error(responseStatus ? `${message} (HTTP ${responseStatus})` : message);
         }
 
         window.location.href = data.checkoutUrl;
