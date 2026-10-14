@@ -10,7 +10,7 @@
   } @else if (checkingPayment()) {
     <div class="sd-empty-state">
       <ion-spinner name="dots"></ion-spinner>
-      <p>Waiting for PayMongo to confirm payment. Your booking will appear here after payment is verified.</p>
+      <p>Verifying your payment with PayMongo. Your booking will be confirmed automatically if payment succeeded.</p>
     </div>
   } @else if (booking(); as b) {
     <nav class="booking-progress" aria-label="Booking progress">

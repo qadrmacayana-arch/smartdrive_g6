@@ -272,6 +272,13 @@ export class BookingService {
     return data as Booking | null;
   }
 
+  async confirmReturnedCheckout(referenceNumber: string): Promise<void> {
+    const { error } = await this.supabase.client.functions.invoke('confirm-checkout', {
+      body: { referenceNumber },
+    });
+    if (error) throw new Error(`Could not confirm checkout status: ${error.message}`);
+  }
+
   async cancelBooking(id: number): Promise<void> {
     const { error } = await this.supabase.client.from('bookings').update({ booking_status: 'cancelled' }).eq('id', id);
     if (error) throw new Error(error.message);

@@ -86,13 +86,13 @@ Successful bookings and SmartDrive wallet transactions update a locally stored, 
 
 ### PayMongo checkout
 
-Card, GCash, and Maya payments use PayMongo Hosted Checkout. The app sends the signed-in customer's draft details to the `create-checkout` Edge Function; it verifies availability and calculates the price server-side, then stores a private checkout attempt and returns the hosted checkout URL. An unfinished or cancelled checkout creates no booking. Only after the `paymongo-webhook` Edge Function verifies PayMongo's webhook signature and confirms the paid session directly with PayMongo is a booking created. The browser redirect is not proof of payment.
+Card, GCash, and Maya payments use PayMongo Hosted Checkout. The app sends the signed-in customer's draft details to the `create-checkout` Edge Function; it verifies availability and calculates the price server-side, then stores a private checkout attempt and returns the hosted checkout URL. On return, the confirmation page asks the authenticated `confirm-checkout` Edge Function to verify the session directly with PayMongo and creates a booking only when a paid payment matches the stored attempt. The signed `paymongo-webhook` remains the server-to-server confirmation path if the customer does not return to the app. A browser redirect by itself is never proof of payment.
 
 Before enabling payments:
 
 1. Run [`supabase/paymongo.sql`](./supabase/paymongo.sql) in the Supabase SQL Editor. This creates the private checkout-attempt table, blocks direct client creation of online-payment bookings, and prevents client-side payment-status changes.
 2. From `smartdrive-app`, install and link the Supabase CLI to this project, then set `PAYMONGO_SECRET_KEY`, `PAYMONGO_WEBHOOK_SECRET`, and `APP_BASE_URL` as Edge Function secrets. Use a PayMongo test secret key while testing; `APP_BASE_URL` must be the HTTPS origin of the deployed app.
-3. From `smartdrive-app`, deploy with `supabase functions deploy create-checkout` and `supabase functions deploy paymongo-webhook`.
+3. From `smartdrive-app`, deploy with `supabase functions deploy create-checkout`, `supabase functions deploy confirm-checkout`, and `supabase functions deploy paymongo-webhook`.
 4. In the PayMongo dashboard, register `https://<project-ref>.supabase.co/functions/v1/paymongo-webhook` as a webhook URL and subscribe to `checkout_session.payment.paid`. Save its webhook signing secret as `PAYMONGO_WEBHOOK_SECRET`.
 
 Keep the PayMongo secret and webhook signing secret in Supabase Edge Function secrets only; never put them in Angular environment files. Configure test/live keys and webhook endpoints consistently. SR Points continue to use the SmartDrive wallet.

@@ -43,6 +43,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
 
     try {
+      if (!this.paymentCancelled()) await this.bookingService.confirmReturnedCheckout(reference);
       const booking = await this.bookingService.getByReference(reference);
       if (!booking) {
         this.checkingPayment.set(true);
@@ -79,6 +80,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
   private async refreshPaymentStatus(reference: string, attempt: number): Promise<void> {
     try {
+      await this.bookingService.confirmReturnedCheckout(reference);
       const booking = await this.bookingService.getByReference(reference);
       if (!booking) {
         this.schedulePaymentStatusRefresh(reference, attempt);

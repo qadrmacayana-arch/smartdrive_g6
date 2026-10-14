@@ -266,7 +266,7 @@ Deno.serve(async (request) => {
     return response({ error: 'Unable to start checkout. Please try again.' }, 500);
   }
 
-  const successUrl = new URL(`/booking/confirmation/${referenceNumber}`, baseUrl).toString();
+  const successUrl = new URL(`/booking/confirmation/${referenceNumber}?payment=success`, baseUrl).toString();
   const cancelUrl = new URL(`/booking/${vehicle.id}/payment?payment=cancelled`, baseUrl).toString();
   const methodTypes: Record<CheckoutInput['paymentMethod'], string[]> = {
     'credit-card': ['card'],
