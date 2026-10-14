@@ -21,6 +21,8 @@ import { Booking } from '../../../core/models/booking.model';
 })
 export class BookingConfirmationPage implements OnInit, OnDestroy {
   private paymentPollTimer: ReturnType<typeof setTimeout> | null = null;
+  private paymentReference: string | null = null;
+  private paymentAttemptId: string | null = null;
 
   readonly booking = signal<Booking | null>(null);
   readonly loading = signal(true);
@@ -43,6 +45,8 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     const reference = this.route.snapshot.paramMap.get('reference');
     if (!reference) return;
     const attemptId = this.route.snapshot.queryParamMap.get('attempt');
+    this.paymentReference = reference;
+    this.paymentAttemptId = attemptId;
     this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
     this.paymentReturn.set(Boolean(attemptId && !this.paymentCancelled()));
 
@@ -111,7 +115,9 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
   private schedulePaymentStatusRefresh(reference: string, attemptId: string, attempt: number): void {
     if (attempt >= 30) {
       this.checkingPayment.set(false);
-      this.errorMessage.set('Payment is not confirmed yet. No booking was created. You can check again from My Bookings.');
+      this.errorMessage.set(
+        'We couldn’t confirm the payment status yet. This does not necessarily mean the payment failed. Please check again before trying to pay again.',
+      );
       return;
     }
     this.paymentPollTimer = setTimeout(() => {
@@ -135,6 +141,22 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
       this.paymentStatusError.set(error instanceof Error ? error.message : 'Could not refresh payment status.');
       this.schedulePaymentStatusRefresh(reference, attemptId, attempt);
     }
+  }
+
+  retryPaymentCheck(): void {
+    const reference = this.paymentReference;
+    const attemptId = this.paymentAttemptId;
+    if (!reference || !attemptId) {
+      this.errorMessage.set('The payment reference is missing. Please open the confirmation link again.');
+      return;
+    }
+
+    if (this.paymentPollTimer) clearTimeout(this.paymentPollTimer);
+    this.paymentPollTimer = null;
+    this.errorMessage.set(null);
+    this.paymentStatusError.set(null);
+    this.checkingPayment.set(true);
+    void this.refreshPaymentStatus(reference, attemptId, 0);
   }
 
   async share(): Promise<void> {

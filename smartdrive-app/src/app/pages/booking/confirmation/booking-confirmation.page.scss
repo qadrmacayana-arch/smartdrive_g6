@@ -90,6 +90,38 @@
   font-size: 0.75rem;
 }
 
+.verification-error-icon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--sd-primary-soft);
+  color: var(--sd-primary);
+
+  ion-icon {
+    font-size: 2rem;
+  }
+}
+
+.verification-check-error {
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  color: var(--sd-muted-foreground);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.verification-action {
+  width: min(100%, 18rem);
+  margin: 1rem 0 0;
+}
+
+.verification-action + .verification-action {
+  margin-top: 0.5rem;
+}
+
 @keyframes verification-progress {
   from {
     transform: translateX(-110%);

@@ -18,10 +18,21 @@
       }
     </section>
   } @else if (errorMessage()) {
-    <div class="sd-empty-state">
-      <ion-icon name="alert-circle-outline"></ion-icon>
+    <section class="verification-state verification-error" role="alert">
+      <div class="verification-error-icon">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+      </div>
+      <h1>{{ paymentReturn() ? 'Payment status needs another check' : 'Unable to load booking' }}</h1>
       <p>{{ errorMessage() }}</p>
-    </div>
+      @if (paymentReturn()) {
+        <ion-button expand="block" class="sd-gradient-btn verification-action" (click)="retryPaymentCheck()">
+          Check payment again
+        </ion-button>
+      }
+      <ion-button expand="block" fill="outline" class="verification-action" (click)="goHome()">
+        Back to Home
+      </ion-button>
+    </section>
   } @else if (checkingPayment()) {
     <section class="verification-state" role="status" aria-live="polite" aria-busy="true">
       <span class="verification-label">PAYMENT STATUS</span>
@@ -32,6 +43,14 @@
       <p>We’re securely checking your transaction with PayMongo. Your booking will appear here as soon as the check is complete.</p>
       <div class="verification-progress" aria-hidden="true"><span></span></div>
       <span class="verification-footnote">This usually takes just a moment</span>
+      @if (paymentStatusError()) {
+        <p class="verification-check-error" role="status">
+          The last status check failed: {{ paymentStatusError() }}
+        </p>
+        <ion-button fill="outline" class="verification-action" (click)="retryPaymentCheck()">
+          Check now
+        </ion-button>
+      }
     </section>
   } @else if (booking(); as b) {
     <nav class="booking-progress" aria-label="Booking progress">
