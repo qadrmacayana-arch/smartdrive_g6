@@ -16,11 +16,16 @@ async function waitForInit(auth: AuthService): Promise<void> {
   });
 }
 
+async function restoreSessionIfNeeded(auth: AuthService): Promise<void> {
+  if (!auth.currentUser()) await auth.refreshSession();
+}
+
 export const authGuard: CanActivateFn = async () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
   await waitForInit(auth);
+  await restoreSessionIfNeeded(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (auth.needsGoogleProfileCompletion()) {
@@ -35,6 +40,7 @@ export const customerGuard: CanActivateFn = async () => {
   const router = inject(Router);
 
   await waitForInit(auth);
+  await restoreSessionIfNeeded(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (auth.needsGoogleProfileCompletion()) {
@@ -48,6 +54,7 @@ export const guestGuard: CanActivateFn = async (route) => {
   const router = inject(Router);
 
   await waitForInit(auth);
+  await restoreSessionIfNeeded(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (
@@ -77,6 +84,7 @@ export const bookingConfirmationGuard: CanActivateFn = async (route) => {
   const auth = inject(AuthService);
   const router = inject(Router);
   await waitForInit(auth);
+  await restoreSessionIfNeeded(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
   if (auth.needsGoogleProfileCompletion()) {

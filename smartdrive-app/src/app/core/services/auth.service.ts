@@ -58,6 +58,13 @@ export class AuthService {
     });
   }
 
+  async refreshSession(): Promise<void> {
+    const { data, error } = await this.supabase.client.auth.getSession();
+    if (error) throw new Error(`Your sign-in session could not be restored: ${error.message}`);
+    this.applySession(data.session);
+    this.initialized.set(true);
+  }
+
   private async hashPassword(password: string): Promise<string> {
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
       return Array.from(new Uint8Array(digest))
