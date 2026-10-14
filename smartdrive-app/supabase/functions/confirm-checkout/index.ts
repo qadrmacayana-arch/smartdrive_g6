@@ -57,7 +57,6 @@ Deno.serve(async (request) => {
     return response({ error: 'Unable to load checkout details.' }, 500);
   }
   if (!attempt) return response({ error: 'Checkout attempt was not found.' }, 404);
-  if (attempt.status === 'paid') return response({ status: 'paid' });
   if (attempt.status === 'failed') return response({ status: 'failed' }, 409);
   if (!attempt.paymongo_checkout_session_id) return response({ status: 'pending' });
 
@@ -101,12 +100,16 @@ Deno.serve(async (request) => {
 
   const { data: existingBooking, error: bookingLookupError } = await admin
     .from('bookings')
-    .select('id')
+    .select('id,user_id')
     .eq('reference_number', reference)
     .maybeSingle();
   if (bookingLookupError) {
     console.error('Unable to check existing booking.', bookingLookupError);
     return response({ error: 'Unable to complete booking.' }, 500);
+  }
+  if (existingBooking && existingBooking.user_id !== authData.user.id) {
+    console.error('Existing booking owner does not match checkout attempt.', { reference });
+    return response({ error: 'Unable to complete booking.' }, 409);
   }
   if (!existingBooking) {
     const { error: insertError } = await admin.from('bookings').insert({
@@ -115,6 +118,19 @@ Deno.serve(async (request) => {
     });
     if (insertError) {
       console.error('Unable to create paid booking from checkout return.', insertError);
+      return response({ error: 'Unable to complete booking.' }, 500);
+    }
+  } else {
+    const { error: updateBookingError } = await admin
+      .from('bookings')
+      .update({
+        ...attempt.booking_payload,
+        paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
+      })
+      .eq('id', existingBooking.id)
+      .eq('user_id', authData.user.id);
+    if (updateBookingError) {
+      console.error('Unable to confirm existing booking from checkout return.', updateBookingError);
       return response({ error: 'Unable to complete booking.' }, 500);
     }
   }
