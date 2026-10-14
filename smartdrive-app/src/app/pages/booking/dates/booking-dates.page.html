@@ -33,7 +33,10 @@
       <section class="date-layout" aria-label="Choose rental dates">
         <div class="calendar-card">
           <div class="calendar-heading">
-            <h2>{{ displayedMonth() }}</h2>
+            <div class="calendar-title">
+              <span class="calendar-eyebrow">RENTAL PERIOD</span>
+              <h2 aria-live="polite">{{ displayedMonth() }}</h2>
+            </div>
             <div class="calendar-navigation">
               <ion-button
                 fill="clear"
@@ -48,6 +51,17 @@
                 <ion-icon name="chevron-forward"></ion-icon>
               </ion-button>
             </div>
+          </div>
+
+          <div class="calendar-instruction" aria-live="polite">
+            <span class="instruction-dot" [class.complete]="returnDate()"></span>
+            @if (!pickupDate()) {
+              <span>Choose your pick-up date</span>
+            } @else if (!returnDate()) {
+              <span>Now choose your drop-off date</span>
+            } @else {
+              <span><strong>{{ rentalDays() }} {{ rentalDays() === 1 ? 'day' : 'days' }}</strong> selected</span>
+            }
           </div>
 
           <div class="calendar-grid weekday-row" aria-hidden="true">
@@ -65,9 +79,11 @@
                   [class.selected]="isDateSelected(day)"
                   [class.in-range]="isDateInRange(day)"
                   [class.disabled]="isDateDisabled(day)"
+                  [class.today]="isToday(day)"
                   [disabled]="isDateDisabled(day)"
                   [attr.aria-label]="day | date: 'fullDate'"
                   [attr.aria-pressed]="isDateSelected(day)"
+                  [attr.aria-current]="isToday(day) ? 'date' : null"
                   (click)="selectDate(day)"
                 >
                   {{ day | date: 'd' }}

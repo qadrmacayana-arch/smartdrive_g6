@@ -182,6 +182,10 @@ export class BookingDatesPage implements OnInit {
     return value === this.pickupDate() || value === this.returnDate();
   }
 
+  isToday(date: Date): boolean {
+    return this.formatDate(date) === this.today();
+  }
+
   isDateInRange(date: Date): boolean {
     const value = this.formatDate(date);
     return Boolean(this.pickupDate() && this.returnDate() && value > this.pickupDate() && value < this.returnDate());
