@@ -127,7 +127,10 @@ Deno.serve(async (request) => {
     const isConfiguredOrigin = originUrl.origin === baseUrl.origin;
     const isProductionOrigin = originUrl.origin === 'https://smartdrive-app.vercel.app';
     const isSmartDriveVercelPreview = originUrl.protocol === 'https:'
-      && /^smartdrive-app(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(originUrl.hostname);
+      && (
+        /^smartdrive-app(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(originUrl.hostname)
+        || /^smartdrive-[a-z0-9-]+-smartdriveteam\.vercel\.app$/i.test(originUrl.hostname)
+      );
     const isLocalTestOrigin = paymongoKey.startsWith('sk_test_')
       && originUrl.protocol === 'http:'
       && ['localhost', '127.0.0.1'].includes(originUrl.hostname);
