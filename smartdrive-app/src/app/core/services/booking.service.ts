@@ -272,9 +272,12 @@ export class BookingService {
     return data as Booking | null;
   }
 
-  async confirmReturnedCheckout(referenceNumber: string): Promise<'pending' | 'paid' | 'test-confirmed'> {
+  async confirmReturnedCheckout(
+    referenceNumber: string,
+    attemptId: string,
+  ): Promise<{ status: 'pending' | 'paid' | 'test-confirmed'; booking: Booking | null }> {
     const { data, error } = await this.supabase.client.functions.invoke('confirm-checkout', {
-      body: { referenceNumber },
+      body: { referenceNumber, attemptId },
     });
     if (error) throw new Error(`Could not confirm checkout status: ${error.message}`);
     if (
@@ -284,7 +287,10 @@ export class BookingService {
     ) {
       throw new Error('The checkout confirmation response was invalid.');
     }
-    return data.status;
+    if (data.status !== 'pending' && (!data.booking || typeof data.booking !== 'object')) {
+      throw new Error('The checkout confirmation did not include the confirmed booking.');
+    }
+    return { status: data.status, booking: data.booking ?? null };
   }
 
   async cancelBooking(id: number): Promise<void> {

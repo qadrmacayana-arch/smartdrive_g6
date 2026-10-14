@@ -1,2 +1,5 @@
 [functions.paymongo-webhook]
 verify_jwt = false
+
+[functions.confirm-checkout]
+verify_jwt = false

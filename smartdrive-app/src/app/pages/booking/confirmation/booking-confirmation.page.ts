@@ -41,25 +41,27 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     const reference = this.route.snapshot.paramMap.get('reference');
     if (!reference) return;
+    const attemptId = this.route.snapshot.queryParamMap.get('attempt');
     this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
 
     try {
-      if (!this.paymentCancelled()) {
-        this.testConfirmation.set(
-          await this.bookingService.confirmReturnedCheckout(reference) === 'test-confirmed',
-        );
-      }
-      const booking = await this.bookingService.getByReference(reference);
-      if (!booking) {
-        this.checkingPayment.set(true);
-        this.schedulePaymentStatusRefresh(reference, 0);
-      } else {
-        this.booking.set(booking);
-        if (booking.payment_status === 'completed') {
+      if (attemptId && !this.paymentCancelled()) {
+        const result = await this.bookingService.confirmReturnedCheckout(reference, attemptId);
+        this.testConfirmation.set(result.status === 'test-confirmed');
+        if (result.booking) {
+          this.booking.set(result.booking);
           this.bookingService.clearDraft();
         } else {
-          this.schedulePaymentStatusRefresh(reference, 0);
+          this.checkingPayment.set(true);
+          this.schedulePaymentStatusRefresh(reference, attemptId, 0);
         }
+      } else if (this.paymentCancelled()) {
+        this.errorMessage.set('Checkout was cancelled. No payment was confirmed.');
+      } else {
+        const booking = await this.bookingService.getByReference(reference);
+        if (!booking) throw new Error('This booking could not be found.');
+        this.booking.set(booking);
+        if (booking.payment_status === 'completed') this.bookingService.clearDraft();
       }
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load this booking.');
@@ -72,40 +74,32 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     if (this.paymentPollTimer) clearTimeout(this.paymentPollTimer);
   }
 
-  private schedulePaymentStatusRefresh(reference: string, attempt: number): void {
+  private schedulePaymentStatusRefresh(reference: string, attemptId: string, attempt: number): void {
     if (attempt >= 30) {
       this.checkingPayment.set(false);
       this.errorMessage.set('Payment is not confirmed yet. No booking was created. You can check again from My Bookings.');
       return;
     }
     this.paymentPollTimer = setTimeout(() => {
-      void this.refreshPaymentStatus(reference, attempt + 1);
+      void this.refreshPaymentStatus(reference, attemptId, attempt + 1);
     }, 3000);
   }
 
-  private async refreshPaymentStatus(reference: string, attempt: number): Promise<void> {
+  private async refreshPaymentStatus(reference: string, attemptId: string, attempt: number): Promise<void> {
     try {
-      this.testConfirmation.set(
-        await this.bookingService.confirmReturnedCheckout(reference) === 'test-confirmed',
-      );
-      const booking = await this.bookingService.getByReference(reference);
-      if (!booking) {
-        this.schedulePaymentStatusRefresh(reference, attempt);
+      const result = await this.bookingService.confirmReturnedCheckout(reference, attemptId);
+      this.testConfirmation.set(result.status === 'test-confirmed');
+      if (!result.booking) {
+        this.schedulePaymentStatusRefresh(reference, attemptId, attempt);
         return;
       }
-      this.booking.set(booking);
+      this.booking.set(result.booking);
       this.paymentStatusError.set(null);
       this.checkingPayment.set(false);
-      if (booking.payment_status === 'completed') {
-        this.bookingService.clearDraft();
-        return;
-      }
-      if (booking.payment_status === 'pending') {
-        this.schedulePaymentStatusRefresh(reference, attempt);
-      }
+      this.bookingService.clearDraft();
     } catch (error) {
       this.paymentStatusError.set(error instanceof Error ? error.message : 'Could not refresh payment status.');
-      this.schedulePaymentStatusRefresh(reference, attempt);
+      this.schedulePaymentStatusRefresh(reference, attemptId, attempt);
     }
   }
 

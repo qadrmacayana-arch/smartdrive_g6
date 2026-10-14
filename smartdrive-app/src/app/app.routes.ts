@@ -1,5 +1,11 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authGuard, customerGuard, guestGuard } from './core/guards/auth.guard';
+import {
+  adminGuard,
+  authGuard,
+  bookingConfirmationGuard,
+  customerGuard,
+  guestGuard,
+} from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
@@ -102,7 +108,7 @@ export const routes: Routes = [
   },
   {
     path: 'booking/confirmation/:reference',
-    canActivate: [authGuard],
+    canActivate: [bookingConfirmationGuard],
     loadComponent: () =>
       import('./pages/booking/confirmation/booking-confirmation.page').then((m) => m.BookingConfirmationPage),
   },

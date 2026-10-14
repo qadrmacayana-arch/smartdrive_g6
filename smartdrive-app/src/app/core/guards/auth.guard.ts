@@ -70,3 +70,20 @@ export const adminGuard: CanActivateFn = async () => {
   if (auth.currentUser()?.isAdmin) return true;
   return router.createUrlTree(['/login']);
 };
+
+export const bookingConfirmationGuard: CanActivateFn = async (route) => {
+  if (route.queryParamMap.get('attempt')) return true;
+
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await waitForInit(auth);
+
+  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.needsGoogleProfileCompletion()) {
+    return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
+  }
+  if (auth.currentUser()) return true;
+  return router.createUrlTree(['/login'], {
+    queryParams: { returnUrl: `/booking/confirmation/${route.paramMap.get('reference')}` },
+  });
+};

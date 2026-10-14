@@ -16,31 +16,27 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return response({ error: 'Method not allowed.' }, 405);
 
   const url = Deno.env.get('SUPABASE_URL');
-  const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const paymongoKey = Deno.env.get('PAYMONGO_SECRET_KEY');
-  if (!url || !anonKey || !serviceKey || !paymongoKey) {
+  if (!url || !serviceKey || !paymongoKey) {
     console.error('PayMongo return confirmation is missing required configuration.');
     return response({ error: 'Payment confirmation is not configured.' }, 500);
   }
 
-  const authorization = request.headers.get('Authorization');
-  if (!authorization?.startsWith('Bearer ')) return response({ error: 'Sign in to confirm this payment.' }, 401);
-  const userClient = createClient(url, anonKey, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data: authData, error: authError } = await userClient.auth.getUser(authorization.slice(7));
-  if (authError || !authData.user) return response({ error: 'Your sign-in session is invalid.' }, 401);
-
   let reference: unknown;
+  let attemptId: unknown;
   try {
-    reference = (await request.json())?.referenceNumber;
+    const body = await request.json();
+    reference = body?.referenceNumber;
+    attemptId = body?.attemptId;
   } catch {
     return response({ error: 'Invalid checkout reference.' }, 400);
   }
   if (typeof reference !== 'string' || !/^SD-\d{4}-[A-F\d]{12}$/.test(reference)) {
     return response({ error: 'Invalid checkout reference.' }, 400);
+  }
+  if (typeof attemptId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(attemptId)) {
+    return response({ error: 'Invalid checkout return token.' }, 400);
   }
 
   const admin = createClient(url, serviceKey, {
@@ -49,8 +45,8 @@ Deno.serve(async (request) => {
   const { data: attempt, error: attemptError } = await admin
     .from('paymongo_checkout_attempts')
     .select('*')
+    .eq('id', attemptId)
     .eq('reference_number', reference)
-    .eq('user_id', authData.user.id)
     .maybeSingle();
   if (attemptError) {
     console.error('Unable to load PayMongo checkout attempt.', attemptError);
@@ -59,7 +55,19 @@ Deno.serve(async (request) => {
   if (!attempt) return response({ error: 'Checkout attempt was not found.' }, 404);
   if (attempt.status === 'failed') return response({ status: 'failed' }, 409);
   if (attempt.status === 'paid') {
-    return response({ status: attempt.booking_payload?.test_auto_confirmed ? 'test-confirmed' : 'paid' });
+    const { data: booking, error: bookingError } = await admin
+      .from('bookings')
+      .select('*')
+      .eq('reference_number', reference)
+      .maybeSingle();
+    if (bookingError || !booking) {
+      console.error('Unable to load paid booking for checkout return.', bookingError);
+      return response({ error: 'Unable to load confirmed booking.' }, 500);
+    }
+    return response({
+      status: attempt.booking_payload?.test_auto_confirmed ? 'test-confirmed' : 'paid',
+      booking,
+    });
   }
   if (!attempt.paymongo_checkout_session_id) return response({ status: 'pending' });
 
@@ -119,7 +127,7 @@ Deno.serve(async (request) => {
     console.error('Unable to check existing booking.', bookingLookupError);
     return response({ error: 'Unable to complete booking.' }, 500);
   }
-  if (existingBooking && existingBooking.user_id !== authData.user.id) {
+  if (existingBooking && existingBooking.user_id !== attempt.user_id) {
     console.error('Existing booking owner does not match checkout attempt.', { reference });
     return response({ error: 'Unable to complete booking.' }, 409);
   }
@@ -140,7 +148,7 @@ Deno.serve(async (request) => {
         paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
       })
       .eq('id', existingBooking.id)
-      .eq('user_id', authData.user.id);
+      .eq('user_id', attempt.user_id);
     if (updateBookingError) {
       console.error('Unable to confirm existing booking from checkout return.', updateBookingError);
       return response({ error: 'Unable to complete booking.' }, 500);
@@ -161,5 +169,14 @@ Deno.serve(async (request) => {
     console.error('Unable to mark checkout attempt paid.', updateError);
     return response({ error: 'Unable to complete booking.' }, 500);
   }
-  return response({ status: testAutoConfirm ? 'test-confirmed' : 'paid' });
+  const { data: booking, error: bookingError } = await admin
+    .from('bookings')
+    .select('*')
+    .eq('reference_number', reference)
+    .maybeSingle();
+  if (bookingError || !booking) {
+    console.error('Unable to load confirmed booking for checkout return.', bookingError);
+    return response({ error: 'Unable to load confirmed booking.' }, 500);
+  }
+  return response({ status: testAutoConfirm ? 'test-confirmed' : 'paid', booking });
 });
