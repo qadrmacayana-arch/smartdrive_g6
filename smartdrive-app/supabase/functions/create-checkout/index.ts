@@ -126,10 +126,17 @@ Deno.serve(async (request) => {
 
     const isConfiguredOrigin = originUrl.origin === baseUrl.origin;
     const isProductionOrigin = originUrl.origin === 'https://smartdrive-app.vercel.app';
+    const isSmartDriveVercelPreview = originUrl.protocol === 'https:'
+      && /^smartdrive-app(?:-[a-z0-9-]+)?\.vercel\.app$/i.test(originUrl.hostname);
     const isLocalTestOrigin = paymongoKey.startsWith('sk_test_')
       && originUrl.protocol === 'http:'
       && ['localhost', '127.0.0.1'].includes(originUrl.hostname);
-    if (!isConfiguredOrigin && !isProductionOrigin && !isLocalTestOrigin) {
+    if (
+      !isConfiguredOrigin
+      && !isProductionOrigin
+      && !isSmartDriveVercelPreview
+      && !isLocalTestOrigin
+    ) {
       return response({
         error: 'Checkout started from an unsupported app address. Open SmartDrive from its configured website and try again.',
       }, 403);
