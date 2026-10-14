@@ -67,7 +67,9 @@ export class LoginPage implements OnDestroy {
     if (rememberedEmail) {
       this.form.patchValue({ email: rememberedEmail, rememberMe: true });
     }
-    if (this.route.snapshot.queryParamMap.get('googleError') === '1') {
+    if (this.route.snapshot.queryParamMap.get('adminPortal') === '1') {
+      this.errorMessage.set('Administrator accounts must sign in through the separate admin portal.');
+    } else if (this.route.snapshot.queryParamMap.get('googleError') === '1') {
       this.errorMessage.set(
         sessionStorage.getItem('smartdrive_google_oauth_error')
           || 'Google sign-in failed before an app session was created. Check the Supabase Google provider and database logs.',
@@ -131,6 +133,12 @@ export class LoginPage implements OnDestroy {
 
     try {
       await this.auth.login(email!.trim(), password!);
+      await this.auth.refreshSession();
+      if (this.auth.currentUser()?.isAdmin) {
+        await this.auth.logout();
+        this.errorMessage.set('Administrator accounts must sign in through the separate admin portal.');
+        return;
+      }
 
       if (rememberMe) {
         localStorage.setItem('smartdrive_remembered_email', email!.trim());
@@ -141,9 +149,7 @@ export class LoginPage implements OnDestroy {
       }
 
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-      const destination = this.auth.currentUser()?.isAdmin
-        ? '/admin'
-        : returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/tabs/home';
+      const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/tabs/home';
       this.router.navigateByUrl(destination);
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to sign in.');

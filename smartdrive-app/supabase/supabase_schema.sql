@@ -109,18 +109,18 @@ create policy "profiles_select_admin"
 on public.profiles for select
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 create policy "profiles_update_admin"
 on public.profiles for update
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 create or replace function public.admin_list_auth_users()
@@ -142,7 +142,7 @@ declare
   requester_is_admin boolean;
 begin
   requester_email := lower(coalesce(auth.jwt() ->> 'email', ''));
-  requester_is_admin := coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false);
+  requester_is_admin := coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false);
 
   if requester_email <> 'admin@smartrentals.com' and not requester_is_admin then
     raise exception 'Only administrators can view users';
@@ -436,7 +436,7 @@ create policy "reviews_select_admin"
 on public.reviews for select
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists "reviews_update_admin" on public.reviews;
@@ -444,11 +444,19 @@ create policy "reviews_update_admin"
 on public.reviews for update
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
+);
+
+drop policy if exists "reviews_delete_admin" on public.reviews;
+create policy "reviews_delete_admin"
+on public.reviews for delete to authenticated
+using (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 -- ------------------------------------------------------------
@@ -702,7 +710,7 @@ create policy "vehicles_insert_admin"
 on public.vehicles for insert
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists "vehicles_update_admin" on public.vehicles;
@@ -710,11 +718,11 @@ create policy "vehicles_update_admin"
 on public.vehicles for update
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists "vehicles_delete_admin" on public.vehicles;
@@ -722,7 +730,7 @@ create policy "vehicles_delete_admin"
 on public.vehicles for delete
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 -- If you want stricter admin-only access later, replace the policies above with role checks.
@@ -803,18 +811,18 @@ create policy "users_select_admin"
 on public.users for select
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 create policy "users_update_admin"
 on public.users for update
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 -- ------------------------------------------------------------
@@ -835,7 +843,7 @@ declare
   requester_is_admin boolean;
 begin
   requester_email := lower(coalesce(auth.jwt() ->> 'email', ''));
-  requester_is_admin := coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false);
+  requester_is_admin := coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false);
 
   if requester_email <> 'admin@smartrentals.com' and not requester_is_admin then
     raise exception 'Only administrators can delete users';

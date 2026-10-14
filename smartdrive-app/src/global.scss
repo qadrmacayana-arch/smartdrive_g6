@@ -1,4 +1,3 @@
-@use './app/pages/admin/admin-theme' as admin;
 @use './app/pages/tabs/account/account-theme' as account;
 @use './app/pages/tabs/home/home-theme' as home;
 @use './app/pages/tabs/landing/landing-theme' as landing;
@@ -398,10 +397,6 @@ ion-content {
     color: var(--sd-accent);
     margin-bottom: 0.75rem;
   }
-}
-
-.admin-page-theme {
-  @include admin.styles;
 }
 
 .customer-account-theme {

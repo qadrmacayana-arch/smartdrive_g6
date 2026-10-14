@@ -1,0 +1,113 @@
+.admin-login-content {
+  --background:
+    radial-gradient(900px 420px at 100% 0, rgba(168, 85, 247, .14), transparent 60%),
+    radial-gradient(780px 400px at 0 100%, rgba(192, 38, 211, .1), transparent 58%),
+    var(--sd-background);
+}
+
+.admin-login {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: 2rem 1.2rem;
+  box-sizing: border-box;
+}
+
+.admin-login-card {
+  width: min(100%, 420px);
+  padding: clamp(1.6rem, 5vw, 2.5rem);
+  border: 1px solid var(--sd-border);
+  border-radius: 1.4rem;
+  background: var(--sd-card);
+  box-shadow: 0 24px 70px rgba(76, 29, 149, .12);
+}
+
+.admin-login-brand {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  border-radius: 1rem;
+  background: var(--sd-gradient-primary);
+  color: white;
+  font: 800 1.4rem 'Sora', sans-serif;
+}
+
+.admin-login-kicker {
+  margin: 1.7rem 0 .55rem;
+  color: var(--sd-primary);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.admin-login-card h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 5vw, 2.1rem);
+}
+
+.admin-login-description,
+.admin-login-footer {
+  color: var(--sd-muted-foreground);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+
+.admin-login-card form {
+  display: grid;
+  gap: .65rem;
+  margin-top: 1.7rem;
+}
+
+.admin-login-card label {
+  margin-top: .45rem;
+  color: var(--sd-foreground);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.admin-login-card input {
+  width: 100%;
+  min-height: 48px;
+  padding: .7rem .85rem;
+  box-sizing: border-box;
+  border: 1px solid var(--sd-border);
+  border-radius: .7rem;
+  background: white;
+  color: var(--sd-foreground);
+  font: inherit;
+}
+
+.admin-login-card input:focus {
+  border-color: var(--sd-primary);
+  outline: 3px solid rgba(124, 58, 237, .14);
+}
+
+.admin-login-card button {
+  min-height: 48px;
+  margin-top: .8rem;
+  border: 0;
+  border-radius: .7rem;
+  background: var(--sd-gradient-primary);
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-login-card button:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.admin-login-error {
+  margin: .35rem 0 0;
+  color: var(--sd-destructive);
+  font-size: .82rem;
+}
+
+.admin-login-footer {
+  margin: 1.4rem 0 0;
+  font-size: .75rem;
+  text-align: center;
+}

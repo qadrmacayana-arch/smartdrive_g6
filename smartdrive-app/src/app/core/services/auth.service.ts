@@ -129,7 +129,7 @@ export class AuthService {
       avatarUrl,
       memberType,
       registrationDate: user.created_at,
-      isAdmin: Boolean(user.app_metadata?.['is_admin']) || user.email === ADMIN_EMAIL,
+      isAdmin: user.app_metadata?.['is_admin'] === true || user.email?.toLowerCase() === ADMIN_EMAIL,
       isGoogleAccount: user.app_metadata['provider'] === 'google'
         || Boolean(user.app_metadata['providers']?.includes('google')),
       birthday: user.user_metadata?.['birthday'] ?? null,
@@ -160,7 +160,7 @@ export class AuthService {
       fullName,
       memberType,
       registrationDate: user.created_at,
-      isAdmin: Boolean(user.app_metadata?.['is_admin']) || user.email === ADMIN_EMAIL,
+      isAdmin: user.app_metadata?.['is_admin'] === true || user.email?.toLowerCase() === ADMIN_EMAIL,
       loginTime: new Date().toISOString(),
     };
     sessionStorage.setItem('user', JSON.stringify(legacyUser));
@@ -229,7 +229,7 @@ export class AuthService {
           avatarUrl: localUser['avatarUrl'] || null,
           memberType: localUser['memberType'] || 'Premium',
           registrationDate: localUser['registrationDate'] || new Date().toISOString(),
-          isAdmin: email === ADMIN_EMAIL,
+          isAdmin: false,
           birthday: localUser['birthday'] || null,
           address: localUser['address'] || null,
           firstName: localUser['firstName'] || null,

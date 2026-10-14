@@ -1,6 +1,5 @@
 import { Routes } from '@angular/router';
 import {
-  adminGuard,
   authGuard,
   bookingConfirmationGuard,
   customerGuard,
@@ -13,11 +12,6 @@ export const routes: Routes = [
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/auth/login/login.page').then((m) => m.LoginPage),
-  },
-  {
-    path: 'admin',
-    canActivate: [adminGuard],
-    loadComponent: () => import('./pages/admin/admin.page').then((m) => m.AdminPage),
   },
   {
     path: 'signup',

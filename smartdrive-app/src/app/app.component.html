@@ -45,31 +45,22 @@
         </div>
 
         <ion-list lines="none" class="menu-list">
-          @if (currentUser()?.isAdmin) {
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/tabs/home" routerLinkActive="selected" button detail="false">
+              <ion-icon slot="start" name="home-outline"></ion-icon>
+              <ion-label>Home</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+          @if (currentUser()) {
             <ion-menu-toggle auto-hide="false">
-              <ion-item routerLink="/admin" routerLinkActive="selected" button detail="false">
-                <ion-icon slot="start" name="speedometer-outline"></ion-icon>
-                <ion-label>Admin Workspace</ion-label>
+              <ion-item routerLink="/trip-planner" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="map-outline"></ion-icon>
+                <ion-label>Trip Planner</ion-label>
               </ion-item>
             </ion-menu-toggle>
-          } @else {
-            <ion-menu-toggle auto-hide="false">
-              <ion-item routerLink="/tabs/home" routerLinkActive="selected" button detail="false">
-                <ion-icon slot="start" name="home-outline"></ion-icon>
-                <ion-label>Home</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
-            @if (currentUser()) {
-              <ion-menu-toggle auto-hide="false">
-                <ion-item routerLink="/trip-planner" routerLinkActive="selected" button detail="false">
-                  <ion-icon slot="start" name="map-outline"></ion-icon>
-                  <ion-label>Trip Planner</ion-label>
-                </ion-item>
-              </ion-menu-toggle>
-            }
           }
 
-          @if (currentUser() && !currentUser()?.isAdmin) {
+          @if (currentUser()) {
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/tabs/bookings" routerLinkActive="selected" button detail="false">
                 <ion-icon slot="start" name="calendar-outline"></ion-icon>

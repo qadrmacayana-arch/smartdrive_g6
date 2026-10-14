@@ -1,0 +1,11 @@
+{
+  "installCommand": "npm ci --prefix ..",
+  "buildCommand": "npm --prefix .. run build:admin",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

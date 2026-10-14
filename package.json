@@ -7,6 +7,7 @@
     "smartdrive-app"
   ],
   "scripts": {
-    "build": "npm run build --workspace=smartdrive-app"
+    "build": "npm run build --workspace=smartdrive-app",
+    "build:admin": "npm run build:admin --workspace=smartdrive-app"
   }
 }

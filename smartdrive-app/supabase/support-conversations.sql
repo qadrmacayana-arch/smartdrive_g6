@@ -171,7 +171,7 @@ on public.support_conversations for select to authenticated
 using (
   user_id = auth.uid()
   or lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists support_messages_select_owner_or_admin on public.support_messages;
@@ -184,7 +184,7 @@ using (
       and (
         conversation.user_id = auth.uid()
         or lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-        or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+        or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
       )
   )
 );
@@ -209,7 +209,7 @@ on public.support_tickets for select to authenticated
 using (
   user_id = auth.uid()
   or lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists support_tickets_insert_owner on public.support_tickets;
@@ -229,11 +229,11 @@ create policy support_tickets_update_admin
 on public.support_tickets for update to authenticated
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists support_admin_notes_select_admin on public.support_admin_notes;
@@ -241,7 +241,7 @@ create policy support_admin_notes_select_admin
 on public.support_admin_notes for select to authenticated
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists support_admin_notes_insert_admin on public.support_admin_notes;
@@ -251,7 +251,7 @@ with check (
   admin_user_id = auth.uid()
   and (
     lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-    or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+    or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
   )
 );
 
@@ -260,11 +260,11 @@ create policy discount_codes_admin_all
 on public.discount_codes for all to authenticated
 using (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 )
 with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
-  or coalesce((auth.jwt() -> 'user_metadata' ->> 'is_admin')::boolean, false)
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
 
 drop policy if exists discount_codes_select_active on public.discount_codes;

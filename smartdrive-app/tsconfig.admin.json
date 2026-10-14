@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/admin"
+  },
+  "files": [
+    "src/admin-main.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts"
+  ]
+}

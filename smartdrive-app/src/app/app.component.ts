@@ -121,7 +121,10 @@ export class AppComponent {
         return;
       }
       this.clearGoogleOAuthIntent();
-      if (user.isAdmin) return;
+      if (user.isAdmin) {
+        void this.auth.logout().then(() => this.router.navigateByUrl('/login?adminPortal=1'));
+        return;
+      }
       if (oauthIntent === 'registration' || this.auth.needsGoogleProfileCompletion()) {
         void this.router.navigateByUrl('/signup?googleRegistration=1');
       }
@@ -198,8 +201,7 @@ export class AppComponent {
 
   showCustomerNavigation(): boolean {
     const url = this.currentRouteUrl();
-    return !url.startsWith('/admin')
-      && !url.startsWith('/login')
+    return !url.startsWith('/login')
       && !url.startsWith('/signup')
       && !url.startsWith('/forgot-password')
       && !url.startsWith('/vehicle/')
@@ -209,7 +211,6 @@ export class AppComponent {
   showNotificationButton(): boolean {
     const url = this.currentRouteUrl();
     return Boolean(this.currentUser())
-      && !this.currentUser()?.isAdmin
       && (
         url.startsWith('/tabs/home')
         || url.startsWith('/tabs/rent-a-car')

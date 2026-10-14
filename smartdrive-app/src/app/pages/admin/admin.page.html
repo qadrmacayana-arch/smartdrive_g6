@@ -1,7 +1,7 @@
 <ion-header class="ion-no-border admin-page-theme">
   <ion-toolbar class="admin-toolbar">
     <ion-buttons slot="start">
-      <ion-button class="brand-home" routerLink="/tabs/home" aria-label="Go to SmartDrive home">
+      <ion-button class="brand-home" routerLink="/admin" [queryParams]="{ section: 'overview' }" aria-label="Go to admin overview">
         <ion-icon name="car-sport-outline"></ion-icon>
       </ion-button>
       <div class="admin-brand">

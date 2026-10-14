@@ -74,7 +74,13 @@ If signup shows “Database error saving new user”, run [`supabase/fix-google-
 
 ### Booking row security
 
-Run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor for this project. It enables row-level security, lets authenticated customers read, create, and update only their own bookings, and lets the admin account (`admin@smartrentals.com` or a user with server-managed `app_metadata.is_admin`) view, update, and delete bookings in the current admin interface. Do not use user-editable `user_metadata` for admin authorization. Re-run this script on existing projects to apply the admin policies. Local-only accounts cannot submit cloud bookings.
+Run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor for this project. It enables row-level security, lets authenticated customers read, create, and update only their own bookings, and lets authorized admins view, update, and delete bookings. Admin status is accepted only for `admin@smartrentals.com` or a server-managed `app_metadata.is_admin` claim; user-editable `user_metadata` is not trusted. Local-only accounts cannot submit cloud bookings.
+
+### Separate admin portal
+
+The administrator portal is built as a separate application and is not included in the customer website or Android/iOS app. For an existing Supabase project, run [`supabase/admin-authorization.sql`](./supabase/admin-authorization.sql) and [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor. If support conversations are enabled, also rerun [`supabase/support-conversations.sql`](./supabase/support-conversations.sql). These scripts preserve customer-own-booking access and grant admin capabilities only to the named admin account or an account with server-managed `app_metadata.is_admin = true`. Do not grant admin status through `user_metadata`.
+
+Deploy the admin portal as a second Vercel project from this repository, with root directory `smartdrive-app/admin-portal` and **Include source files outside of the Root Directory in the Build Step** enabled. Its [`vercel.json`](./admin-portal/vercel.json) installs the `smartdrive-app` workspace, builds the admin target, and serves the separate `admin-portal/dist` output. Use a separate admin-only domain; hiding or keeping a URL secret is not an access-control mechanism. The portal verifies the signed-in Supabase account, and database row-level security is the authority for access to admin data. The existing `admin@smartrentals.com` account is authorized by email; other administrators must receive `app_metadata.is_admin = true` through a trusted Supabase Admin API or dashboard action.
 
 ### Claimable rewards
 

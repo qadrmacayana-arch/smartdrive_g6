@@ -1,0 +1,40 @@
+<ion-content class="admin-login-content">
+  <main class="admin-login">
+    <section class="admin-login-card">
+      <div class="admin-login-brand" aria-hidden="true">S</div>
+      <p class="admin-login-kicker">SMARTDRIVE ADMINISTRATION</p>
+      <h1>Admin sign in</h1>
+      <p class="admin-login-description">Sign in with an authorized administrator account to continue.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label for="admin-email">Email address</label>
+        <input
+          id="admin-email"
+          type="email"
+          autocomplete="username"
+          formControlName="email"
+          required
+        />
+
+        <label for="admin-password">Password</label>
+        <input
+          id="admin-password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          required
+        />
+
+        @if (errorMessage()) {
+          <p class="admin-login-error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" [disabled]="submitting() || form.invalid">
+          {{ submitting() ? 'Checking account…' : 'Sign in securely' }}
+        </button>
+      </form>
+
+      <p class="admin-login-footer">Administrator access is verified by your SmartDrive account.</p>
+    </section>
+  </main>
+</ion-content>

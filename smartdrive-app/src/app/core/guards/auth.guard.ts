@@ -27,7 +27,10 @@ export const authGuard: CanActivateFn = async (_route, state) => {
   await waitForInit(auth);
   await restoreSessionIfNeeded(auth);
 
-  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.currentUser()?.isAdmin) {
+    await auth.logout();
+    return router.createUrlTree(['/login']);
+  }
   if (auth.needsGoogleProfileCompletion()) {
     return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
   }
@@ -42,7 +45,10 @@ export const customerGuard: CanActivateFn = async () => {
   await waitForInit(auth);
   await restoreSessionIfNeeded(auth);
 
-  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.currentUser()?.isAdmin) {
+    await auth.logout();
+    return router.createUrlTree(['/login']);
+  }
   if (auth.needsGoogleProfileCompletion()) {
     return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
   }
@@ -56,7 +62,7 @@ export const guestGuard: CanActivateFn = async (route) => {
   await waitForInit(auth);
   await restoreSessionIfNeeded(auth);
 
-  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.currentUser()?.isAdmin) await auth.logout();
   if (
     route.routeConfig?.path === 'signup'
     && route.queryParamMap.get('googleRegistration') === '1'
@@ -70,16 +76,6 @@ export const guestGuard: CanActivateFn = async (route) => {
     return router.parseUrl(returnUrl);
   }
   return router.createUrlTree(['/tabs/home']);
-};
-
-export const adminGuard: CanActivateFn = async () => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-
-  await waitForInit(auth);
-
-  if (auth.currentUser()?.isAdmin) return true;
-  return router.createUrlTree(['/login']);
 };
 
 export const bookingConfirmationGuard: CanActivateFn = async (route) => {
@@ -98,7 +94,10 @@ export const bookingConfirmationGuard: CanActivateFn = async (route) => {
 
   await restoreSessionIfNeeded(auth);
 
-  if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
+  if (auth.currentUser()?.isAdmin) {
+    await auth.logout();
+    return router.createUrlTree(['/login']);
+  }
   if (auth.needsGoogleProfileCompletion()) {
     return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
   }
