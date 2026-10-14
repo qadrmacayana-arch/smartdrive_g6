@@ -97,7 +97,7 @@ Before enabling payments:
 
 For test-only checkout flows that need immediate confirmation without a completed PayMongo payment, set `PAYMONGO_TEST_AUTO_CONFIRM=true` as an Edge Function secret while using an `sk_test_` key. The confirmation page clearly labels these bookings as test confirmations. Remove or set the secret to `false` before using live keys; this setting is ignored unless the key starts with `sk_test_`.
 
-On Android, the PayMongo success return first opens the installed SmartDrive app using the `smartdrive://booking` deep link. If the APK is not installed, the web confirmation page verifies the checkout as a fallback.
+After PayMongo checkout, the confirmation page stays in the same browser or app WebView that started checkout, preserving that session while it verifies payment. The installed Android app does not automatically take over a browser checkout return because browser and app sign-in sessions are stored separately.
 
 Keep the PayMongo secret and webhook signing secret in Supabase Edge Function secrets only; never put them in Angular environment files. Configure test/live keys and webhook endpoints consistently. SR Points continue to use the SmartDrive wallet.
 

@@ -52,7 +52,6 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
     try {
       if (attemptId && !this.paymentCancelled()) {
-        if (await this.tryOpenAndroidApp(reference, attemptId)) return;
         const result = await this.bookingService.confirmReturnedCheckout(reference, attemptId);
         this.testConfirmation.set(result.status === 'test-confirmed');
         if (result.booking) {
@@ -75,37 +74,6 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  private async tryOpenAndroidApp(reference: string, attemptId: string): Promise<boolean> {
-    if (
-      Capacitor.isNativePlatform()
-      || !/Android/i.test(navigator.userAgent)
-    ) return false;
-
-    const query = new URLSearchParams({ payment: 'success', attempt: attemptId });
-    let settled = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const finish = (opened: boolean, resolve: (value: boolean) => void): void => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      resolve(opened);
-    };
-    const onVisibilityChange = (): void => {
-      if (document.hidden) finish(true, resolveHandoff);
-    };
-    let resolveHandoff!: (value: boolean) => void;
-    const handoff = new Promise<boolean>((resolve) => {
-      resolveHandoff = resolve;
-      document.addEventListener('visibilitychange', onVisibilityChange);
-      timer = setTimeout(() => finish(false, resolve), 1200);
-    });
-
-    window.location.href =
-      `smartdrive://booking/confirmation/${encodeURIComponent(reference)}?${query.toString()}`;
-    return handoff;
   }
 
   ngOnDestroy(): void {

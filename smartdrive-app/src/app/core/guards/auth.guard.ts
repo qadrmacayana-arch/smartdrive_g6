@@ -20,7 +20,7 @@ async function restoreSessionIfNeeded(auth: AuthService): Promise<void> {
   if (!auth.currentUser()) await auth.refreshSession();
 }
 
-export const authGuard: CanActivateFn = async () => {
+export const authGuard: CanActivateFn = async (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -32,7 +32,7 @@ export const authGuard: CanActivateFn = async () => {
     return router.createUrlTree(['/signup'], { queryParams: { googleRegistration: '1' } });
   }
   if (auth.currentUser()) return true;
-  return router.createUrlTree(['/login'], { queryParams: { returnUrl: router.url } });
+  return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 };
 
 export const customerGuard: CanActivateFn = async () => {
@@ -65,6 +65,10 @@ export const guestGuard: CanActivateFn = async (route) => {
     return true;
   }
   if (!auth.currentUser()) return true;
+  const returnUrl = route.queryParamMap.get('returnUrl');
+  if (returnUrl?.startsWith('/') && !returnUrl.startsWith('//')) {
+    return router.parseUrl(returnUrl);
+  }
   return router.createUrlTree(['/tabs/home']);
 };
 
