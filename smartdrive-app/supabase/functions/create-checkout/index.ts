@@ -18,6 +18,7 @@ type CheckoutInput = {
   isPwdSenior: boolean;
   paymentMethod: 'credit-card' | 'gcash' | 'maya';
   promoCode: string | null;
+  returnToApp?: boolean;
 };
 
 const response = (body: Record<string, unknown>, status = 200) =>
@@ -83,6 +84,7 @@ Deno.serve(async (request) => {
     || typeof input.customerEmail !== 'string'
     || typeof input.customerPhone !== 'string'
     || (input.promoCode !== null && typeof input.promoCode !== 'string')
+    || (input.returnToApp !== undefined && typeof input.returnToApp !== 'boolean')
   ) {
     return response({ error: 'Invalid checkout details.' }, 400);
   }
@@ -266,10 +268,10 @@ Deno.serve(async (request) => {
     return response({ error: 'Unable to start checkout. Please try again.' }, 500);
   }
 
-  const successUrl = new URL(
-    `/booking/confirmation/${referenceNumber}?payment=success&attempt=${attemptId}`,
-    baseUrl,
-  ).toString();
+  const successUrl = new URL(`/booking/confirmation/${referenceNumber}`, baseUrl);
+  successUrl.searchParams.set('payment', 'success');
+  successUrl.searchParams.set('attempt', attemptId);
+  if (input.returnToApp) successUrl.searchParams.set('returnToApp', '1');
   const cancelUrl = new URL(`/booking/${vehicle.id}/payment?payment=cancelled`, baseUrl).toString();
   const methodTypes: Record<CheckoutInput['paymentMethod'], string[]> = {
     'credit-card': ['card'],
@@ -287,7 +289,7 @@ Deno.serve(async (request) => {
         attributes: {
           line_items: [{ name: `SmartDrive rental - ${vehicle.name}`, amount, currency: 'PHP', quantity: 1 }],
           payment_method_types: methodTypes[input.paymentMethod],
-          success_url: successUrl,
+          success_url: successUrl.toString(),
           cancel_url: cancelUrl,
           reference_number: referenceNumber,
           metadata: { attempt_id: attemptId, user_id: authData.user.id },

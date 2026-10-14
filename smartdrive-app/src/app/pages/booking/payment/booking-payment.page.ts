@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Capacitor } from '@capacitor/core';
 import {
   IonContent,
   IonHeader,
@@ -186,6 +187,7 @@ export class BookingPaymentPage implements OnInit {
             isPwdSenior: customer.isPwdSenior,
             paymentMethod: this.paymentMethod(),
             promoCode: draft.promoCode?.code ?? null,
+            returnToApp: Capacitor.getPlatform() === 'android',
           },
         });
 
