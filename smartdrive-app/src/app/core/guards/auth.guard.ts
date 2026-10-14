@@ -79,11 +79,19 @@ export const adminGuard: CanActivateFn = async () => {
 };
 
 export const bookingConfirmationGuard: CanActivateFn = async (route) => {
-  if (route.queryParamMap.get('attempt')) return true;
-
   const auth = inject(AuthService);
   const router = inject(Router);
   await waitForInit(auth);
+
+  if (route.queryParamMap.get('attempt')) {
+    try {
+      await restoreSessionIfNeeded(auth);
+    } catch (error) {
+      console.error('Unable to restore the customer session after payment return.', error);
+    }
+    return true;
+  }
+
   await restoreSessionIfNeeded(auth);
 
   if (auth.currentUser()?.isAdmin) return router.createUrlTree(['/admin']);
