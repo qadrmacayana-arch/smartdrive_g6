@@ -1,17 +1,38 @@
 <ion-content [fullscreen]="true" class="ion-padding">
   <main class="booking-page">
   @if (loading()) {
-    <p class="sd-muted">Loading...</p>
+    <section class="verification-state" role="status" aria-live="polite" aria-busy="true">
+      <span class="verification-label">{{ paymentReturn() ? 'PAYMENT STATUS' : 'BOOKING DETAILS' }}</span>
+      <div class="verification-spinner" aria-hidden="true">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+      <h1>{{ paymentReturn() ? 'Confirming your payment' : 'Preparing your booking' }}</h1>
+      <p>
+        {{ paymentReturn()
+          ? 'We’re securely checking your transaction with PayMongo. Your confirmation will appear here as soon as the check is complete.'
+          : 'Please wait while we load your booking details.' }}
+      </p>
+      @if (paymentReturn()) {
+        <div class="verification-progress" aria-hidden="true"><span></span></div>
+        <span class="verification-footnote">This usually takes just a moment</span>
+      }
+    </section>
   } @else if (errorMessage()) {
     <div class="sd-empty-state">
       <ion-icon name="alert-circle-outline"></ion-icon>
       <p>{{ errorMessage() }}</p>
     </div>
   } @else if (checkingPayment()) {
-    <div class="sd-empty-state">
-      <ion-spinner name="dots"></ion-spinner>
-      <p>Verifying your payment with PayMongo. Your booking will be confirmed automatically if payment succeeded.</p>
-    </div>
+    <section class="verification-state" role="status" aria-live="polite" aria-busy="true">
+      <span class="verification-label">PAYMENT STATUS</span>
+      <div class="verification-spinner" aria-hidden="true">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+      <h1>Verifying your payment</h1>
+      <p>We’re securely checking your transaction with PayMongo. Your booking will appear here as soon as the check is complete.</p>
+      <div class="verification-progress" aria-hidden="true"><span></span></div>
+      <span class="verification-footnote">This usually takes just a moment</span>
+    </section>
   } @else if (booking(); as b) {
     <nav class="booking-progress" aria-label="Booking progress">
       <span class="completed"><b>✓</b>Dates</span>

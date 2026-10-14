@@ -26,6 +26,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly checkingPayment = signal(false);
+  readonly paymentReturn = signal(false);
   readonly testConfirmation = signal(false);
   readonly paymentStatusError = signal<string | null>(null);
   readonly paymentCancelled = signal(false);
@@ -43,6 +44,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     if (!reference) return;
     const attemptId = this.route.snapshot.queryParamMap.get('attempt');
     this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
+    this.paymentReturn.set(Boolean(attemptId && !this.paymentCancelled()));
 
     try {
       if (attemptId && !this.paymentCancelled()) {

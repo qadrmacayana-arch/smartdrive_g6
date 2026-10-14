@@ -4,6 +4,102 @@
   padding-bottom: 1rem;
 }
 
+.verification-state {
+  display: flex;
+  width: min(100%, 520px);
+  min-height: 360px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: clamp(2rem, 8vh, 5rem) auto;
+  padding: 2.25rem 1.5rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1.5rem;
+  background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+  text-align: center;
+
+  h1 {
+    margin: 1.25rem 0 0.55rem;
+    color: var(--sd-heading);
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.35rem, 5vw, 1.8rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  > p {
+    max-width: 34rem;
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+}
+
+.verification-label {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 999px;
+  background: var(--sd-card);
+  color: var(--sd-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.verification-spinner {
+  display: grid;
+  width: 5.25rem;
+  height: 5.25rem;
+  place-items: center;
+  margin-top: 1.6rem;
+  border: 1px solid rgba(var(--ion-color-primary-rgb), 0.16);
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--sd-card), var(--sd-primary-soft));
+  box-shadow: 0 12px 35px rgba(var(--ion-color-primary-rgb), 0.12);
+
+  ion-spinner {
+    width: 2.1rem;
+    height: 2.1rem;
+    color: var(--sd-primary);
+  }
+}
+
+.verification-progress {
+  width: min(100%, 17rem);
+  height: 0.3rem;
+  overflow: hidden;
+  margin-top: 1.5rem;
+  border-radius: 999px;
+  background: var(--sd-primary-soft);
+
+  span {
+    display: block;
+    width: 38%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--sd-primary);
+    animation: verification-progress 1.6s ease-in-out infinite;
+  }
+}
+
+.verification-footnote {
+  margin-top: 0.7rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.75rem;
+}
+
+@keyframes verification-progress {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(365%);
+  }
+}
+
 .booking-progress {
   display: flex;
   align-items: center;
@@ -150,6 +246,11 @@ ion-button {
 }
 
 @media (max-width: 380px) {
+  .verification-state {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+  }
+
   .booking-progress {
     gap: 0.25rem;
     padding: 0.55rem;
@@ -160,6 +261,13 @@ ion-button {
       justify-content: center;
       text-align: center;
       font-size: 0.65rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .verification-progress span {
+        animation: none;
+        width: 100%;
+      }
     }
 
     b {
