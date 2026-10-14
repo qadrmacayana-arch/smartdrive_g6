@@ -114,6 +114,29 @@ Deno.serve(async (request) => {
     return response({ error: 'Checkout app URL must use HTTPS.' }, 500);
   }
 
+  let returnBaseUrl = baseUrl;
+  const requestOrigin = request.headers.get('Origin');
+  if (requestOrigin && !input.returnToApp) {
+    let originUrl: URL;
+    try {
+      originUrl = new URL(requestOrigin);
+    } catch {
+      return response({ error: 'Checkout must start from a valid SmartDrive app origin.' }, 403);
+    }
+
+    const isConfiguredOrigin = originUrl.origin === baseUrl.origin;
+    const isProductionOrigin = originUrl.origin === 'https://smartdrive-app.vercel.app';
+    const isLocalTestOrigin = paymongoKey.startsWith('sk_test_')
+      && originUrl.protocol === 'http:'
+      && ['localhost', '127.0.0.1'].includes(originUrl.hostname);
+    if (!isConfiguredOrigin && !isProductionOrigin && !isLocalTestOrigin) {
+      return response({
+        error: 'Checkout started from an unsupported app address. Open SmartDrive from its configured website and try again.',
+      }, 403);
+    }
+    returnBaseUrl = originUrl;
+  }
+
   const admin = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -268,7 +291,7 @@ Deno.serve(async (request) => {
     return response({ error: 'Unable to start checkout. Please try again.' }, 500);
   }
 
-  const successUrl = new URL(`/booking/confirmation/${referenceNumber}`, baseUrl);
+  const successUrl = new URL(`/booking/confirmation/${referenceNumber}`, returnBaseUrl);
   successUrl.searchParams.set('payment', 'success');
   successUrl.searchParams.set('attempt', attemptId);
   if (input.returnToApp) successUrl.searchParams.set('returnToApp', '1');
