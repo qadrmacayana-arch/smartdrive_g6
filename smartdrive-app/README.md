@@ -84,9 +84,18 @@ Run the complete [`supabase/claimable-rewards.sql`](./supabase/claimable-rewards
 
 Successful bookings and SmartDrive wallet transactions update a locally stored, synthetic Metro Manila tracking point for the signed-in cloud account. Admin Tracking also includes three fixed sample users in northern provinces: Clark Freeport Zone in Pampanga, Dagupan City in Pangasinan, and San Fernando City in La Union. Google Maps is embedded and centered on the selected user; distinct colors appear beside each user, and straight-line distance is calculated from the selected user. This demo does not request or read device GPS. Transaction demo entries are labeled and remain in that browser's local storage, so they are not shared across browsers or devices.
 
-### Payment demo mode
+### PayMongo checkout
 
-Until a payment provider is configured, card, GCash, and Maya use demo-only test inputs. Use card number `4242 4242 4242 4242`, any future expiry, CVV `123`, or wallet test number `09170000000`. These methods create a reservation with payment status `pending`; no payment is processed, and test inputs are not sent to Supabase or saved. SR Points continue to use the SmartDrive wallet.
+Card, GCash, and Maya payments use PayMongo Hosted Checkout. The app sends the signed-in customer's draft details to the `create-checkout` Edge Function; it verifies availability and calculates the price server-side, then stores a private checkout attempt and returns the hosted checkout URL. An unfinished or cancelled checkout creates no booking. Only after the `paymongo-webhook` Edge Function verifies PayMongo's webhook signature and confirms the paid session directly with PayMongo is a booking created. The browser redirect is not proof of payment.
+
+Before enabling payments:
+
+1. Run [`supabase/paymongo.sql`](./supabase/paymongo.sql) in the Supabase SQL Editor. This creates the private checkout-attempt table, blocks direct client creation of online-payment bookings, and prevents client-side payment-status changes.
+2. From `smartdrive-app`, install and link the Supabase CLI to this project, then set `PAYMONGO_SECRET_KEY`, `PAYMONGO_WEBHOOK_SECRET`, and `APP_BASE_URL` as Edge Function secrets. Use a PayMongo test secret key while testing; `APP_BASE_URL` must be the HTTPS origin of the deployed app.
+3. From `smartdrive-app`, deploy with `supabase functions deploy create-checkout` and `supabase functions deploy paymongo-webhook`.
+4. In the PayMongo dashboard, register `https://<project-ref>.supabase.co/functions/v1/paymongo-webhook` as a webhook URL and subscribe to `checkout_session.payment.paid`. Save its webhook signing secret as `PAYMONGO_WEBHOOK_SECRET`.
+
+Keep the PayMongo secret and webhook signing secret in Supabase Edge Function secrets only; never put them in Angular environment files. Configure test/live keys and webhook endpoints consistently. SR Points continue to use the SmartDrive wallet.
 
 ### Prediction prototype
 

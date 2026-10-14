@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
@@ -19,10 +19,15 @@ import { Booking } from '../../../core/models/booking.model';
   templateUrl: './booking-confirmation.page.html',
   styleUrl: './booking-confirmation.page.scss',
 })
-export class BookingConfirmationPage implements OnInit {
+export class BookingConfirmationPage implements OnInit, OnDestroy {
+  private paymentPollTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly booking = signal<Booking | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
+  readonly checkingPayment = signal(false);
+  readonly paymentStatusError = signal<string | null>(null);
+  readonly paymentCancelled = signal(false);
   readonly sharing = signal(false);
   readonly shareMessage = signal<string | null>(null);
 
@@ -35,18 +40,63 @@ export class BookingConfirmationPage implements OnInit {
   async ngOnInit(): Promise<void> {
     const reference = this.route.snapshot.paramMap.get('reference');
     if (!reference) return;
+    this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
 
     try {
       const booking = await this.bookingService.getByReference(reference);
       if (!booking) {
-        this.errorMessage.set('We could not find that booking.');
+        this.checkingPayment.set(true);
+        this.schedulePaymentStatusRefresh(reference, 0);
       } else {
         this.booking.set(booking);
+        if (booking.payment_status === 'completed') {
+          this.bookingService.clearDraft();
+        } else {
+          this.schedulePaymentStatusRefresh(reference, 0);
+        }
       }
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load this booking.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.paymentPollTimer) clearTimeout(this.paymentPollTimer);
+  }
+
+  private schedulePaymentStatusRefresh(reference: string, attempt: number): void {
+    if (attempt >= 30) {
+      this.checkingPayment.set(false);
+      this.errorMessage.set('Payment is not confirmed yet. No booking was created. You can check again from My Bookings.');
+      return;
+    }
+    this.paymentPollTimer = setTimeout(() => {
+      void this.refreshPaymentStatus(reference, attempt + 1);
+    }, 3000);
+  }
+
+  private async refreshPaymentStatus(reference: string, attempt: number): Promise<void> {
+    try {
+      const booking = await this.bookingService.getByReference(reference);
+      if (!booking) {
+        this.schedulePaymentStatusRefresh(reference, attempt);
+        return;
+      }
+      this.booking.set(booking);
+      this.paymentStatusError.set(null);
+      this.checkingPayment.set(false);
+      if (booking.payment_status === 'completed') {
+        this.bookingService.clearDraft();
+        return;
+      }
+      if (booking.payment_status === 'pending') {
+        this.schedulePaymentStatusRefresh(reference, attempt);
+      }
+    } catch (error) {
+      this.paymentStatusError.set(error instanceof Error ? error.message : 'Could not refresh payment status.');
+      this.schedulePaymentStatusRefresh(reference, attempt);
     }
   }
 

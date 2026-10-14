@@ -1,0 +1,92 @@
+alter table public.bookings
+  add column if not exists paymongo_checkout_session_id text;
+
+create unique index if not exists idx_bookings_paymongo_checkout_session
+  on public.bookings (paymongo_checkout_session_id)
+  where paymongo_checkout_session_id is not null;
+
+create table if not exists public.paymongo_checkout_attempts (
+  id uuid primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  reference_number text not null unique,
+  payment_method text not null check (payment_method in ('credit-card', 'gcash', 'maya')),
+  total_price numeric(10,2) not null check (total_price > 0),
+  booking_payload jsonb not null,
+  paymongo_checkout_session_id text unique,
+  status text not null default 'pending' check (status in ('pending', 'paid', 'failed')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.paymongo_checkout_attempts enable row level security;
+revoke all on public.paymongo_checkout_attempts from anon, authenticated;
+grant all on public.paymongo_checkout_attempts to service_role;
+
+create or replace function public.block_unverified_booking_inserts()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  request_role text := coalesce(auth.role(), current_user);
+begin
+  if request_role not in ('service_role', 'postgres', 'supabase_admin')
+    and new.payment_method <> 'srpoints' then
+    raise exception 'Online payment bookings can only be created after provider verification.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_block_unverified_booking_inserts on public.bookings;
+create trigger trg_block_unverified_booking_inserts
+before insert on public.bookings
+for each row execute function public.block_unverified_booking_inserts();
+
+create or replace function public.block_unverified_booking_payment_updates()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  request_role text := coalesce(auth.role(), current_user);
+  is_trusted_role boolean := request_role in ('service_role', 'postgres', 'supabase_admin');
+begin
+  if not is_trusted_role and (
+    new.payment_status is distinct from old.payment_status
+    or new.paymongo_checkout_session_id is distinct from old.paymongo_checkout_session_id
+  ) then
+    raise exception 'Payment status and checkout references can only be changed by the payment service.';
+  end if;
+
+  if not is_trusted_role and old.paymongo_checkout_session_id is not null and (
+    new.reference_number is distinct from old.reference_number
+    or new.user_id is distinct from old.user_id
+    or new.vehicle_id is distinct from old.vehicle_id
+    or new.vehicle_name is distinct from old.vehicle_name
+    or new.customer_email is distinct from old.customer_email
+    or new.customer_name is distinct from old.customer_name
+    or new.customer_phone is distinct from old.customer_phone
+    or new.pickup_location is distinct from old.pickup_location
+    or new.pickup_date is distinct from old.pickup_date
+    or new.return_date is distinct from old.return_date
+    or new.daily_rate is distinct from old.daily_rate
+    or new.rental_days is distinct from old.rental_days
+    or new.subtotal is distinct from old.subtotal
+    or new.insurance is distinct from old.insurance
+    or new.discount is distinct from old.discount
+    or new.discount_label is distinct from old.discount_label
+    or new.total_price is distinct from old.total_price
+    or new.payment_method is distinct from old.payment_method
+    or new.is_pwd_senior is distinct from old.is_pwd_senior
+  ) then
+    raise exception 'Booking details cannot be changed after checkout has started.';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_block_unverified_booking_payment_updates on public.bookings;
+create trigger trg_block_unverified_booking_payment_updates
+before update on public.bookings
+for each row execute function public.block_unverified_booking_payment_updates();
