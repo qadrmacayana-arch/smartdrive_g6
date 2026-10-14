@@ -16,6 +16,18 @@
       <span><b>4</b>Confirmation</span>
     </nav>
     @if (draft(); as d) {
+    <header class="page-heading">
+      <span class="page-eyebrow">STEP 2 OF 4 · YOUR INFORMATION</span>
+      <h1>Who’s driving?</h1>
+      <p>Enter the renter’s contact details for this reservation.</p>
+    </header>
+    <section class="vehicle-summary sd-card" aria-label="Vehicle and rental dates">
+      <span class="summary-icon"><ion-icon name="car-sport-outline"></ion-icon></span>
+      <div>
+        <strong>{{ d.vehicle.name }}</strong>
+        <span>{{ d.pickupDate | date: 'mediumDate' }} – {{ d.returnDate | date: 'mediumDate' }} · {{ d.rentalDays }} {{ d.rentalDays === 1 ? 'day' : 'days' }}</span>
+      </div>
+    </section>
     <form [formGroup]="form" (ngSubmit)="continue()">
       <ion-item class="auth-item" lines="none">
         <ion-icon slot="start" name="person-outline"></ion-icon>

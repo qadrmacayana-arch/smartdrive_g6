@@ -1,5 +1,5 @@
 <ion-content [fullscreen]="true" class="ion-padding">
-  <main class="booking-page">
+  <main class="booking-page receipt-page" [attr.data-payment-method]="booking()?.payment_method">
   @if (loading()) {
     <section class="verification-state" role="status" aria-live="polite" aria-busy="true">
       <span class="verification-label">{{ paymentReturn() ? 'PAYMENT STATUS' : 'BOOKING DETAILS' }}</span>
@@ -70,6 +70,11 @@
     <h1 class="sd-section-title confirm-title">
       {{ testConfirmation() ? 'Test Booking Confirmed!' : b.payment_status === 'completed' ? 'Booking Confirmed!' : 'Reservation Saved' }}
     </h1>
+    <span class="payment-badge">
+      <ion-icon [name]="b.payment_method === 'credit-card' ? 'card-outline' : b.payment_method === 'srpoints' ? 'wallet-outline' : 'phone-portrait-outline'"></ion-icon>
+      {{ b.payment_status === 'completed' ? 'Paid with' : 'Payment via' }}
+      {{ b.payment_method === 'credit-card' ? 'Credit / Debit Card' : b.payment_method === 'srpoints' ? 'SR Wallet' : b.payment_method === 'gcash' ? 'GCash' : 'Maya' }}
+    </span>
     @if (testConfirmation()) {
       <p class="sd-muted confirm-sub">Test mode: confirmed for checkout testing. No payment was verified or charged.</p>
     } @else if (b.payment_status === 'completed') {

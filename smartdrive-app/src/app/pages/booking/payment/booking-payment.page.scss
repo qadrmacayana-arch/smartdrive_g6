@@ -3,9 +3,9 @@
 }
 
 .booking-page {
-  width: min(100%, 680px);
+  width: min(100%, 760px);
   margin: 0 auto;
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
 }
 
 .booking-progress {
@@ -13,11 +13,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin: 0.1rem 0 1.25rem;
-  padding: 0.7rem;
-  border: 1px solid var(--sd-border);
-  border-radius: 1rem;
-  background: var(--sd-card);
+  margin: 0.1rem 0 1.75rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--sd-primary) 12%, var(--sd-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sd-primary-soft) 35%, var(--sd-card));
 
   span {
     display: flex;
@@ -48,9 +48,40 @@
 
   .completed b,
   .current b {
-    background: var(--sd-primary-soft);
-    color: var(--sd-primary);
+    background: var(--sd-primary);
+    color: #fff;
   }
+
+  .completed b {
+    background: var(--sd-success);
+  }
+}
+
+.page-heading {
+  margin-bottom: 1.25rem;
+
+  h1 {
+    margin: 0.3rem 0 0;
+    color: var(--sd-heading);
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.7rem, 5vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+
+  p {
+    margin: 0.4rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+}
+
+.page-eyebrow {
+  color: var(--sd-primary);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
 }
 
 .vehicle-summary {
@@ -59,6 +90,9 @@
   gap: 0.85rem;
   padding: 0.85rem;
   margin-bottom: 1.25rem;
+  border-radius: 1rem;
+  box-shadow: var(--sd-shadow-md);
+  background: linear-gradient(110deg, var(--sd-card), var(--sd-primary-soft));
 
   h3 {
     margin: 0;
@@ -73,13 +107,21 @@
 }
 
 .thumb {
+  display: grid;
   width: 56px;
   height: 56px;
+  place-items: center;
   border-radius: 12px;
   background-size: cover;
   background-position: center;
   background-color: var(--sd-muted);
   flex-shrink: 0;
+
+  ion-icon {
+    color: var(--sd-primary);
+    font-size: 1.5rem;
+    filter: drop-shadow(0 1px 2px rgba(255, 255, 255, 0.9));
+  }
 }
 
 .promo-row {
@@ -119,26 +161,105 @@
 .section-title {
   font-family: 'Sora', sans-serif;
   color: var(--sd-heading);
-  margin: 1.25rem 0 0.75rem;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 1.4rem 0 0.75rem;
+
+  > ion-icon {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0.55rem;
+    border-radius: 0.75rem;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+  }
 }
 
 .method-option {
-  padding: 0.9rem 1rem;
-  margin-bottom: 0.6rem;
+  --method-accent: var(--sd-primary);
+  --method-tint: var(--sd-primary-soft);
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.65rem;
+  border-radius: 1rem;
+  box-shadow: 0 5px 18px rgba(30, 25, 60, 0.04);
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+
+  ion-radio {
+    width: 100%;
+    --color-checked: var(--method-accent);
+  }
+
+  &.selected {
+    border-color: var(--method-accent);
+    background: color-mix(in srgb, var(--method-tint) 40%, var(--sd-card));
+    box-shadow: 0 0 0 1px var(--method-accent), 0 10px 24px color-mix(in srgb, var(--method-accent) 12%, transparent);
+  }
 
   &.insufficient {
     opacity: 0.6;
   }
 }
 
+.card-method {
+  --method-accent: #d92d20;
+  --method-tint: #fef3f2;
+}
+
+.gcash-method {
+  --method-accent: #0878e8;
+  --method-tint: #eff8ff;
+}
+
+.maya-method {
+  --method-accent: #008f5a;
+  --method-tint: #ecfdf3;
+}
+
+.points-method {
+  --method-accent: #7138d1;
+  --method-tint: #f4f0ff;
+}
+
 .method-label {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   font-weight: 600;
 
+  > span:last-child {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  strong {
+    color: var(--sd-heading);
+    font-size: 0.85rem;
+  }
+
+  small {
+    color: var(--sd-muted-foreground);
+    font-size: 0.68rem;
+    font-weight: 500;
+  }
+}
+
+.method-icon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--method-tint);
+  color: var(--method-accent);
+
   ion-icon {
-    color: var(--sd-primary);
     font-size: 1.2rem;
   }
 }
@@ -225,6 +346,24 @@
 .summary-card {
   padding: 1rem;
   margin: 1.25rem 0;
+  border-radius: 1.1rem;
+  box-shadow: var(--sd-shadow-md);
+
+  &[data-payment-method='credit-card'] .total {
+    color: #d92d20;
+  }
+
+  &[data-payment-method='gcash'] .total {
+    color: #0878e8;
+  }
+
+  &[data-payment-method='maya'] .total {
+    color: #008f5a;
+  }
+
+  &[data-payment-method='srpoints'] .total {
+    color: #7138d1;
+  }
 }
 
 .summary-row {
@@ -246,6 +385,8 @@
 }
 
 .continue-btn {
+  min-height: 3rem;
+  --border-radius: 0.9rem;
   margin-bottom: 1rem;
 }
 
@@ -271,5 +412,19 @@
 
   .promo-row {
     gap: 0.35rem;
+  }
+
+  .page-heading h1 {
+    font-size: 1.65rem;
+  }
+
+  .method-option {
+    padding: 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .method-option {
+    transition: none;
   }
 }

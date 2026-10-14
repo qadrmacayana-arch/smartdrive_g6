@@ -4,6 +4,31 @@
   padding-bottom: 1rem;
 }
 
+.receipt-page {
+  --receipt-accent: var(--sd-primary);
+  --receipt-tint: var(--sd-primary-soft);
+
+  &[data-payment-method='credit-card'] {
+    --receipt-accent: #c62828;
+    --receipt-tint: #fff1f0;
+  }
+
+  &[data-payment-method='gcash'] {
+    --receipt-accent: #0878e8;
+    --receipt-tint: #eff8ff;
+  }
+
+  &[data-payment-method='maya'] {
+    --receipt-accent: #008f5a;
+    --receipt-tint: #ecfdf3;
+  }
+
+  &[data-payment-method='srpoints'] {
+    --receipt-accent: #7138d1;
+    --receipt-tint: #f4f0ff;
+  }
+}
+
 .verification-state {
   display: flex;
   width: min(100%, 520px);
@@ -138,10 +163,10 @@
   justify-content: space-between;
   gap: 0.5rem;
   margin: 0.1rem 0 1.25rem;
-  padding: 0.7rem;
-  border: 1px solid var(--sd-border);
-  border-radius: 1rem;
-  background: var(--sd-card);
+  padding: 0.55rem 0.8rem;
+  border: 1px solid color-mix(in srgb, var(--sd-primary) 12%, var(--sd-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sd-primary-soft) 35%, var(--sd-card));
 
   span {
     display: flex;
@@ -170,19 +195,34 @@
     color: var(--sd-primary);
   }
 
+  .completed b,
   .current b {
     background: var(--sd-primary);
     color: #fff;
   }
+
+  .completed b {
+    background: var(--sd-success);
+  }
 }
 
 .confirmation-banner {
+  position: relative;
+  overflow: hidden;
   padding: 1.25rem 1rem 1rem;
   margin: 0 0 1rem;
-  border: 1px solid var(--sd-border);
-  border-radius: 1.25rem;
-  background: var(--sd-card);
+  border: 1px solid color-mix(in srgb, var(--receipt-accent) 22%, var(--sd-border));
+  border-radius: 1.35rem;
+  background: linear-gradient(155deg, var(--receipt-tint), var(--sd-card) 68%);
   box-shadow: var(--sd-shadow-md);
+
+  &::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 0.3rem;
+    background: var(--receipt-accent);
+    content: '';
+  }
 }
 
 .success-icon {
@@ -191,10 +231,10 @@
 
   ion-icon {
     font-size: clamp(3.5rem, 16vw, 5rem);
-    color: var(--sd-success);
+    color: var(--receipt-accent);
 
     &.payment-pending {
-      color: var(--sd-primary);
+      color: var(--receipt-accent);
     }
   }
 }
@@ -209,12 +249,33 @@
   margin: 0 0 1.5rem;
 }
 
+.payment-badge {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 auto 0.8rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--receipt-accent) 22%, transparent);
+  border-radius: 999px;
+  background: var(--receipt-tint);
+  color: var(--receipt-accent);
+  font-size: 0.72rem;
+  font-weight: 750;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+}
+
 .ref-card {
   text-align: center;
   padding: 1.25rem 1rem;
   margin-bottom: 1rem;
   overflow-wrap: anywhere;
-  border: 1px dashed var(--sd-primary);
+  border: 1px dashed color-mix(in srgb, var(--receipt-accent) 55%, var(--sd-border));
+  border-radius: 1.1rem;
+  background: linear-gradient(135deg, var(--sd-card), var(--receipt-tint));
 
   span {
     font-size: 0.78rem;
@@ -225,13 +286,15 @@
     font-family: monospace;
     font-size: 1.3rem;
     letter-spacing: 0.05em;
-    color: var(--sd-primary);
+    color: var(--receipt-accent);
   }
 }
 
 .detail-card {
   padding: 1rem;
   margin-bottom: 1.5rem;
+  border-radius: 1.1rem;
+  box-shadow: var(--sd-shadow-md);
 }
 
 .detail-row {
@@ -251,11 +314,11 @@
   }
 
   &.total {
-    border-top: 1px dashed var(--sd-border);
+    border-top: 1px dashed color-mix(in srgb, var(--receipt-accent) 35%, var(--sd-border));
     margin-top: 0.4rem;
     padding-top: 0.85rem;
     font-weight: 800;
-    color: var(--sd-primary);
+    color: var(--receipt-accent);
   }
 }
 
@@ -295,17 +358,17 @@ ion-button {
       font-size: 0.65rem;
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .verification-progress span {
-        animation: none;
-        width: 100%;
-      }
-    }
-
     b {
       width: 1.35rem;
       height: 1.35rem;
       flex-basis: 1.35rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .verification-progress span {
+      animation: none;
+      width: 100%;
     }
   }
 

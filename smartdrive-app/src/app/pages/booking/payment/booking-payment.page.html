@@ -16,11 +16,18 @@
       <span><b>4</b>Confirmation</span>
     </nav>
     @if (draft(); as d) {
+    <header class="page-heading">
+      <span class="page-eyebrow">STEP 3 OF 4 · SECURE CHECKOUT</span>
+      <h1>Choose how to pay</h1>
+      <p>Select your preferred payment method to continue to secure checkout.</p>
+    </header>
     <div class="sd-card vehicle-summary">
-      <div class="thumb" [style.background-image]="'url(' + d.vehicle.image + ')'"></div>
+      <div class="thumb" [style.background-image]="'url(' + d.vehicle.image + ')'">
+        <ion-icon name="car-sport-outline"></ion-icon>
+      </div>
       <div>
         <h3>{{ d.vehicle.name }}</h3>
-        <p class="sd-muted">{{ d.pickupDate }} → {{ d.returnDate }} · {{ d.rentalDays }} day(s)</p>
+        <p class="sd-muted">{{ d.pickupDate | date: 'mediumDate' }} → {{ d.returnDate | date: 'mediumDate' }} · {{ d.rentalDays }} day(s)</p>
       </div>
     </div>
 
@@ -57,37 +64,43 @@
       </p>
     }
 
-    <h3 class="section-title">Payment Method</h3>
-    <ion-radio-group [value]="paymentMethod()" (ionChange)="onPaymentMethodChange($any($event.detail.value))">
-      <div class="method-option sd-card">
+    <div class="section-heading">
+      <div>
+        <span class="page-eyebrow">PAYMENT METHOD</span>
+        <h2 class="section-title">Pick what works for you</h2>
+      </div>
+      <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+    </div>
+    <ion-radio-group class="payment-methods" [value]="paymentMethod()" (ionChange)="onPaymentMethodChange($any($event.detail.value))">
+      <div class="method-option sd-card card-method" [class.selected]="paymentMethod() === 'credit-card'">
         <ion-radio value="credit-card" justify="space-between">
           <div class="method-label">
-            <ion-icon name="card-outline"></ion-icon>
-            Credit / Debit Card
+            <span class="method-icon"><ion-icon name="card-outline"></ion-icon></span>
+            <span><strong>Credit / Debit Card</strong><small>Visa, Mastercard and more</small></span>
           </div>
         </ion-radio>
       </div>
-      <div class="method-option sd-card">
+      <div class="method-option sd-card gcash-method" [class.selected]="paymentMethod() === 'gcash'">
         <ion-radio value="gcash" justify="space-between">
           <div class="method-label">
-            <ion-icon name="cash-outline"></ion-icon>
-            GCash
+            <span class="method-icon"><ion-icon name="phone-portrait-outline"></ion-icon></span>
+            <span><strong>GCash</strong><small>Pay securely with your GCash wallet</small></span>
           </div>
         </ion-radio>
       </div>
-      <div class="method-option sd-card">
+      <div class="method-option sd-card maya-method" [class.selected]="paymentMethod() === 'maya'">
         <ion-radio value="maya" justify="space-between">
           <div class="method-label">
-            <ion-icon name="cash-outline"></ion-icon>
-            Maya
+            <span class="method-icon"><ion-icon name="phone-portrait-outline"></ion-icon></span>
+            <span><strong>Maya</strong><small>Pay securely with your Maya wallet</small></span>
           </div>
         </ion-radio>
       </div>
-      <div class="method-option sd-card" [class.insufficient]="insufficientPoints">
+      <div class="method-option sd-card points-method" [class.selected]="paymentMethod() === 'srpoints'" [class.insufficient]="insufficientPoints">
         <ion-radio value="srpoints" justify="space-between">
           <div class="method-label">
-            <ion-icon name="wallet-outline"></ion-icon>
-            SR Points ({{ (walletBalance()?.balance ?? 0) | number }} pts available)
+            <span class="method-icon"><ion-icon name="wallet-outline"></ion-icon></span>
+            <span><strong>SR Wallet</strong><small>{{ (walletBalance()?.balance ?? 0) | number }} points available</small></span>
           </div>
         </ion-radio>
       </div>
@@ -119,7 +132,7 @@
     }
 
     @if (pricing(); as p) {
-      <div class="sd-card summary-card">
+      <div class="sd-card summary-card" [attr.data-payment-method]="paymentMethod()">
         <div class="summary-row">
           <span class="sd-muted">Subtotal</span>
           <strong>₱{{ p.subtotal | number }}</strong>
