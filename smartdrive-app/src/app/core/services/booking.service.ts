@@ -272,11 +272,19 @@ export class BookingService {
     return data as Booking | null;
   }
 
-  async confirmReturnedCheckout(referenceNumber: string): Promise<void> {
-    const { error } = await this.supabase.client.functions.invoke('confirm-checkout', {
+  async confirmReturnedCheckout(referenceNumber: string): Promise<'pending' | 'paid' | 'test-confirmed'> {
+    const { data, error } = await this.supabase.client.functions.invoke('confirm-checkout', {
       body: { referenceNumber },
     });
     if (error) throw new Error(`Could not confirm checkout status: ${error.message}`);
+    if (
+      data?.status !== 'pending'
+      && data?.status !== 'paid'
+      && data?.status !== 'test-confirmed'
+    ) {
+      throw new Error('The checkout confirmation response was invalid.');
+    }
+    return data.status;
   }
 
   async cancelBooking(id: number): Promise<void> {

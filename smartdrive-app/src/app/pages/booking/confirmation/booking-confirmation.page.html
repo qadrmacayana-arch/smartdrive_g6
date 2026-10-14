@@ -28,9 +28,11 @@
       ></ion-icon>
     </div>
     <h1 class="sd-section-title confirm-title">
-      {{ b.payment_status === 'completed' ? 'Booking Confirmed!' : 'Reservation Saved' }}
+      {{ testConfirmation() ? 'Test Booking Confirmed!' : b.payment_status === 'completed' ? 'Booking Confirmed!' : 'Reservation Saved' }}
     </h1>
-    @if (b.payment_status === 'completed') {
+    @if (testConfirmation()) {
+      <p class="sd-muted confirm-sub">Test mode: confirmed for checkout testing. No payment was verified or charged.</p>
+    } @else if (b.payment_status === 'completed') {
       <p class="sd-muted confirm-sub">Your vehicle is reserved. Show this reference upon pick-up.</p>
     } @else {
       <p class="sd-muted confirm-sub">

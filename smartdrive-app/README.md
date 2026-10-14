@@ -95,6 +95,8 @@ Before enabling payments:
 3. From `smartdrive-app`, deploy with `supabase functions deploy create-checkout`, `supabase functions deploy confirm-checkout`, and `supabase functions deploy paymongo-webhook`.
 4. In the PayMongo dashboard, register `https://<project-ref>.supabase.co/functions/v1/paymongo-webhook` as a webhook URL and subscribe to `checkout_session.payment.paid`. Save its webhook signing secret as `PAYMONGO_WEBHOOK_SECRET`.
 
+For test-only checkout flows that need immediate confirmation without a completed PayMongo payment, set `PAYMONGO_TEST_AUTO_CONFIRM=true` as an Edge Function secret while using an `sk_test_` key. The confirmation page clearly labels these bookings as test confirmations. Remove or set the secret to `false` before using live keys; this setting is ignored unless the key starts with `sk_test_`.
+
 Keep the PayMongo secret and webhook signing secret in Supabase Edge Function secrets only; never put them in Angular environment files. Configure test/live keys and webhook endpoints consistently. SR Points continue to use the SmartDrive wallet.
 
 ### Prediction prototype

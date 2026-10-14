@@ -26,6 +26,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly checkingPayment = signal(false);
+  readonly testConfirmation = signal(false);
   readonly paymentStatusError = signal<string | null>(null);
   readonly paymentCancelled = signal(false);
   readonly sharing = signal(false);
@@ -43,7 +44,11 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     this.paymentCancelled.set(this.route.snapshot.queryParamMap.get('payment') === 'cancelled');
 
     try {
-      if (!this.paymentCancelled()) await this.bookingService.confirmReturnedCheckout(reference);
+      if (!this.paymentCancelled()) {
+        this.testConfirmation.set(
+          await this.bookingService.confirmReturnedCheckout(reference) === 'test-confirmed',
+        );
+      }
       const booking = await this.bookingService.getByReference(reference);
       if (!booking) {
         this.checkingPayment.set(true);
@@ -80,7 +85,9 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
   private async refreshPaymentStatus(reference: string, attempt: number): Promise<void> {
     try {
-      await this.bookingService.confirmReturnedCheckout(reference);
+      this.testConfirmation.set(
+        await this.bookingService.confirmReturnedCheckout(reference) === 'test-confirmed',
+      );
       const booking = await this.bookingService.getByReference(reference);
       if (!booking) {
         this.schedulePaymentStatusRefresh(reference, attempt);

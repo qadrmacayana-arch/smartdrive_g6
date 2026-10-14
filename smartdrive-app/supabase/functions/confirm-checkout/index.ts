@@ -58,43 +58,55 @@ Deno.serve(async (request) => {
   }
   if (!attempt) return response({ error: 'Checkout attempt was not found.' }, 404);
   if (attempt.status === 'failed') return response({ status: 'failed' }, 409);
+  if (attempt.status === 'paid') {
+    return response({ status: attempt.booking_payload?.test_auto_confirmed ? 'test-confirmed' : 'paid' });
+  }
   if (!attempt.paymongo_checkout_session_id) return response({ status: 'pending' });
 
-  const providerResponse = await fetch(
-    `https://api.paymongo.com/v2/checkout_sessions/${encodeURIComponent(attempt.paymongo_checkout_session_id)}`,
-    { headers: { Authorization: `Basic ${btoa(`${paymongoKey}:`)}` } },
-  );
-  if (!providerResponse.ok) {
-    console.error('Unable to verify returned checkout with PayMongo.', providerResponse.status);
-    return response({ error: 'Unable to verify payment with PayMongo.' }, 502);
-  }
-  const provider = await providerResponse.json();
-  const session = provider?.data;
-  const attributes = session?.attributes;
-  const items = Array.isArray(attributes?.line_items) ? attributes.line_items : [];
-  const payments = Array.isArray(attributes?.payments) ? attributes.payments : [];
-  const hasPaidPayment = payments.some(
-    (payment: { attributes?: { status?: string } }) => payment.attributes?.status === 'paid',
-  );
-  const itemTotal = items.reduce(
-    (total: number, item: { amount?: number; quantity?: number; currency?: string }) =>
-      item.currency === 'PHP' ? total + Number(item.amount) * Number(item.quantity) : Number.NaN,
-    0,
-  );
-  if (
-    session?.id !== attempt.paymongo_checkout_session_id
-    || attributes?.reference_number !== reference
-    || attributes?.metadata?.attempt_id !== attempt.id
-    || items.length === 0
-    || items.some((item: { currency?: string }) => item.currency !== 'PHP')
-    || !Number.isFinite(itemTotal)
-    || itemTotal !== Math.round(Number(attempt.total_price) * 100)
-  ) {
-    console.error('PayMongo return did not match the checkout attempt.', {
-      sessionId: attempt.paymongo_checkout_session_id,
-      reference,
-    });
-    return response({ error: 'Payment could not be verified.' }, 409);
+  const testAutoConfirm = Deno.env.get('PAYMONGO_TEST_AUTO_CONFIRM') === 'true'
+    && paymongoKey.startsWith('sk_test_');
+  let hasPaidPayment = testAutoConfirm;
+  let sessionId = attempt.paymongo_checkout_session_id;
+
+  if (testAutoConfirm) {
+    console.warn('Auto-confirming a test checkout without verifying payment.', { reference });
+  } else {
+    const providerResponse = await fetch(
+      `https://api.paymongo.com/v2/checkout_sessions/${encodeURIComponent(attempt.paymongo_checkout_session_id)}`,
+      { headers: { Authorization: `Basic ${btoa(`${paymongoKey}:`)}` } },
+    );
+    if (!providerResponse.ok) {
+      console.error('Unable to verify returned checkout with PayMongo.', providerResponse.status);
+      return response({ error: 'Unable to verify payment with PayMongo.' }, 502);
+    }
+    const provider = await providerResponse.json();
+    const session = provider?.data;
+    const attributes = session?.attributes;
+    const items = Array.isArray(attributes?.line_items) ? attributes.line_items : [];
+    const payments = Array.isArray(attributes?.payments) ? attributes.payments : [];
+    hasPaidPayment = payments.some(
+      (payment: { attributes?: { status?: string } }) => payment.attributes?.status === 'paid',
+    );
+    const itemTotal = items.reduce(
+      (total: number, item: { amount?: number; quantity?: number; currency?: string }) =>
+        item.currency === 'PHP' ? total + Number(item.amount) * Number(item.quantity) : Number.NaN,
+      0,
+    );
+    if (
+      session?.id !== attempt.paymongo_checkout_session_id
+      || attributes?.reference_number !== reference
+      || attributes?.metadata?.attempt_id !== attempt.id
+      || items.length === 0
+      || items.some((item: { currency?: string }) => item.currency !== 'PHP')
+      || !Number.isFinite(itemTotal)
+      || itemTotal !== Math.round(Number(attempt.total_price) * 100)
+    ) {
+      console.error('PayMongo return did not match the checkout attempt.', {
+        sessionId: attempt.paymongo_checkout_session_id,
+        reference,
+      });
+      return response({ error: 'Payment could not be verified.' }, 409);
+    }
   }
   if (!hasPaidPayment) return response({ status: 'pending' });
 
@@ -137,12 +149,17 @@ Deno.serve(async (request) => {
 
   const { error: updateError } = await admin
     .from('paymongo_checkout_attempts')
-    .update({ status: 'paid' })
+    .update({
+      status: 'paid',
+      booking_payload: testAutoConfirm
+        ? { ...attempt.booking_payload, test_auto_confirmed: true }
+        : attempt.booking_payload,
+    })
     .eq('id', attempt.id)
     .eq('status', 'pending');
   if (updateError) {
     console.error('Unable to mark checkout attempt paid.', updateError);
     return response({ error: 'Unable to complete booking.' }, 500);
   }
-  return response({ status: 'paid' });
+  return response({ status: testAutoConfirm ? 'test-confirmed' : 'paid' });
 });
