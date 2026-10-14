@@ -74,7 +74,7 @@ If signup shows “Database error saving new user”, run [`supabase/fix-google-
 
 ### Booking row security
 
-Before customers can submit bookings, run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor. It enables row-level security and allows authenticated customers to read, create, and update only rows whose `user_id` matches their Supabase Auth user ID. Local-only accounts cannot submit cloud bookings.
+Run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor for this project. It enables row-level security, lets authenticated customers read, create, and update only their own bookings, and lets the admin account (`admin@smartrentals.com` or a user with `is_admin` metadata) view, update, and delete bookings in the admin interface. Re-run this script on existing projects to apply the admin policies. Local-only accounts cannot submit cloud bookings.
 
 ### Claimable rewards
 
