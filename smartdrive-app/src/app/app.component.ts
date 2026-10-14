@@ -1,6 +1,7 @@
 import { Component, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import {
@@ -64,6 +65,8 @@ export class AppComponent {
     private readonly mobileFeedback: MobileFeedbackService,
     readonly notificationCenter: NotificationCenterService,
   ) {
+    if (Capacitor.getPlatform() === 'android') void this.registerAndroidDeepLinks();
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.currentRouteUrl.set(event.urlAfterRedirects);
@@ -123,6 +126,28 @@ export class AppComponent {
         void this.router.navigateByUrl('/signup?googleRegistration=1');
       }
     });
+  }
+
+  private async registerAndroidDeepLinks(): Promise<void> {
+    const navigateToAppUrl = (value: string): void => {
+      try {
+        const deepLink = new URL(value);
+        if (deepLink.protocol !== 'smartdrive:' || deepLink.hostname !== 'booking') return;
+        if (!/^\/confirmation\/SD-\d{4}-[A-F\d]{12}$/.test(deepLink.pathname)) return;
+        if (!deepLink.searchParams.has('attempt')) return;
+        void this.router.navigateByUrl(`${deepLink.pathname}${deepLink.search}`);
+      } catch (error) {
+        console.error('Unable to handle SmartDrive payment return link.', error);
+      }
+    };
+
+    try {
+      const launch = await App.getLaunchUrl();
+      if (launch?.url) navigateToAppUrl(launch.url);
+      await App.addListener('appUrlOpen', ({ url }) => navigateToAppUrl(url));
+    } catch (error) {
+      console.error('Unable to register SmartDrive Android payment return links.', error);
+    }
   }
 
   private clearGoogleOAuthIntent(): void {
