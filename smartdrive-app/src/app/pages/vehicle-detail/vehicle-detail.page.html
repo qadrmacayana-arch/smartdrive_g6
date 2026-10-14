@@ -20,38 +20,21 @@
     <div class="hero-image" [style.background-image]="'url(' + v.image + ')'"></div>
 
     <div class="detail-body">
-      @if (onlineImagesLoading() || onlineImages().length || onlineImagesError()) {
+      @if (onlineImages().length) {
         <section class="online-gallery" aria-label="Online vehicle photos">
-          <div class="gallery-heading">
-            <div>
-              <span class="type-label">More photos</span>
-              <h2>{{ v.name }} online</h2>
-            </div>
-            <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">
-              Wikimedia Commons
-            </a>
+          <div class="online-image-list">
+            @for (image of onlineImages(); track image.filePage) {
+              <a
+                class="online-image-card"
+                [href]="image.filePage"
+                [attr.aria-label]="'Photo by ' + image.artist + ', licensed ' + image.license + '. View on Wikimedia Commons'"
+                [title]="image.artist + ' · ' + image.license"
+                target="_blank"
+                rel="noopener noreferrer">
+                <img [src]="image.thumbnail" [alt]="image.fileName" loading="lazy">
+              </a>
+            }
           </div>
-          @if (onlineImagesLoading() && !onlineImages().length) {
-            <p class="sd-muted gallery-status" role="status">Finding photos of this vehicle…</p>
-          } @else if (onlineImages().length) {
-            <div class="online-image-list">
-              @for (image of onlineImages(); track image.filePage) {
-                <figure class="online-image-card">
-                  <a [href]="image.filePage" target="_blank" rel="noopener noreferrer">
-                    <img [src]="image.thumbnail" [alt]="image.fileName" loading="lazy">
-                  </a>
-                  <figcaption>
-                    <span>{{ image.artist }} · {{ image.license }}</span>
-                    <a [href]="image.filePage" target="_blank" rel="noopener noreferrer">Source & license</a>
-                  </figcaption>
-                </figure>
-              }
-            </div>
-          } @else if (onlineImagesError()) {
-            <p class="sd-muted gallery-status">Online photos couldn’t be loaded right now.</p>
-          } @else {
-            <p class="sd-muted gallery-status">No matching freely licensed online photos were found.</p>
-          }
         </section>
       }
 
