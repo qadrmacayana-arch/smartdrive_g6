@@ -34,6 +34,74 @@
   border-radius: 1.75rem 1.75rem 0 0;
 }
 
+.online-gallery {
+  margin: 0 0 1.75rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--sd-border);
+}
+
+.gallery-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+
+  h2 {
+    margin: 0.25rem 0 0;
+  }
+
+  > a,
+  figcaption a {
+    color: var(--sd-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+}
+
+.online-image-list {
+  display: grid;
+  grid-auto-columns: minmax(190px, 1fr);
+  grid-auto-flow: column;
+  gap: 0.8rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-bottom: 0.35rem;
+  scroll-snap-type: inline mandatory;
+}
+
+.online-image-card {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--sd-border);
+  border-radius: var(--sd-radius);
+  background: var(--sd-background);
+  scroll-snap-align: start;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    background: var(--sd-muted);
+  }
+
+  figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.55rem 0.65rem;
+    color: var(--sd-muted-foreground);
+    font-size: 0.68rem;
+  }
+}
+
+.gallery-status {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
 .vehicle-heading {
   display: flex;
   align-items: flex-start;
@@ -153,6 +221,14 @@ h2 {
   margin: 0;
   color: var(--sd-muted-foreground);
   line-height: 1.65;
+}
+
+.online-image-list {
+  grid-auto-columns: minmax(72vw, 1fr);
+}
+
+.online-image-card img {
+  height: 180px;
 }
 
 .features-grid {

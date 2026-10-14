@@ -15,6 +15,23 @@ import { AuthService } from '../../core/services/auth.service';
 import { BookingService } from '../../core/services/booking.service';
 import { Vehicle } from '../../core/models/vehicle.model';
 
+interface WikimediaVehicleImage {
+  thumbnail: string;
+  filePage: string;
+  fileName: string;
+  artist: string;
+  license: string;
+}
+
+interface WikimediaFilePage {
+  title?: string;
+  imageinfo?: Array<{
+    thumburl?: string;
+    descriptionurl?: string;
+    extmetadata?: Record<string, { value?: string } | undefined>;
+  }>;
+}
+
 @Component({
   selector: 'app-vehicle-detail',
   standalone: true,
@@ -37,6 +54,9 @@ export class VehicleDetailPage implements OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly bookingCheckLoading = signal(false);
   readonly alreadyRented = signal(false);
+  readonly onlineImages = signal<WikimediaVehicleImage[]>([]);
+  readonly onlineImagesLoading = signal(false);
+  readonly onlineImagesError = signal(false);
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -54,6 +74,7 @@ export class VehicleDetailPage implements OnInit {
         this.errorMessage.set('This vehicle could not be found.');
       } else {
         this.vehicle.set(vehicle);
+        void this.loadOnlineImages(vehicle);
         const user = this.auth.currentUser();
         if (user) {
           this.alreadyRented.set(await this.bookingService.hasOngoingBooking(user.id, vehicle.id));
@@ -64,6 +85,101 @@ export class VehicleDetailPage implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private async loadOnlineImages(vehicle: Vehicle): Promise<void> {
+    this.onlineImagesLoading.set(true);
+    this.onlineImagesError.set(false);
+    try {
+      const params = new URLSearchParams({
+        action: 'query',
+        generator: 'search',
+        gsrsearch: `"${vehicle.name}" car`,
+        gsrnamespace: '6',
+        gsrlimit: '12',
+        prop: 'imageinfo',
+        iiprop: 'url|extmetadata',
+        iiurlwidth: '900',
+        format: 'json',
+        origin: '*',
+      });
+      const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`, {
+        credentials: 'omit',
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!response.ok) throw new Error(`Wikimedia Commons returned HTTP ${response.status}.`);
+
+      const payload: unknown = await response.json();
+      if (!this.isRecord(payload)) throw new Error('Wikimedia Commons returned an invalid response.');
+      const query = payload['query'];
+      if (!this.isRecord(query) || !this.isRecord(query['pages'])) {
+        this.onlineImages.set([]);
+        return;
+      }
+
+      const modelTerms = this.normalizedWords(vehicle.name).filter((word) => word.length > 1);
+      const images = Object.values(query['pages'])
+        .filter((page): page is WikimediaFilePage =>
+          this.isRecord(page) && typeof page['title'] === 'string',
+        )
+        .map((page) => {
+          const info = page.imageinfo?.[0];
+          const metadata = info?.extmetadata ?? {};
+          const searchableText = this.normalizeText([
+            page.title,
+            metadata['ObjectName']?.value,
+            metadata['ImageDescription']?.value,
+            metadata['Categories']?.value,
+          ].filter(Boolean).join(' '));
+          const matchingTerms = modelTerms.filter((term) => searchableText.includes(term)).length;
+          const thumbnail = info?.thumburl;
+          const filePage = info?.descriptionurl;
+          if (!thumbnail || !filePage || matchingTerms < modelTerms.length) return null;
+
+          return {
+            thumbnail,
+            filePage,
+            fileName: (page.title ?? vehicle.name).replace(/^File:/, ''),
+            artist: this.plainText(metadata['Artist']?.value)
+              || this.plainText(metadata['Credit']?.value)
+              || 'Wikimedia Commons contributor',
+            license: this.plainText(metadata['LicenseShortName']?.value) || 'See image page',
+            matchingTerms,
+          };
+        })
+        .filter((image): image is WikimediaVehicleImage & { matchingTerms: number } => image !== null)
+        .sort((first, second) => second.matchingTerms - first.matchingTerms)
+        .filter((image, index, all) =>
+          all.findIndex((candidate) => candidate.thumbnail === image.thumbnail) === index,
+        )
+        .slice(0, 8)
+        .map(({ matchingTerms: _matchingTerms, ...image }) => image);
+      this.onlineImages.set(images);
+    } catch (error) {
+      this.onlineImagesError.set(true);
+      console.error(`Unable to load online vehicle photos for ${vehicle.name}.`, error);
+    } finally {
+      this.onlineImagesLoading.set(false);
+    }
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
+
+  private normalizedWords(value: string): string[] {
+    return value.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, ' ').trim().split(/\s+/);
+  }
+
+  private normalizeText(value: string): string {
+    return this.normalizedWords(
+      new DOMParser().parseFromString(value, 'text/html').body.textContent ?? value,
+    ).join(' ');
+  }
+
+  private plainText(value: string | undefined): string {
+    if (!value) return '';
+    return (new DOMParser().parseFromString(value, 'text/html').body.textContent ?? '').trim();
   }
 
   async bookNow(): Promise<void> {
