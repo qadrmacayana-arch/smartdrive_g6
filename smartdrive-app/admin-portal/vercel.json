@@ -1,6 +1,6 @@
 {
-  "installCommand": "npm ci --prefix ..",
-  "buildCommand": "npm --prefix .. run build:admin",
+  "installCommand": "npm ci --prefix ../..",
+  "buildCommand": "npm --prefix ../.. run build:admin",
   "outputDirectory": "dist",
   "rewrites": [
     {
