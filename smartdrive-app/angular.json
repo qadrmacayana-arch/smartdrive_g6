@@ -130,7 +130,10 @@
               "base": "admin-portal/dist",
               "browser": ""
             },
-            "index": "src/admin-index.html",
+            "index": {
+              "input": "src/admin-index.html",
+              "output": "index.html"
+            },
             "browser": "src/admin-main.ts",
             "polyfills": [],
             "tsConfig": "tsconfig.admin.json",
