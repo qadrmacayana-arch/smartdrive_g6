@@ -9,26 +9,18 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 
-interface FeatureItem {
-  icon: string;
-  title: string;
-  description: string;
+interface CompanyMember {
+  name: string;
+  role: string;
 }
 
-const WHY_CHOOSE: FeatureItem[] = [
-  { icon: 'shield-checkmark-outline', title: 'Fully Insured', description: 'Every vehicle comes with comprehensive insurance coverage for complete peace of mind.' },
-  { icon: 'chatbubble-ellipses-outline', title: '24/7 Support', description: 'Our dedicated support team is available around the clock for questions or emergencies.' },
-  { icon: 'car-sport-outline', title: 'Premium Fleet', description: 'Meticulously maintained vehicles from economy to premium, for every budget.' },
-  { icon: 'flash-outline', title: 'Easy Booking', description: 'Pick your vehicle, select your dates, and hit the road in just minutes.' },
-  { icon: 'pricetag-outline', title: 'Transparent Pricing', description: 'No hidden fees. What you see is what you pay, every time.' },
-  { icon: 'location-outline', title: 'Nationwide Coverage', description: 'Locations across major Philippine cities, wherever your journey takes you.' },
-];
-
-const STATS = [
-  { value: '500+', label: 'Vehicles in Fleet' },
-  { value: '50K+', label: 'Happy Customers' },
-  { value: '6+', label: 'Major Cities' },
-  { value: '4.9★', label: 'Customer Rating' },
+const COMPANY_MEMBERS: CompanyMember[] = [
+  { name: 'Anthony Macayana', role: 'Main developer, designer, and planner' },
+  { name: 'James Miuel Faa', role: 'Design lead for the Ionic Angular, web, and mobile versions' },
+  { name: 'Joseph P.J. Abus', role: 'Backend developer and designer' },
+  { name: 'King Aron Noriega', role: 'Backend, API, and database developer' },
+  { name: 'Sean Audrey Ferrer', role: 'Backend and database developer' },
+  { name: 'Shanice Kyle Dacian', role: 'Frontend and API developer' },
 ];
 
 @Component({
@@ -41,8 +33,7 @@ const STATS = [
 export class AboutPage {
   readonly currentUser = this.auth.currentUser;
   readonly activeTab = signal<'history' | 'contact' | 'developers'>('history');
-  readonly whyChoose = WHY_CHOOSE;
-  readonly stats = STATS;
+  readonly members = COMPANY_MEMBERS;
 
   constructor(
     private readonly router: Router,

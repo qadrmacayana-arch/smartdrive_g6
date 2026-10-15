@@ -9,7 +9,9 @@
 
 .home { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 1.05rem clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--home-ink); }
 .topbar { display: flex; height: 48px; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.brand { color: var(--home-ink); font: 800 1.15rem 'Sora',sans-serif; letter-spacing: -.055em; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--home-ink); font: 800 1.15rem 'Sora',sans-serif; letter-spacing: -.055em; text-decoration: none; }
+.brand img { width: 2.15rem; height: 2.15rem; border-radius: .6rem; object-fit: cover; }
+.brand span { display: inline-flex; align-items: flex-start; }
 .brand sup { margin-left: .12rem; color: var(--home-purple); font: 800 .52rem 'Plus Jakarta Sans',sans-serif; vertical-align: super; }
 .topbar nav { display: flex; align-items: center; gap: .5rem; }
 .topbar nav a { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; padding: 0 .8rem; border: 1px solid var(--home-line); border-radius: .65rem; background: var(--sd-card); color: var(--home-ink); font-size: .72rem; font-weight: 750; text-decoration: none; transition: .16s ease; }

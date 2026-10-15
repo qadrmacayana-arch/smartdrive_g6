@@ -2,7 +2,9 @@
 & { display: block; }
 .fleet-page { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 0 clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--sd-foreground); }
 .fleet-header { display: flex; min-height: 60px; align-items: center; justify-content: space-between; margin: 0 calc(-1 * clamp(1rem,3vw,2rem)) 1.5rem; padding: 0 clamp(1rem,3vw,2rem); border-bottom: 1px solid var(--sd-border); background: rgba(255,255,255,.7); }
-.brand { color: var(--sd-heading); font: 800 1.05rem 'Sora',sans-serif; letter-spacing: -.05em; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--sd-heading); font: 800 1.05rem 'Sora',sans-serif; letter-spacing: -.05em; text-decoration: none; }
+.brand img { width: 2.1rem; height: 2.1rem; border-radius: .6rem; object-fit: cover; }
+.brand span { display: inline-flex; align-items: flex-start; }
 .brand sup { color: var(--sd-primary); font: 800 .52rem 'Plus Jakarta Sans',sans-serif; }
 .fleet-header nav { display: flex; gap: .45rem; }
 .fleet-header nav a { display: inline-flex; min-height: 2.2rem; align-items: center; padding: 0 .75rem; border: 1px solid var(--sd-border); border-radius: .6rem; color: var(--sd-primary); font-size: .68rem; font-weight: 750; text-decoration: none; }

@@ -23,11 +23,21 @@
 }
 
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   color: var(--sd-heading);
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   text-decoration: none;
+
+  img {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.55rem;
+    object-fit: cover;
+  }
 
   sup {
     color: var(--sd-primary);
@@ -219,6 +229,62 @@
 .story-section > p:not(.eyebrow),
 .developers-section p:not(.eyebrow) {
   margin-top: 0.7rem;
+}
+
+.technology-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+
+  span {
+    padding: 0.38rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--sd-primary) 25%, var(--sd-border));
+    border-radius: 999px;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+    font-size: 0.7rem;
+    font-weight: 750;
+  }
+}
+
+.history-team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1rem;
+
+  article {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.8rem;
+    border: 1px solid var(--sd-border);
+    border-radius: 0.85rem;
+    background: var(--sd-background);
+  }
+
+  ion-icon {
+    flex: 0 0 auto;
+    color: var(--sd-primary);
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    margin: 0;
+    color: var(--sd-heading);
+    font-size: 0.78rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
 }
 
 .stats-section {
@@ -488,6 +554,10 @@
 
   .developers-grid {
     grid-template-columns: 1fr;
+  }
+
+  .history-team-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -1,7 +1,7 @@
 <ion-content [fullscreen]="true">
   <main class="about-page">
     <header class="about-header">
-      <a routerLink="/tabs/home" class="brand">SmartDrive<sup>TM</sup></a>
+      <a routerLink="/tabs/home" class="brand"><img src="assets/icon/smartdrive-icon.png" alt=""><span>SmartDrive<sup>TM</sup></span></a>
       @if (!currentUser()) {
         <nav><a routerLink="/login" class="log-in">Log in</a><a routerLink="/signup" class="sign-in">Sign up</a></nav>
       }
@@ -14,32 +14,43 @@
     </section>
 
     <nav class="about-subnav" aria-label="About page sections">
-      <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">App History</button>
+      <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">Company History</button>
       <button type="button" [class.active]="activeTab() === 'contact'" (click)="selectTab('contact')">Contacts</button>
       <button type="button" [class.active]="activeTab() === 'developers'" (click)="selectTab('developers')">Developers</button>
     </nav>
 
     @if (activeTab() === 'history') {
     <section class="tab-content">
-      <section class="pillars">
-        <article><span>◷</span><h2>Our Mission</h2><p>To provide accessible, affordable, and reliable vehicle rental services that empower travelers to explore the Philippines with confidence and comfort.</p></article>
-        <article><span>✦</span><h2>Our Vision</h2><p>To become the Philippines' most trusted and innovative vehicle rental platform, delivering exceptional value and service.</p></article>
-        <article><span>◇</span><h2>Our Values</h2><p>Integrity, quality, innovation, safety, and customer-centricity guide every decision we make.</p></article>
-      </section>
       <section class="content-section story-section">
-      <p class="eyebrow">OUR HISTORY</p><h2>Built for better journeys</h2>
-      <p>SmartDrive was developed in February 2026 with a single vision: to revolutionize the vehicle rental industry in the Philippines. As a proudly Philippine-based company, we built a service that combines affordability, reliability, and exceptional customer experiences.</p>
-      <p>Our rapidly growing fleet spans major cities including Manila, Cebu, Davao, and Cagayan de Oro. From economical motorcycles for city exploration to premium SUVs for family adventures, we have the right vehicle for every journey.</p>
-      <p>Our 24/7 support team, transparent pricing, comprehensive insurance coverage, and flexible booking options help locals and travelers move with confidence.</p>
+        <p class="eyebrow">OUR STORY · 2026</p>
+        <h2>From a small rental app to a smarter way to get moving.</h2>
+        <p>SmartDrive began in 2026 as a small vehicle-rental app idea. The goal was to bring vehicle discovery and the steps of arranging a rental into one straightforward digital experience.</p>
+        <p>It started with the essentials: browse vehicles, choose rental dates, and move through a booking. The project has since evolved with features shaped around the renter, including vehicle details, saved favorites, account tools, payment options, and clearer booking information.</p>
       </section>
 
-      <section class="content-section stats-section">
-      <h2>By the numbers</h2><div class="stats-grid">@for (stat of stats; track stat.label) {<article><strong>{{ stat.value }}</strong><span>{{ stat.label }}</span></article>}</div>
+      <section class="content-section story-section">
+        <p class="eyebrow">HOW IT WAS MADE</p>
+        <h2>Built and improved as a team.</h2>
+        <p>SmartDrive was developed as a student team project at the Technological Institute of the Philippines – Quezon City Campus. The work brought together planning and design, the customer-facing web and mobile experience, backend services, APIs, and database development.</p>
+        <p>The app uses Angular and Ionic for its interface, with Supabase supporting data and account services. Capacitor helps bring the web experience to Android. The team continues to refine the project as its features grow.</p>
+        <div class="technology-list"><span>Angular</span><span>Ionic</span><span>Supabase</span><span>Capacitor</span></div>
       </section>
 
-      <section class="content-section benefits-section">
-      <p class="eyebrow">THE SMARTDRIVE DIFFERENCE</p><h2>Why choose SmartDrive?</h2><p class="section-lead">We've built our reputation on trust, quality, and exceptional service.</p>
-      <div class="feature-grid">@for (feature of whyChoose; track feature.title) {<article><ion-icon [name]="feature.icon"></ion-icon><h3>{{ feature.title }}</h3><p>{{ feature.description }}</p></article>}</div>
+      <section class="content-section story-section history-team">
+        <p class="eyebrow">THE PEOPLE BEHIND THE PROJECT</p>
+        <h2>Meet the team</h2>
+        <div class="history-team-grid">
+          @for (member of members; track member.name) {
+            <article>
+              <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+              <div><h3>{{ member.name }}</h3><p>{{ member.role }}</p></div>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="content-section story-section">
+        <p><strong>Still growing.</strong> SmartDrive continues to evolve from its original small-app idea. This history describes the project and its development; it does not claim a particular fleet size, number of customers, or rental locations.</p>
       </section>
     </section>
     }

@@ -36,7 +36,7 @@
               </a>
             </ion-menu-toggle>
           } @else {
-            <div class="menu-avatar" aria-hidden="true">SD</div>
+            <div class="menu-avatar" aria-hidden="true"><img src="assets/icon/smartdrive-icon.png" alt=""></div>
             <div class="menu-profile-details">
               <h2>SmartDrive™</h2>
               <p>Welcome, guest</p>
@@ -49,12 +49,6 @@
             <ion-item routerLink="/tabs/home" routerLinkActive="selected" button detail="false">
               <ion-icon slot="start" name="home-outline"></ion-icon>
               <ion-label>Home</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/company-history" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="time-outline"></ion-icon>
-              <ion-label>Company History</ion-label>
             </ion-item>
           </ion-menu-toggle>
           @if (currentUser()) {
@@ -146,6 +140,19 @@
               >
                 <ion-icon slot="start" name="people-outline"></ion-icon>
                 <ion-label>About the Developers</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+            <ion-menu-toggle auto-hide="false">
+              <ion-item
+                routerLink="/about"
+                [queryParams]="{ section: 'history' }"
+                routerLinkActive="selected"
+                [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored' }"
+                button
+                detail="false"
+              >
+                <ion-icon slot="start" name="time-outline"></ion-icon>
+                <ion-label>Company History</ion-label>
               </ion-item>
             </ion-menu-toggle>
             <ion-menu-toggle auto-hide="false">

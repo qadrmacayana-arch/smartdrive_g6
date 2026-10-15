@@ -30,11 +30,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/services/services.page').then((m) => m.ServicesPage),
   },
   {
-    path: 'company-history',
-    loadComponent: () =>
-      import('./pages/company-history/company-history.page').then((m) => m.CompanyHistoryPage),
-  },
-  {
     path: 'trip-planner',
     canActivate: [authGuard],
     loadComponent: () => import('./pages/trip-planner/trip-planner.page').then((m) => m.TripPlannerPage),
