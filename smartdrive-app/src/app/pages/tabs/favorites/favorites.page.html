@@ -1,0 +1,68 @@
+<ion-content class="favorites-content" [fullscreen]="true">
+  <main class="favorites-page">
+    <header class="favorites-heading">
+      <div>
+        <span class="section-kicker">YOUR SAVED RIDES</span>
+        <h1>Favorites</h1>
+        <p>Keep the vehicles you love close at hand.</p>
+      </div>
+      <a routerLink="/tabs/rent-a-car" class="browse-link">
+        <ion-icon name="car-outline" aria-hidden="true"></ion-icon>
+        Browse vehicles
+      </a>
+    </header>
+
+    @if (loading()) {
+      <div class="favorites-grid" aria-label="Loading favorites">
+        @for (item of [1, 2, 3]; track item) {
+          <div class="favorite-loading"></div>
+        }
+      </div>
+    } @else if (errorMessage()) {
+      <section class="favorites-empty" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        <h2>Favorites unavailable</h2>
+        <p>{{ errorMessage() }}</p>
+      </section>
+    } @else if (favoriteVehicles().length) {
+      <section class="favorites-grid" aria-label="Favorite vehicles">
+        @for (vehicle of favoriteVehicles(); track vehicle.id) {
+          <article class="favorite-card" (click)="openVehicle(vehicle)">
+            <div class="favorite-image">
+              @if (vehicle.image) {
+                <img [src]="vehicle.image" [alt]="vehicle.name" loading="lazy">
+              } @else {
+                <ion-icon name="car-outline" aria-hidden="true"></ion-icon>
+              }
+              <span class="vehicle-category">{{ vehicle.main_category }}</span>
+            </div>
+            <div class="favorite-details">
+              <span class="vehicle-type">{{ vehicle.type }}</span>
+              <h2>{{ vehicle.name }}</h2>
+              <p>{{ vehicle.seats }} seats <span>·</span> {{ vehicle.transmission }} <span>·</span> {{ vehicle.fuel }}</p>
+              <div class="favorite-footer">
+                <strong>₱{{ vehicle.price | number }} <small>/ day</small></strong>
+                <button
+                  type="button"
+                  class="remove-favorite"
+                  (click)="removeFavorite(vehicle, $event)"
+                  [attr.aria-label]="'Remove ' + vehicle.name + ' from favorites'"
+                >
+                  <ion-icon name="heart" aria-hidden="true"></ion-icon>
+                  Remove
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </section>
+    } @else {
+      <section class="favorites-empty">
+        <span class="empty-icon"><ion-icon name="heart-outline" aria-hidden="true"></ion-icon></span>
+        <h2>No favorites yet</h2>
+        <p>Tap the heart on any vehicle to save it here for later.</p>
+        <a routerLink="/tabs/rent-a-car" class="browse-button">Explore vehicles</a>
+      </section>
+    }
+  </main>
+</ion-content>

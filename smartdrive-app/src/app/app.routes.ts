@@ -59,6 +59,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tabs/landing/landing.page').then((m) => m.LandingPage),
       },
       {
+        path: 'favorites',
+        loadComponent: () => import('./pages/tabs/favorites/favorites.page').then((m) => m.FavoritesPage),
+      },
+      {
         path: 'about',
         canActivate: [authGuard],
         loadComponent: () => import('./pages/about/about.page').then((m) => m.AboutPage),
