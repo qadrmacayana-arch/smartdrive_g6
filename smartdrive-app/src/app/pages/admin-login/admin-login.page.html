@@ -1,40 +1,119 @@
 <ion-content class="admin-login-content">
   <main class="admin-login">
-    <section class="admin-login-card">
-      <div class="admin-login-brand" aria-hidden="true">S</div>
-      <p class="admin-login-kicker">SMARTDRIVE ADMINISTRATION</p>
-      <h1>Admin sign in</h1>
-      <p class="admin-login-description">Sign in with an authorized administrator account to continue.</p>
+    <section class="login-showcase" aria-label="SmartDrive administrator portal">
+      <a class="showcase-brand" href="/" aria-label="SmartDrive home">
+        <span class="brand-mark" aria-hidden="true">S</span>
+        <span class="brand-name">SmartDrive<small>ADMIN PORTAL</small></span>
+      </a>
 
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <label for="admin-email">Email address</label>
-        <input
-          id="admin-email"
-          type="email"
-          autocomplete="username"
-          formControlName="email"
-          required
-        />
+      <div class="showcase-copy">
+        <span class="showcase-eyebrow"><span></span> OPERATIONS WORKSPACE</span>
+        <h1>Keep every journey<br />moving forward.</h1>
+        <p>A dedicated space to manage your fleet, bookings, and customer experience.</p>
+      </div>
 
-        <label for="admin-password">Password</label>
-        <input
-          id="admin-password"
-          type="password"
-          autocomplete="current-password"
-          formControlName="password"
-          required
-        />
+      <div class="route-art" aria-hidden="true">
+        <div class="route-orbit orbit-one"></div>
+        <div class="route-orbit orbit-two"></div>
+        <div class="route-line"></div>
+        <div class="route-point point-start"></div>
+        <div class="route-point point-end"><span></span></div>
+        <div class="route-card">
+          <span class="route-card-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 13.5 5 7h11l2.2 6.5M3 13.5h15.2M3 13.5l-.7 3.1a1 1 0 0 0 1 1.2H5m13.2-4.3 2.1 2.4a1 1 0 0 1-.8 1.7H18m-13 0a1.8 1.8 0 1 0 3.6 0M5 17.6h10m3 0a1.8 1.8 0 1 0 3.6 0M7 7V5.7A1.7 1.7 0 0 1 8.7 4h5.6A1.7 1.7 0 0 1 16 5.7V7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span><strong>SmartDrive</strong><small>Admin workspace</small></span>
+          <span class="route-card-status"><i></i> SECURE</span>
+        </div>
+      </div>
 
-        @if (errorMessage()) {
-          <p class="admin-login-error" role="alert">{{ errorMessage() }}</p>
-        }
+      <p class="showcase-footer">One place to keep your operations in motion.</p>
+    </section>
 
-        <button type="submit" [disabled]="submitting() || form.invalid">
-          {{ submitting() ? 'Checking account…' : 'Sign in securely' }}
-        </button>
-      </form>
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="login-panel-inner">
+        <a class="mobile-brand" href="/" aria-label="SmartDrive home">
+          <span class="brand-mark" aria-hidden="true">S</span>
+          <span class="brand-name">SmartDrive<small>ADMIN PORTAL</small></span>
+        </a>
 
-      <p class="admin-login-footer">Administrator access is verified by your SmartDrive account.</p>
+        <div class="login-heading">
+          <span class="login-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          </span>
+          <p class="login-kicker">ADMINISTRATOR ACCESS</p>
+          <h2 id="login-title">Welcome back</h2>
+          <p class="login-description">Sign in to continue to your operations workspace.</p>
+        </div>
+
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <div class="form-field">
+            <label for="admin-email">Email address</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="3.5" y="5" width="17" height="14" rx="2.5" stroke="currentColor" stroke-width="1.6" />
+                <path d="m5 7 7 5.5L19 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <input
+                id="admin-email"
+                type="email"
+                placeholder="you@company.com"
+                autocomplete="email"
+                formControlName="email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="admin-password">Password</label>
+            <div class="input-wrap">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4.5" y="10" width="15" height="11" rx="2.5" stroke="currentColor" stroke-width="1.6" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14.5v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+              <input
+                id="admin-password"
+                type="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                formControlName="password"
+                required
+              />
+            </div>
+          </div>
+
+          @if (errorMessage()) {
+            <p class="admin-login-error" role="alert">{{ errorMessage() }}</p>
+          }
+
+          <button type="submit" [disabled]="submitting() || form.invalid">
+            @if (submitting()) {
+              <span class="button-spinner" aria-hidden="true"></span>
+              <span>Verifying account…</span>
+            } @else {
+              <span>Sign in to admin</span>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            }
+          </button>
+        </form>
+
+        <div class="login-assurance">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3 5 6v5c0 4.6 2.9 8.2 7 10 4.1-1.8 7-5.4 7-10V6l-7-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Administrator access is verified securely.</span>
+        </div>
+
+        <p class="login-copyright">© SmartDrive · Administrator portal</p>
+      </div>
     </section>
   </main>
 </ion-content>
