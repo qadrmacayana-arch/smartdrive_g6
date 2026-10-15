@@ -148,7 +148,7 @@ export class AppComponent {
             take(1),
           ));
         }
-        await this.router.navigateByUrl(`${deepLink.pathname}${deepLink.search}`);
+        await this.router.navigateByUrl(`/booking${deepLink.pathname}${deepLink.search}`);
       } catch (error) {
         console.error('Unable to handle SmartDrive payment return link.', error);
       } finally {
