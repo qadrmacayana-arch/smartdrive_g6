@@ -23,6 +23,7 @@
   --sd-radius-sm: 0.65rem;
   --sd-radius-lg: 1.6rem;
   --sd-gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 55%, #c026d3 100%);
+  --sd-panel-gradient: linear-gradient(145deg, #ffffff 0%, #faf7ff 100%);
   --sd-shadow-md: 0 10px 30px -8px rgba(76, 29, 149, 0.14);
 
   --ion-color-primary: #7c3aed;
@@ -99,6 +100,7 @@ html[data-theme='dark'] {
   --sd-success: #34d399;
   --sd-warning: #fbbf24;
   --sd-gradient-primary: linear-gradient(135deg, #8b5cf6 0%, #b062f3 55%, #d946ef 100%);
+  --sd-panel-gradient: linear-gradient(145deg, #181d2d 0%, #171d2d 100%);
   --sd-shadow-md: 0 10px 30px -8px rgba(15, 18, 32, 0.7);
 
   --ion-color-primary: #a78bfa;

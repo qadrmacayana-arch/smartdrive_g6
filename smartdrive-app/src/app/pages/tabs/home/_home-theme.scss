@@ -12,7 +12,7 @@
 .brand { color: var(--home-ink); font: 800 1.15rem 'Sora',sans-serif; letter-spacing: -.055em; text-decoration: none; }
 .brand sup { margin-left: .12rem; color: var(--home-purple); font: 800 .52rem 'Plus Jakarta Sans',sans-serif; vertical-align: super; }
 .topbar nav { display: flex; align-items: center; gap: .5rem; }
-.topbar nav a { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; padding: 0 .8rem; border: 1px solid var(--home-line); border-radius: .65rem; background: #fff; color: var(--home-ink); font-size: .72rem; font-weight: 750; text-decoration: none; transition: .16s ease; }
+.topbar nav a { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; padding: 0 .8rem; border: 1px solid var(--home-line); border-radius: .65rem; background: var(--sd-card); color: var(--home-ink); font-size: .72rem; font-weight: 750; text-decoration: none; transition: .16s ease; }
 .topbar nav a:hover { border-color: #c3adee; color: var(--home-purple); }
 .topbar nav .sign-in { border-color: transparent; background: var(--sd-gradient-primary); color: white; }
 .topbar nav .sign-in:hover { box-shadow: 0 6px 15px rgba(124,58,237,.2); color: white; }
@@ -24,7 +24,7 @@
 .hero-card h1 { position: relative; z-index: 1; max-width: 680px; margin: 1rem 0 .65rem; color: white; font: 800 clamp(2rem,5vw,3.35rem)/1.05 'Sora',sans-serif; letter-spacing: -.065em; }
 .hero-card > p { position: relative; z-index: 1; max-width: 610px; margin: 0; color: rgba(255,255,255,.8); font-size: .85rem; line-height: 1.65; }
 .booking-bar { position: relative; z-index: 1; display: flex; max-width: 760px; gap: .5rem; margin-top: 1.45rem; padding: .45rem; border: 1px solid rgba(255,255,255,.2); border-radius: .85rem; background: rgba(255,255,255,.13); backdrop-filter: blur(8px); }
-.booking-input { display: flex; min-width: 0; min-height: 2.9rem; align-items: center; gap: .5rem; padding: 0 .65rem; border: 1px solid transparent; border-radius: .55rem; background: white; color: var(--home-muted); }
+.booking-input { display: flex; min-width: 0; min-height: 2.9rem; align-items: center; gap: .5rem; padding: 0 .65rem; border: 1px solid transparent; border-radius: .55rem; background: var(--sd-card); color: var(--home-muted); }
 .booking-input:focus-within { border-color: #c6aaf9; box-shadow: 0 0 0 3px rgba(255,255,255,.18); }
 .booking-input ion-icon { flex: 0 0 auto; color: var(--home-purple); font-size: 1rem; }
 .booking-input input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--home-ink); font: 600 .71rem 'Plus Jakarta Sans',sans-serif; }
@@ -38,7 +38,7 @@
 .categories { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .75rem; margin: 1rem 0 1.8rem; }
 .categories button { display: grid; grid-template-columns: 2.65rem minmax(0,1fr); align-items: center; gap: .12rem .75rem; min-height: 76px; padding: .8rem .9rem; border: 1px solid var(--home-line); border-radius: .85rem; background: var(--sd-card); color: var(--home-ink); text-align: left; cursor: pointer; transition: border .16s,background .16s,transform .16s,box-shadow .16s; }
 .categories button:hover { transform: translateY(-2px); border-color: #d5c4f1; box-shadow: 0 8px 18px rgba(76,29,149,.07); }
-.categories button.active { border-color: #cbb5f0; background: #faf7ff; box-shadow: inset 0 0 0 1px rgba(124,58,237,.08); }
+.categories button.active { border-color: #cbb5f0; background: var(--sd-primary-soft); box-shadow: inset 0 0 0 1px rgba(124,58,237,.08); }
 .categories strong { display: grid; grid-row: 1 / 3; width: 2.55rem; height: 2.55rem; place-items: center; border-radius: .75rem; background: var(--sd-primary-soft); color: var(--home-purple); }
 .categories strong ion-icon { font-size: 1.25rem; }
 .categories span { align-self: end; font-size: .77rem; font-weight: 800; }
@@ -51,7 +51,7 @@
 .section-title a ion-icon { font-size: .85rem; }
 .section-title a:hover { color: var(--sd-primary-hover); }
 .picks-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .85rem; }
-.pick-card { overflow: hidden; border: 1px solid var(--home-line); border-radius: .9rem; background: white; cursor: pointer; box-shadow: 0 5px 16px rgba(76,29,149,.045); transition: transform .2s,box-shadow .2s,border-color .2s; }
+.pick-card { overflow: hidden; border: 1px solid var(--home-line); border-radius: .9rem; background: var(--sd-card); cursor: pointer; box-shadow: 0 5px 16px rgba(76,29,149,.045); transition: transform .2s,box-shadow .2s,border-color .2s; }
 .pick-card:hover { transform: translateY(-3px); border-color: #d5c5ef; box-shadow: 0 13px 28px rgba(76,29,149,.11); }
 .pick-card:focus-visible { outline: 3px solid #b99be9; outline-offset: 3px; }
 .pick-image { position: relative; height: 190px; overflow: hidden; background: #f0edf7; }
@@ -65,35 +65,35 @@
 .vehicle-type,.pick-body > div > small { color: var(--home-purple); font-size: .57rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .pick-body h3 { overflow: hidden; margin: .3rem 0 .65rem; color: var(--home-ink); font: 750 1rem 'Sora',sans-serif; letter-spacing: -.025em; text-overflow: ellipsis; white-space: nowrap; }
 .specs { display: flex; flex-wrap: wrap; gap: .35rem; }
-.specs span { display: inline-flex; min-width: 0; align-items: center; gap: .25rem; padding: .34rem .42rem; border: 1px solid #eeeaf4; border-radius: .45rem; background: #fcfbfd; color: #746c83; font-size: .57rem; white-space: nowrap; }
+.specs span { display: inline-flex; min-width: 0; align-items: center; gap: .25rem; padding: .34rem .42rem; border: 1px solid var(--home-line); border-radius: .45rem; background: var(--sd-muted); color: var(--home-muted); font-size: .57rem; white-space: nowrap; }
 .specs ion-icon { flex: 0 0 auto; color: #8b63cc; font-size: .72rem; }
 .description { display: -webkit-box; min-height: 2.6rem; overflow: hidden; margin: .7rem 0 .85rem; color: var(--home-muted); font-size: .65rem; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.price-row { display: flex; align-items: end; justify-content: space-between; gap: .5rem; padding-top: .65rem; border-top: 1px solid #f0edf5; }
+.price-row { display: flex; align-items: end; justify-content: space-between; gap: .5rem; padding-top: .65rem; border-top: 1px solid var(--home-line); }
 .price-row > span { display: grid; gap: .18rem; }
 .price-row > span > small { color: #9690a4; font-size: .5rem; font-weight: 800; letter-spacing: .08em; }
 .price-row strong { color: var(--home-ink); font: 800 1.05rem 'Sora',sans-serif; letter-spacing: -.03em; }
 .price-row strong small { color: var(--home-muted); font: 600 .62rem 'Plus Jakarta Sans',sans-serif; letter-spacing: 0; }
 .price-row button { display: inline-flex; min-height: 2.15rem; align-items: center; gap: .3rem; padding: 0 .65rem; border: 0; border-radius: .55rem; background: var(--sd-gradient-primary); color: white; font: 750 .61rem 'Plus Jakarta Sans',sans-serif; cursor: pointer; }
 .price-row button ion-icon { font-size: .76rem; }
-.loading { min-height: 380px; background: linear-gradient(100deg,#f1eef6 35%,#e7e0f1 50%,#f1eef6 65%); background-size: 200%; animation: load 1.2s infinite; }
-.home-empty { display: grid; grid-column: 1 / -1; justify-items: center; padding: 1.75rem 1rem; border: 1px dashed #d8cce9; border-radius: .85rem; background: rgba(255,255,255,.65); text-align: center; }
+.loading { min-height: 380px; background: linear-gradient(100deg,var(--sd-muted) 35%,var(--sd-border) 50%,var(--sd-muted) 65%); background-size: 200%; animation: load 1.2s infinite; }
+.home-empty { display: grid; grid-column: 1 / -1; justify-items: center; padding: 1.75rem 1rem; border: 1px dashed var(--home-line); border-radius: .85rem; background: var(--sd-card); text-align: center; }
 .home-empty > ion-icon { color: var(--home-purple); font-size: 1.7rem; }
 .home-empty > strong { margin-top: .45rem; color: var(--home-ink); font-size: .75rem; }
 .home-empty > p { margin: .28rem 0 .6rem; color: var(--home-muted); font-size: .64rem; }
 .home-empty > button,.home-empty > a { display: inline-flex; min-height: 2rem; align-items: center; padding: 0 .65rem; border: 0; border-radius: .5rem; background: var(--sd-gradient-primary); color: #fff; font-size: .62rem; font-weight: 750; text-decoration: none; cursor: pointer; }
 @keyframes load { to { background-position: -200%; } }
 
-.why { margin-top: 1.6rem; padding: 1.6rem; border: 1px solid var(--home-line); border-radius: 1rem; background: linear-gradient(145deg,#fbf9ff,#f7f4fc); }
+.why { margin-top: 1.6rem; padding: 1.6rem; border: 1px solid var(--home-line); border-radius: 1rem; background: var(--sd-panel-gradient); }
 .why-heading { margin-bottom: 1rem; text-align: center; }
 .why-heading h2 { margin: .28rem 0; color: var(--home-ink); font: 750 1.25rem 'Sora',sans-serif; letter-spacing: -.04em; }
 .why-heading p { margin: 0; color: var(--home-muted); font-size: .7rem; }
 .why-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .7rem; }
-.why-grid article { padding: 1rem; border: 1px solid #ece6f6; border-radius: .75rem; background: #fff; }
+.why-grid article { padding: 1rem; border: 1px solid var(--home-line); border-radius: .75rem; background: var(--sd-card); }
 .why-grid b { display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border-radius: .65rem; background: var(--sd-primary-soft); color: var(--home-purple); }
 .why-grid b ion-icon { font-size: 1.05rem; }
 .why-grid h3 { margin: .65rem 0 .3rem; color: var(--home-ink); font: 750 .76rem 'Sora',sans-serif; }
 .why-grid p { margin: 0; color: var(--home-muted); font-size: .64rem; line-height: 1.55; }
-.offer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.3rem; margin: .9rem 0 .25rem; border: 1px solid #dfd1f5; border-radius: .85rem; background: linear-gradient(100deg,#f5efff,#fcf9ff); }
+.offer { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.3rem; margin: .9rem 0 .25rem; border: 1px solid var(--home-line); border-radius: .85rem; background: var(--sd-panel-gradient); }
 .offer > div > small { display: inline-flex; align-items: center; gap: .3rem; color: var(--sd-primary-hover); font-size: .54rem; font-weight: 800; letter-spacing: .1em; }
 .offer > div > small ion-icon { font-size: .8rem; }
 .offer h2 { margin: .25rem 0; color: var(--home-ink); font: 750 .95rem 'Sora',sans-serif; }
