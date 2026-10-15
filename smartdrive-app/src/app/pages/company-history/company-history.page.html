@@ -1,0 +1,61 @@
+<ion-content [fullscreen]="true" class="history-content">
+  <main class="history-page">
+    <a routerLink="/tabs/home" class="history-back">
+      <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+      Back to SmartDrive
+    </a>
+
+    <header class="history-hero">
+      <span class="history-eyebrow">OUR STORY · 2026</span>
+      <h1>From a small rental app to a smarter way to get moving.</h1>
+      <p>SmartDrive began as a small vehicle-rental app idea in 2026. It is growing into a connected platform designed to make finding a vehicle and arranging a rental feel clearer and more convenient.</p>
+    </header>
+
+    <section class="history-section origin-section">
+      <div class="section-icon"><ion-icon name="bulb-outline" aria-hidden="true"></ion-icon></div>
+      <div>
+        <span class="history-eyebrow">HOW IT STARTED</span>
+        <h2>A simple idea: make renting easier to navigate.</h2>
+        <p>The project started with a practical goal: bring vehicle discovery and the steps of arranging a rental into one straightforward app. Instead of beginning as a large rental operation, SmartDrive began small—with a digital experience for browsing vehicles, choosing dates, and moving through a booking.</p>
+        <p>From that starting point, the team kept building out the experience around the renter: vehicle details, saved favorites, account tools, payment options, and clearer booking information.</p>
+      </div>
+    </section>
+
+    <section class="history-section build-section">
+      <div class="section-icon"><ion-icon name="create-outline" aria-hidden="true"></ion-icon></div>
+      <div>
+        <span class="history-eyebrow">HOW IT WAS MADE</span>
+        <h2>Designed, built, and improved as a team.</h2>
+        <p>SmartDrive was developed as a student team project at the Technological Institute of the Philippines – Quezon City Campus. The team worked across planning and design, the customer-facing web and mobile experience, backend services, APIs, and the database.</p>
+        <p>The app uses Angular and Ionic for its interface, with Supabase supporting data and account services. The project has continued to evolve as features and flows have been refined for both web and Android.</p>
+        <div class="technology-list" aria-label="Project technologies">
+          <span>Angular</span><span>Ionic</span><span>Supabase</span><span>Capacitor</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="team-section">
+      <header>
+        <span class="history-eyebrow">THE PEOPLE BEHIND THE PROJECT</span>
+        <h2>Meet the team</h2>
+        <p>These are the contributors credited on the SmartDrive project.</p>
+      </header>
+      <div class="team-grid">
+        @for (member of members; track member.name) {
+          <article class="team-card">
+            <span class="member-icon"><ion-icon name="person-outline" aria-hidden="true"></ion-icon></span>
+            <div>
+              <h3>{{ member.name }}</h3>
+              <p>{{ member.role }}</p>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="history-note">
+      <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
+      <p><strong>Still growing.</strong> SmartDrive continues to evolve from its original small-app idea. This page describes the project’s beginnings and development; it does not claim a particular fleet size, number of customers, or rental locations.</p>
+    </section>
+  </main>
+</ion-content>

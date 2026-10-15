@@ -1,0 +1,227 @@
+.history-content {
+  --background: var(--sd-background);
+}
+
+.history-page {
+  width: min(100%, 920px);
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 2.5rem) clamp(1rem, 4vw, 2.25rem) 4rem;
+  color: var(--sd-foreground);
+}
+
+.history-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--sd-primary);
+  font-size: 0.82rem;
+  font-weight: 750;
+  text-decoration: none;
+
+  ion-icon {
+    font-size: 1.1rem;
+  }
+}
+
+.history-hero {
+  padding: clamp(2.5rem, 8vw, 5.5rem) 0 clamp(2rem, 6vw, 4rem);
+
+  h1 {
+    max-width: 800px;
+    margin: 0.65rem 0 0.9rem;
+    color: var(--sd-heading);
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2.1rem, 7vw, 4.2rem);
+    font-weight: 850;
+    letter-spacing: -0.055em;
+    line-height: 1.08;
+  }
+
+  > p {
+    max-width: 680px;
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+    line-height: 1.7;
+  }
+}
+
+.history-eyebrow {
+  color: var(--sd-primary);
+  font-size: 0.67rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+}
+
+.history-section {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 1.6rem);
+  padding: clamp(1.15rem, 4vw, 2rem);
+  margin-bottom: 1rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1.25rem;
+  background: var(--sd-card);
+  box-shadow: var(--sd-shadow-md);
+
+  .section-icon {
+    display: grid;
+    width: 2.8rem;
+    height: 2.8rem;
+    place-items: center;
+    border-radius: 0.9rem;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+
+    ion-icon {
+      font-size: 1.4rem;
+    }
+  }
+
+  h2 {
+    margin: 0.35rem 0 0.65rem;
+    color: var(--sd-heading);
+    font-size: clamp(1.15rem, 3.5vw, 1.55rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.25;
+  }
+
+  p {
+    margin: 0.55rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.87rem;
+    line-height: 1.7;
+  }
+}
+
+.team-section {
+  padding: clamp(1.15rem, 4vw, 2rem);
+  margin-top: 2rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 1.25rem;
+  background: var(--sd-card);
+
+  > header h2 {
+    margin: 0.35rem 0;
+    color: var(--sd-heading);
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.6rem, 5vw, 2.25rem);
+    font-weight: 850;
+    letter-spacing: -0.05em;
+  }
+
+  > header p {
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.3rem;
+}
+
+.team-card {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 0.9rem;
+  background: var(--sd-background);
+
+  .member-icon {
+    display: grid;
+    width: 2.2rem;
+    height: 2.2rem;
+    flex: 0 0 2.2rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+  }
+
+  h3 {
+    margin: 0.1rem 0 0.25rem;
+    color: var(--sd-heading);
+    font-size: 0.84rem;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.73rem;
+    line-height: 1.5;
+  }
+}
+
+.technology-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 1rem;
+
+  span {
+    padding: 0.38rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--sd-primary) 25%, var(--sd-border));
+    border-radius: 999px;
+    background: var(--sd-primary-soft);
+    color: var(--sd-primary);
+    font-size: 0.7rem;
+    font-weight: 750;
+  }
+}
+
+.history-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-left: 3px solid var(--sd-primary);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--sd-primary-soft) 45%, var(--sd-background));
+
+  ion-icon {
+    flex: 0 0 auto;
+    margin-top: 0.1rem;
+    color: var(--sd-primary);
+    font-size: 1.2rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.78rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  strong {
+    color: var(--sd-heading);
+  }
+}
+
+@media (max-width: 560px) {
+  .history-section {
+    grid-template-columns: minmax(0, 1fr);
+
+    .section-icon {
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+  }
+
+  .team-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

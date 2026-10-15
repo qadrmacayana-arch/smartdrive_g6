@@ -51,6 +51,12 @@
               <ion-label>Home</ion-label>
             </ion-item>
           </ion-menu-toggle>
+          <ion-menu-toggle auto-hide="false">
+            <ion-item routerLink="/company-history" routerLinkActive="selected" button detail="false">
+              <ion-icon slot="start" name="time-outline"></ion-icon>
+              <ion-label>Company History</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
           @if (currentUser()) {
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/tabs/favorites" routerLinkActive="selected" button detail="false">
