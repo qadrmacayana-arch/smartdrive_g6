@@ -51,12 +51,14 @@
               <ion-label>Home</ion-label>
             </ion-item>
           </ion-menu-toggle>
-          <ion-menu-toggle auto-hide="false">
-            <ion-item routerLink="/tabs/favorites" routerLinkActive="selected" button detail="false">
-              <ion-icon slot="start" name="heart-outline"></ion-icon>
-              <ion-label>Favorites</ion-label>
-            </ion-item>
-          </ion-menu-toggle>
+          @if (currentUser()) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/tabs/favorites" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="heart-outline"></ion-icon>
+                <ion-label>Favorites</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
           @if (currentUser()) {
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/trip-planner" routerLinkActive="selected" button detail="false">
@@ -222,11 +224,11 @@
         <ion-icon name="car-outline" aria-hidden="true"></ion-icon>
         <span>Rent a Car</span>
       </a>
-      <a routerLink="/tabs/favorites" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
-        <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
-        <span>Favorites</span>
-      </a>
       @if (currentUser()) {
+        <a routerLink="/tabs/favorites" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
+          <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+          <span>Favorites</span>
+        </a>
         <a routerLink="/about" routerLinkActive="active" (click)="tapNavigation()">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <span>About</span>

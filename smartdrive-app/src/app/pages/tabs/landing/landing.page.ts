@@ -187,13 +187,19 @@ export class LandingPage implements OnInit {
 
   toggleFavorite(vehicle: Vehicle, event: Event): void {
     event.stopPropagation();
+    if (!this.currentUser()) {
+      void this.router.navigate(['/login'], {
+        queryParams: { returnUrl: '/tabs/favorites' },
+      });
+      return;
+    }
     this.mobileFeedback.selection();
     const isFavorite = this.vehicleService.toggleFavorite(vehicle.id);
     this.favorites.update((items) => isFavorite ? [...items, String(vehicle.id)] : items.filter((id) => id !== String(vehicle.id)));
   }
 
   isFavorite(vehicle: Vehicle): boolean {
-    return this.favorites().includes(String(vehicle.id));
+    return Boolean(this.currentUser()) && this.favorites().includes(String(vehicle.id));
   }
 
 }
