@@ -52,10 +52,6 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
     try {
       if (attemptId && !this.paymentCancelled()) {
-        if (
-          this.route.snapshot.queryParamMap.get('returnToApp') === '1'
-          && await this.tryOpenAndroidApp(reference, attemptId)
-        ) return;
         const result = await this.bookingService.confirmReturnedCheckout(reference, attemptId);
         this.testConfirmation.set(result.status === 'test-confirmed');
         if (result.booking) {
@@ -65,6 +61,10 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
           this.checkingPayment.set(true);
           this.schedulePaymentStatusRefresh(reference, attemptId, 0);
         }
+        if (
+          this.route.snapshot.queryParamMap.get('returnToApp') === '1'
+          && await this.tryOpenAndroidApp(reference, attemptId)
+        ) return;
       } else if (this.paymentCancelled()) {
         this.errorMessage.set('Checkout was cancelled. No payment was confirmed.');
       } else {

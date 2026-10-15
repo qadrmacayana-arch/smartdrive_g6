@@ -1,6 +1,7 @@
 import { Component, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter, firstValueFrom, take } from 'rxjs';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
@@ -132,22 +133,35 @@ export class AppComponent {
   }
 
   private async registerAndroidDeepLinks(): Promise<void> {
-    const navigateToAppUrl = (value: string): void => {
+    const routingUrls = new Set<string>();
+    const navigateToAppUrl = async (value: string): Promise<void> => {
+      if (routingUrls.has(value)) return;
       try {
         const deepLink = new URL(value);
         if (deepLink.protocol !== 'smartdrive:' || deepLink.hostname !== 'booking') return;
         if (!/^\/confirmation\/SD-\d{4}-[A-F\d]{12}$/.test(deepLink.pathname)) return;
         if (!deepLink.searchParams.has('attempt')) return;
-        void this.router.navigateByUrl(`${deepLink.pathname}${deepLink.search}`);
+        routingUrls.add(value);
+        if (!this.router.navigated) {
+          await firstValueFrom(this.router.events.pipe(
+            filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+            take(1),
+          ));
+        }
+        await this.router.navigateByUrl(`${deepLink.pathname}${deepLink.search}`);
       } catch (error) {
         console.error('Unable to handle SmartDrive payment return link.', error);
+      } finally {
+        routingUrls.delete(value);
       }
     };
 
     try {
+      await App.addListener('appUrlOpen', ({ url }) => {
+        void navigateToAppUrl(url);
+      });
       const launch = await App.getLaunchUrl();
-      if (launch?.url) navigateToAppUrl(launch.url);
-      await App.addListener('appUrlOpen', ({ url }) => navigateToAppUrl(url));
+      if (launch?.url) void navigateToAppUrl(launch.url);
     } catch (error) {
       console.error('Unable to register SmartDrive Android payment return links.', error);
     }
