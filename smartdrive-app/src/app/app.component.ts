@@ -76,8 +76,8 @@ export class AppComponent {
     effect(() => {
       const dark = this.isDarkMode();
       const theme = dark ? 'dark' : 'light';
-      document.body.setAttribute('data-theme', theme);
-      document.body.style.colorScheme = theme;
+      document.documentElement.dataset['theme'] = theme;
+      document.documentElement.style.colorScheme = theme;
       localStorage.setItem('smartdrive-theme', theme);
       this.updateNativeStatusBar(theme);
     });

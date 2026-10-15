@@ -79,7 +79,7 @@
   --ion-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-body[data-theme='dark'] {
+html[data-theme='dark'] {
   color-scheme: dark;
 
   --sd-primary: #a78bfa;

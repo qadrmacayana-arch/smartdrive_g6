@@ -53,7 +53,7 @@ body {
   overflow-x: hidden;
 }
 
-body[data-theme='dark'] {
+html[data-theme='dark'] body {
   background:
     radial-gradient(1100px 500px at 85% -10%, rgba(168, 85, 247, 0.18), transparent 60%),
     radial-gradient(900px 480px at -10% 12%, rgba(217, 70, 239, 0.12), transparent 55%),
@@ -96,7 +96,7 @@ ion-tab-bar {
   backdrop-filter: blur(14px);
 }
 
-body[data-theme='dark'] ion-tab-bar {
+html[data-theme='dark'] ion-tab-bar {
   --background: rgba(13, 17, 28, 0.9);
   box-shadow: 0 10px 26px rgba(12, 16, 28, 0.54);
 }
