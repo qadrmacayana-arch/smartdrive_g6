@@ -44,6 +44,112 @@
         <ion-input type="tel" label="Phone Number" labelPlacement="floating" formControlName="phone"></ion-input>
       </ion-item>
 
+      <section class="conditions-card sd-card" aria-labelledby="conditions-title">
+        <div class="conditions-heading">
+          <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
+          <div>
+            <h2 id="conditions-title">Booking conditions</h2>
+            <p>Provide driver details for manual review and read the local rental guidance.</p>
+          </div>
+        </div>
+
+        <details class="conditions-details">
+          <summary>Read rental requirements and guidelines</summary>
+          <div class="conditions-copy">
+            <h3>Driver eligibility and documents</h3>
+            <p>Self-drive rentals commonly require drivers to be 20–21 or older; some luxury or heavy SUV vehicles may require age 25+. Staff will verify the vehicle-specific age requirement and original documents before handover.</p>
+            <p>Local renters should bring a valid Philippine Non-Professional or Professional Driver’s License, two government-issued photo IDs, and proof of billing. Foreign tourists should bring a passport with Philippine entry stamp and a valid license. An English-language foreign license is generally accepted for up to 90 days after arrival; a license in a non-Roman alphabet may require an IDP or official embassy translation.</p>
+
+            <h3>Rental duration and timing</h3>
+            <p>Rates are generally based on 24-hour periods. Standard rentals may require a 1–2 day minimum and peak holiday periods may require at least 3 days. Late returns may incur ₱300–₱500 per hour; delays over 3 hours may be charged as an additional day. Early returns are generally not prorated.</p>
+
+            <h3>Where and how you may drive</h3>
+            <p>Ask SmartDrive for written approval before taking a vehicle on an inter-island RoRo ferry. Driving on beaches, flooded roads, or unpaved trails is prohibited. Chauffeur service, if available, must be arranged with SmartDrive in advance.</p>
+            <p>Follow local number-coding rules. In areas applying the weekday schedule, plate endings 1–2 are coded Monday, 3–4 Tuesday, 5–6 Wednesday, 7–8 Thursday, and 9–0 Friday, commonly 7:00 AM–8:00 PM. Local rules and exemptions can vary.</p>
+
+            <h3>Tolls, fuel, and mileage</h3>
+            <p>Renters are responsible for tolls and for topping up or reimbursing Autosweep/Easytrip RFID use. Vehicles are generally returned with the same fuel level received. Refueling may incur pump cost plus a service charge; commonly cited charges range from ₱400–₱500 or a markup up to 15%. Some rentals may limit mileage to 100–200 km per day and charge ₱12–₱25 per excess kilometer.</p>
+
+            <h3>Deposits and cancellations</h3>
+            <p>Local operators commonly request a refundable security deposit of ₱3,000–₱10,000. Some require a credit card in the primary driver’s name. Cancellation and no-show refunds depend on the confirmed booking terms; short-notice cancellations or no-shows may forfeit a reservation deposit. Contact SmartDrive before paying if you need the exact deposit, payment, cancellation, or refund terms.</p>
+
+            <p class="conditions-disclaimer">These amounts and practices are general estimates, not a SmartDrive price quote or a promise that a particular charge applies. No deposit or extra fee listed here is collected automatically in this checkout. SmartDrive must confirm vehicle-specific eligibility and the final terms with you before handover.</p>
+          </div>
+        </details>
+
+        <div class="driver-fields">
+          <ion-item class="auth-item" lines="none">
+            <ion-icon slot="start" name="person-outline"></ion-icon>
+            <ion-input
+              type="number"
+              inputmode="numeric"
+              min="18"
+              max="100"
+              label="Primary driver’s age"
+              labelPlacement="floating"
+              formControlName="driverAge"
+            ></ion-input>
+          </ion-item>
+
+          <label class="booking-select">
+            <span>Renter type</span>
+            <select formControlName="renterType" (change)="onRenterTypeChange()">
+              <option value="" disabled>Select renter type</option>
+              <option value="local">Local renter</option>
+              <option value="foreign-tourist">Foreign tourist</option>
+            </select>
+          </label>
+
+          @if (form.controls.renterType.value === 'local') {
+            <label class="booking-select">
+              <span>Philippine driver’s license</span>
+              <select formControlName="driverLicenseType" (change)="onDriverLicenseTypeChange()">
+                <option value="" disabled>Select license type</option>
+                <option value="local-non-professional">Non-Professional</option>
+                <option value="local-professional">Professional</option>
+              </select>
+            </label>
+          } @else if (form.controls.renterType.value === 'foreign-tourist') {
+            <label class="booking-select">
+              <span>Foreign driver’s license</span>
+              <select formControlName="driverLicenseType" (change)="onDriverLicenseTypeChange()">
+                <option value="" disabled>Select license language</option>
+                <option value="foreign-english">Written in English</option>
+                <option value="foreign-other">Uses a non-Roman alphabet</option>
+              </select>
+            </label>
+            <ion-item class="auth-item" lines="none">
+              <ion-icon slot="start" name="globe-outline"></ion-icon>
+              <ion-input label="License issuing country" labelPlacement="floating" formControlName="driverLicenseCountry"></ion-input>
+            </ion-item>
+            <ion-item class="auth-item" lines="none">
+              <ion-input type="date" label="Philippine arrival date" labelPlacement="floating" formControlName="philippinesArrivalDate"></ion-input>
+            </ion-item>
+            @if (form.controls.driverLicenseType.value === 'foreign-other') {
+              <label class="booking-select">
+                <span>Document accompanying the license</span>
+                <select formControlName="foreignLicenseSupport">
+                  <option value="" disabled>Select document</option>
+                  <option value="idp">International Driving Permit (IDP)</option>
+                  <option value="embassy-translation">Official embassy translation</option>
+                </select>
+              </label>
+            }
+          }
+
+          <ion-checkbox formControlName="licenseConfirmed">
+            I confirm the primary driver holds a current, valid license for the vehicle.
+          </ion-checkbox>
+          <ion-checkbox formControlName="documentsReady">
+            I will present the required original license and identity documents at pickup.
+          </ion-checkbox>
+          <ion-checkbox formControlName="conditionsAccepted">
+            I have read the booking conditions, provided accurate driver details, and understand SmartDrive will manually verify eligibility and confirm any applicable charges before handover.
+          </ion-checkbox>
+          <p class="conditions-privacy">Do not enter a license number or upload identity documents here. SmartDrive will inspect required documents in person.</p>
+        </div>
+      </section>
+
       <div class="pwd-block sd-card">
         <div class="pwd-header">
           <ion-icon name="accessibility-outline"></ion-icon>

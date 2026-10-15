@@ -374,6 +374,25 @@ create table if not exists public.bookings (
   booking_status text default 'confirmed'
     check (booking_status in ('confirmed', 'ongoing', 'completed', 'cancelled')),
   is_pwd_senior boolean default false,
+  driver_age smallint check (driver_age between 18 and 100),
+  renter_type text check (renter_type in ('local', 'foreign-tourist')),
+  driver_license_type text check (
+    driver_license_type in (
+      'local-non-professional',
+      'local-professional',
+      'foreign-english',
+      'foreign-other'
+    )
+  ),
+  driver_license_country text,
+  foreign_license_support text check (
+    foreign_license_support in ('not-required', 'idp', 'embassy-translation')
+  ),
+  philippines_arrival_date date,
+  driver_license_confirmed boolean not null default false,
+  booking_documents_ready boolean not null default false,
+  booking_conditions_accepted boolean not null default false,
+  booking_conditions_accepted_at timestamptz default now(),
   rating integer default null,
   notes text default null,
   created_at timestamptz default now(),

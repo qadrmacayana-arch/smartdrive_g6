@@ -39,7 +39,7 @@ const WELCOME_MESSAGE = 'Hi! I’m the SmartDrive help assistant. Ask me about b
 const FAQ_ITEMS: FaqItem[] = [
   {
     q: 'How do I book a vehicle?',
-    a: 'To book, go to Home, choose a vehicle and your dates, then follow the checkout steps to confirm your booking.',
+    a: 'To book, go to Home, choose a vehicle and your dates, then follow the checkout steps. Review the booking conditions and provide the primary driver details; SmartDrive manually verifies eligibility and confirms any applicable deposit or additional charges before vehicle handover.',
     keywords: ['book', 'booking', 'reserve', 'reservation', 'rent', 'vehicle', 'car', 'motorcycle', 'dates'],
   },
   {

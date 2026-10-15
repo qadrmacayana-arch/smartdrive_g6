@@ -133,6 +133,127 @@
   min-height: 3.7rem;
 }
 
+.conditions-card {
+  padding: 1rem;
+  margin: 0.85rem 0 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--sd-primary) 20%, var(--sd-border));
+  border-radius: 1.1rem;
+  box-shadow: var(--sd-shadow-md);
+}
+
+.conditions-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  margin-bottom: 0.85rem;
+
+  > ion-icon {
+    flex: 0 0 auto;
+    color: var(--sd-primary);
+    font-size: 1.45rem;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--sd-heading);
+    font-size: 1rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+    color: var(--sd-muted-foreground);
+    font-size: 0.76rem;
+    line-height: 1.45;
+  }
+}
+
+.conditions-details {
+  padding: 0.8rem;
+  border: 1px solid var(--sd-border);
+  border-radius: 0.8rem;
+  background: var(--sd-background);
+
+  summary {
+    color: var(--sd-primary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 750;
+  }
+}
+
+.conditions-copy {
+  padding-top: 0.75rem;
+
+  h3 {
+    margin: 0.8rem 0 0.25rem;
+    color: var(--sd-heading);
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0.25rem 0 0.55rem;
+    color: var(--sd-muted-foreground);
+    font-size: 0.74rem;
+    line-height: 1.55;
+  }
+
+  .conditions-disclaimer {
+    padding: 0.7rem;
+    border-left: 3px solid var(--sd-primary);
+    border-radius: 0.35rem;
+    background: color-mix(in srgb, var(--sd-primary-soft) 50%, var(--sd-background));
+    color: var(--sd-foreground);
+    font-weight: 650;
+  }
+}
+
+.driver-fields {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+
+  .auth-item {
+    margin: 0;
+  }
+
+  ion-checkbox {
+    --size: 1.1rem;
+    --checkbox-background-checked: var(--sd-primary);
+    color: var(--sd-foreground);
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+}
+
+.booking-select {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  select {
+    width: 100%;
+    min-height: 3.2rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--sd-border);
+    border-radius: var(--sd-radius);
+    background: var(--sd-card);
+    color: var(--sd-foreground);
+    font: inherit;
+    font-size: 0.85rem;
+  }
+}
+
+.conditions-privacy {
+  margin: 0;
+  color: var(--sd-muted-foreground);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
 .pwd-block {
   padding: 1rem;
   margin: 0.5rem 0 1.5rem;

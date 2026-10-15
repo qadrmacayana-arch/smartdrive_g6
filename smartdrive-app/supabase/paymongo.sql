@@ -1,6 +1,30 @@
 alter table public.bookings
   add column if not exists paymongo_checkout_session_id text;
 
+alter table public.bookings
+  add column if not exists driver_age smallint check (driver_age between 18 and 100),
+  add column if not exists renter_type text check (renter_type in ('local', 'foreign-tourist')),
+  add column if not exists driver_license_type text check (
+    driver_license_type in (
+      'local-non-professional',
+      'local-professional',
+      'foreign-english',
+      'foreign-other'
+    )
+  ),
+  add column if not exists driver_license_country text,
+  add column if not exists foreign_license_support text check (
+    foreign_license_support in ('not-required', 'idp', 'embassy-translation')
+  ),
+  add column if not exists philippines_arrival_date date,
+  add column if not exists driver_license_confirmed boolean not null default false,
+  add column if not exists booking_documents_ready boolean not null default false,
+  add column if not exists booking_conditions_accepted boolean not null default false,
+  add column if not exists booking_conditions_accepted_at timestamptz;
+
+alter table public.bookings
+  alter column booking_conditions_accepted_at set default now();
+
 create unique index if not exists idx_bookings_paymongo_checkout_session
   on public.bookings (paymongo_checkout_session_id)
   where paymongo_checkout_session_id is not null;
@@ -78,6 +102,16 @@ begin
     or new.total_price is distinct from old.total_price
     or new.payment_method is distinct from old.payment_method
     or new.is_pwd_senior is distinct from old.is_pwd_senior
+    or new.driver_age is distinct from old.driver_age
+    or new.renter_type is distinct from old.renter_type
+    or new.driver_license_type is distinct from old.driver_license_type
+    or new.driver_license_country is distinct from old.driver_license_country
+    or new.foreign_license_support is distinct from old.foreign_license_support
+    or new.philippines_arrival_date is distinct from old.philippines_arrival_date
+    or new.driver_license_confirmed is distinct from old.driver_license_confirmed
+    or new.booking_documents_ready is distinct from old.booking_documents_ready
+    or new.booking_conditions_accepted is distinct from old.booking_conditions_accepted
+    or new.booking_conditions_accepted_at is distinct from old.booking_conditions_accepted_at
   ) then
     raise exception 'Booking details cannot be changed after checkout has started.';
   end if;

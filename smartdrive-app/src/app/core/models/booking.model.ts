@@ -22,6 +22,16 @@ export interface Booking {
   paymongo_checkout_session_id?: string | null;
   booking_status: 'confirmed' | 'ongoing' | 'completed' | 'cancelled';
   is_pwd_senior: boolean;
+  driver_age?: number | null;
+  renter_type?: 'local' | 'foreign-tourist' | null;
+  driver_license_type?: string | null;
+  driver_license_country?: string | null;
+  foreign_license_support?: 'not-required' | 'idp' | 'embassy-translation' | null;
+  philippines_arrival_date?: string | null;
+  driver_license_confirmed?: boolean;
+  booking_documents_ready?: boolean;
+  booking_conditions_accepted?: boolean;
+  booking_conditions_accepted_at?: string | null;
   rating?: number | null;
   notes?: string | null;
   created_at?: string;
@@ -45,6 +55,14 @@ export interface BookingDraft {
     email: string;
     phone: string;
     isPwdSenior: boolean;
+    driverAge: number;
+    renterType: 'local' | 'foreign-tourist';
+    driverLicenseType: string;
+    driverLicenseCountry: string | null;
+    foreignLicenseSupport: 'not-required' | 'idp' | 'embassy-translation' | null;
+    philippinesArrivalDate: string | null;
+    documentsReady: boolean;
+    conditionsAccepted: boolean;
   };
   pricing?: {
     subtotal: number;

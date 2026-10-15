@@ -203,6 +203,41 @@ export class BookingService {
   ): Promise<Booking> {
     const draft = this.draft();
     if (!draft?.customer || !draft.pricing) throw new Error('Booking details are incomplete.');
+    const customer = draft.customer;
+    if (
+      !Number.isInteger(customer.driverAge)
+      || customer.driverAge < 18
+      || customer.driverAge > 100
+      || !customer.conditionsAccepted
+      || !customer.documentsReady
+      || (
+        customer.renterType === 'local'
+        && (
+          !['local-non-professional', 'local-professional'].includes(customer.driverLicenseType)
+          || customer.driverLicenseCountry !== null
+          || customer.philippinesArrivalDate !== null
+          || customer.foreignLicenseSupport !== null
+        )
+      )
+      || (
+        customer.renterType === 'foreign-tourist'
+        && (
+          !customer.driverLicenseCountry
+          || !customer.philippinesArrivalDate
+          || !['foreign-english', 'foreign-other'].includes(customer.driverLicenseType)
+          || (
+            customer.driverLicenseType === 'foreign-other'
+            && !['idp', 'embassy-translation'].includes(customer.foreignLicenseSupport ?? '')
+          )
+          || (
+            customer.driverLicenseType === 'foreign-english'
+            && customer.foreignLicenseSupport !== 'not-required'
+          )
+        )
+      )
+    ) {
+      throw new Error('Complete the driver and booking conditions section before confirming this booking.');
+    }
     const { data: sessionData, error: sessionError } = await this.supabase.client.auth.getSession();
     if (sessionError) throw new Error(`Your sign-in could not be verified: ${sessionError.message}`);
     if (!sessionData.session || !userId || sessionData.session.user.id !== userId) {
@@ -215,9 +250,9 @@ export class BookingService {
     const booking: Booking = {
       reference_number: this.generateReferenceNumber(),
       user_id: userId,
-      customer_email: draft.customer.email,
-      customer_name: draft.customer.name,
-      customer_phone: draft.customer.phone,
+      customer_email: customer.email,
+      customer_name: customer.name,
+      customer_phone: customer.phone,
       vehicle_id: draft.vehicle.id,
       vehicle_name: draft.vehicle.name,
       pickup_date: draft.pickupDate,
@@ -233,7 +268,17 @@ export class BookingService {
       payment_method: paymentMethod,
       payment_status: paymentStatus,
       booking_status: 'confirmed',
-      is_pwd_senior: draft.customer.isPwdSenior,
+      is_pwd_senior: customer.isPwdSenior,
+      driver_age: customer.driverAge,
+      renter_type: customer.renterType,
+      driver_license_type: customer.driverLicenseType,
+      driver_license_country: customer.driverLicenseCountry,
+      foreign_license_support: customer.foreignLicenseSupport,
+      philippines_arrival_date: customer.philippinesArrivalDate,
+      driver_license_confirmed: true,
+      booking_documents_ready: customer.documentsReady,
+      booking_conditions_accepted: customer.conditionsAccepted,
+      booking_conditions_accepted_at: new Date().toISOString(),
     };
 
     const { data, error } = await this.supabase.client.from('bookings').insert([booking]).select().single();
