@@ -160,16 +160,10 @@ export class BookingPaymentPage implements OnInit {
         const booking = await this.bookingService.createBooking(
           user.id,
           this.paymentMethod(),
-          'completed',
+          'pending',
         );
 
-        await this.walletService.spendPoints(
-          user.id,
-          user.email,
-          pricing.total,
-          `Used for booking #${booking.reference_number}`,
-          booking.reference_number,
-        );
+        await this.walletService.spendPoints(pricing.total, booking.reference_number);
 
         this.bookingService.clearDraft();
         this.router.navigate(['/booking/confirmation', booking.reference_number]);

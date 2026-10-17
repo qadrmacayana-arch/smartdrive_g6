@@ -51,6 +51,10 @@
           <ion-icon name="star-outline"></ion-icon><span>Reviews</span>
         </a>
         <span class="nav-group-label">CUSTOMER CARE</span>
+        <a class="nav-item" [class.active]="section() === 'email-concerns'" [attr.aria-current]="section() === 'email-concerns' ? 'page' : null" (click)="openSection('email-concerns')">
+          <ion-icon name="mail-outline"></ion-icon><span>Email concerns</span>
+          @if (unreadContactMessageCount()) { <span class="nav-live-dot" [attr.aria-label]="unreadContactMessageCount() + ' unread messages'"></span> }
+        </a>
         <a class="nav-item" [class.active]="section() === 'support'" [attr.aria-current]="section() === 'support' ? 'page' : null" (click)="openSection('support')">
           <ion-icon name="chatbubbles-outline"></ion-icon><span>Support inbox</span>
           @if (supportTickets().length) { <span class="nav-live-dot" aria-label="Support tickets available"></span> }
@@ -72,7 +76,7 @@
       <header class="dashboard-heading">
         <div>
           <p class="eyebrow">SMARTDRIVE <span>/</span> {{ section() | titlecase }}</p>
-          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
+          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'email-concerns' ? 'Email concerns' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
           <p class="subtitle">
             @switch (section()) {
               @case ('overview') { Here's what's happening across your rental business today. }
@@ -83,6 +87,7 @@
               @case ('reviews') { See what customers are saying about their experience. }
               @case ('tracking') { View the latest reported and sample vehicle locations. }
               @case ('support') { Review saved conversations, reported problems, and internal follow-up notes. }
+              @case ('email-concerns') { Read and manage messages sent to smartdriveteam&#64;smartdrive.com. }
               @case ('promos') { Create and manage discount codes available at checkout. }
             }
           </p>
@@ -423,6 +428,40 @@
               } @empty { <p class="empty">No customer reports yet.</p> }
             </div>
           </section>
+        </section>
+      }
+
+      @if (section() === 'email-concerns') {
+        <section class="data-card admin-module">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">SMARTDRIVETEAM&#64;SMARTDRIVE.COM</span>
+              <h2>Customer messages <span class="count-pill">{{ contactMessages().length }}</span></h2>
+              <p>Messages submitted from About → Contacts.</p>
+            </div>
+          </div>
+          <div class="support-ticket-list">
+            @for (message of contactMessages(); track message.id) {
+              <article class="support-ticket" [class.contact-message-unread]="!message.is_read">
+                <div class="support-ticket-heading">
+                  <div>
+                    <h3>{{ message.subject || 'No subject' }}</h3>
+                    <p>{{ message.message }}</p>
+                  </div>
+                  <button class="secondary-action" type="button" (click)="setContactMessageRead(message, !message.is_read)">
+                    {{ message.is_read ? 'Mark unread' : 'Mark read' }}
+                  </button>
+                </div>
+                <small>
+                  From <a [href]="'mailto:' + message.email">{{ message.full_name }} · {{ message.email }}</a>
+                  · {{ message.created_at | date:'medium' }}
+                  · {{ message.is_read ? 'Read' : 'Unread' }}
+                </small>
+              </article>
+            } @empty {
+              <p class="empty">No email concerns have been submitted yet.</p>
+            }
+          </div>
         </section>
       }
 

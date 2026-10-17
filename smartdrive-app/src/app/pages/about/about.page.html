@@ -1,9 +1,9 @@
 <ion-content [fullscreen]="true">
   <main class="about-page">
-    <header class="about-header">
-      <a routerLink="/tabs/home" class="brand"><img src="assets/icon/smartdrive-icon.png" alt=""><span>SmartDrive<sup>TM</sup></span></a>
+    <header class="about-header sd-site-header">
+      <a routerLink="/tabs/home" class="sd-site-brand"><span>SmartDrive<sup>TM</sup></span></a>
       @if (!currentUser()) {
-        <nav><a routerLink="/login" class="log-in">Log in</a><a routerLink="/signup" class="sign-in">Sign up</a></nav>
+        <nav class="sd-site-actions"><a routerLink="/login">Log in</a><a routerLink="/signup" class="sd-site-sign-up">Sign up</a></nav>
       }
     </header>
 
@@ -14,10 +14,23 @@
     </section>
 
     <nav class="about-subnav" aria-label="About page sections">
+      <button type="button" [class.active]="activeTab() === 'about'" (click)="selectTab('about')">About SmartDrive</button>
       <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">Company History</button>
       <button type="button" [class.active]="activeTab() === 'contact'" (click)="selectTab('contact')">Contacts</button>
       <button type="button" [class.active]="activeTab() === 'developers'" (click)="selectTab('developers')">Developers</button>
     </nav>
+
+    @if (activeTab() === 'about') {
+    <section class="tab-content">
+      <section class="content-section story-section">
+        <p class="eyebrow">ABOUT SMARTDRIVE</p>
+        <h2>A simpler way to find your next ride.</h2>
+        <p>SmartDrive is a vehicle-rental platform for exploring cars, motorcycles, and recreational vehicles in the Philippines. Browse available rides, compare vehicle details, and choose dates that fit your plans.</p>
+        <p>From discovering a vehicle to reviewing booking details, SmartDrive brings the rental journey together in one place. Availability, rental requirements, and final booking terms are shown as part of the booking process.</p>
+        <div class="technology-list"><span>Cars</span><span>Motorcycles</span><span>Recreational vehicles</span></div>
+      </section>
+    </section>
+    }
 
     @if (activeTab() === 'history') {
     <section class="tab-content">
@@ -25,14 +38,14 @@
         <p class="eyebrow">OUR STORY · 2026</p>
         <h2>From a small rental app to a smarter way to get moving.</h2>
         <p>SmartDrive began in 2026 as a small vehicle-rental app idea. The goal was to bring vehicle discovery and the steps of arranging a rental into one straightforward digital experience.</p>
-        <p>It started with the essentials: browse vehicles, choose rental dates, and move through a booking. The project has since evolved with features shaped around the renter, including vehicle details, saved favorites, account tools, payment options, and clearer booking information.</p>
+        <p>It started with the essentials: browse vehicles, choose rental dates, and move through a booking. The project has continued to evolve with vehicle details, saved favorites, account tools, payment options, and clearer booking information.</p>
       </section>
 
       <section class="content-section story-section">
         <p class="eyebrow">HOW IT WAS MADE</p>
         <h2>Built and improved as a team.</h2>
         <p>SmartDrive was developed as a student team project at the Technological Institute of the Philippines – Quezon City Campus. The work brought together planning and design, the customer-facing web and mobile experience, backend services, APIs, and database development.</p>
-        <p>The app uses Angular and Ionic for its interface, with Supabase supporting data and account services. Capacitor helps bring the web experience to Android. The team continues to refine the project as its features grow.</p>
+        <p>The app uses Angular and Ionic for its interface, with Supabase supporting data and account services. Capacitor helps bring the web experience to Android.</p>
         <div class="technology-list"><span>Angular</span><span>Ionic</span><span>Supabase</span><span>Capacitor</span></div>
       </section>
 
@@ -40,25 +53,38 @@
         <p class="eyebrow">THE PEOPLE BEHIND THE PROJECT</p>
         <h2>Meet the team</h2>
         <div class="history-team-grid">
-          @for (member of members; track member.name) {
-            <article>
-              <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-              <div><h3>{{ member.name }}</h3><p>{{ member.role }}</p></div>
-            </article>
-          }
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>Anthony Macayana</h3><p>Main developer, designer, and planner</p></div></article>
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>James Miuel Faa</h3><p>Design lead for the Ionic Angular, web, and mobile versions</p></div></article>
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>Joseph P.J. Abus</h3><p>Backend developer and designer</p></div></article>
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>King Aron Noriega</h3><p>Backend, API, and database developer</p></div></article>
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>Sean Audrey Ferrer</h3><p>Backend and database developer</p></div></article>
+          <article><ion-icon name="person-outline" aria-hidden="true"></ion-icon><div><h3>Shanice Kyle Dacian</h3><p>Frontend and API developer</p></div></article>
         </div>
-      </section>
-
-      <section class="content-section story-section">
-        <p><strong>Still growing.</strong> SmartDrive continues to evolve from its original small-app idea. This history describes the project and its development; it does not claim a particular fleet size, number of customers, or rental locations.</p>
       </section>
     </section>
     }
 
     @if (activeTab() === 'contact') {
     <section class="tab-content content-section contact-section">
-      <div><p class="eyebrow">GET IN TOUCH</p><h2>Contact SmartDrive</h2><p>Have a question about a vehicle, booking, or partnership? Our team is ready to help.</p></div>
-      <div class="contact-list"><div><ion-icon name="location-outline"></ion-icon><span><strong>Visit us</strong>Near Technological Institute of the Philippines, Quezon City</span></div><div><ion-icon name="call-outline"></ion-icon><span><strong>Call us</strong>(+63) 917 123 4567</span></div><div><ion-icon name="mail-outline"></ion-icon><span><strong>Email us</strong>contact&#64;smartdrive.com</span></div></div>
+      <div>
+        <p class="eyebrow">GET IN TOUCH</p><h2>Contact SmartDrive</h2>
+        <p>Questions or concerns? Send a message to our team and an administrator will follow up.</p>
+        <button class="contact-email-link" type="button" (click)="contactComposerOpen.set(true)">smartdriveteam&#64;smartdrive.com</button>
+        @if (contactSuccess()) { <p class="contact-feedback success" role="status">{{ contactSuccess() }}</p> }
+        @if (contactError()) { <p class="contact-feedback error" role="alert">{{ contactError() }}</p> }
+        @if (contactComposerOpen()) {
+          <form class="contact-message-form" (submit)="$event.preventDefault(); sendContactMessage()">
+            <label>Subject<input name="contactSubject" maxlength="120" required [ngModel]="contactSubject()" (ngModelChange)="contactSubject.set($event)"></label>
+            <label>Your message<textarea name="contactMessage" rows="5" maxlength="2000" required [ngModel]="contactMessage()" (ngModelChange)="contactMessage.set($event)"></textarea></label>
+            <div><button type="button" class="contact-cancel" (click)="contactComposerOpen.set(false)">Cancel</button><button type="submit" class="contact-send" [disabled]="contactSubmitting()">{{ contactSubmitting() ? 'Sending…' : 'Send message' }}</button></div>
+          </form>
+        }
+      </div>
+      <div class="contact-list">
+        <div><ion-icon name="location-outline"></ion-icon><span><strong>Visit us</strong>Near Technological Institute of the Philippines, Quezon City</span></div>
+        <div><ion-icon name="call-outline"></ion-icon><span><strong>Call us</strong>(+63) 917 123 4567</span></div>
+        <div><ion-icon name="mail-outline"></ion-icon><span><strong>Email us</strong>smartdriveteam&#64;smartdrive.com</span></div>
+      </div>
     </section>
     }
 
@@ -75,15 +101,6 @@
             <h3>Anthony Macayana</h3>
             <p class="developer-role">Main Developer, Designer &amp; Planner</p>
             <a href="mailto:qadrmacayana@tip.edu.ph">qadrmacayana@tip.edu.ph</a>
-          </div>
-        </article>
-
-        <article class="developer-card">
-          <img src="assets/images/james-miuel-faa.png" alt="James Miuel Faa portrait" class="developer-photo" />
-          <div class="developer-details">
-            <h3>James Miuel Faa</h3>
-            <p class="developer-role">Second Lead in Designing Ionic Angular / Web / Mobile Version</p>
-            <a href="mailto:qjmffaa@tip.edu.ph">qjmffaa@tip.edu.ph</a>
           </div>
         </article>
 

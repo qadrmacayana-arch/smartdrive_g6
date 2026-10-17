@@ -8,17 +8,6 @@
 }
 
 .home { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 1.05rem clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--home-ink); }
-.topbar { display: flex; height: 48px; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--home-ink); font: 800 1.15rem 'Sora',sans-serif; letter-spacing: -.055em; text-decoration: none; }
-.brand img { width: 2.15rem; height: 2.15rem; border-radius: .6rem; object-fit: cover; }
-.brand span { display: inline-flex; align-items: flex-start; }
-.brand sup { margin-left: .12rem; color: var(--home-purple); font: 800 .52rem 'Plus Jakarta Sans',sans-serif; vertical-align: super; }
-.topbar nav { display: flex; align-items: center; gap: .5rem; }
-.topbar nav a { display: inline-flex; min-height: 2.35rem; align-items: center; justify-content: center; padding: 0 .8rem; border: 1px solid var(--home-line); border-radius: .65rem; background: var(--sd-card); color: var(--home-ink); font-size: .72rem; font-weight: 750; text-decoration: none; transition: .16s ease; }
-.topbar nav a:hover { border-color: #c3adee; color: var(--home-purple); }
-.topbar nav .sign-in { border-color: transparent; background: var(--sd-gradient-primary); color: white; }
-.topbar nav .sign-in:hover { box-shadow: 0 6px 15px rgba(124,58,237,.2); color: white; }
-
 .hero-card { position: relative; overflow: hidden; padding: clamp(1.5rem,4vw,3rem); border: 1px solid #573596; border-radius: 1.2rem; background: linear-gradient(115deg,#321d5c 0%,#592ca0 58%,#7c3aed 100%); box-shadow: 0 18px 44px rgba(76,29,149,.18); }
 .hero-card::after { position: absolute; top: -9rem; right: 8%; width: 22rem; height: 22rem; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; box-shadow: 0 0 0 2.4rem rgba(255,255,255,.035),0 0 0 5rem rgba(255,255,255,.025); content: ''; pointer-events: none; }
 .hero-kicker { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: .42rem; padding: .38rem .62rem; border: 1px solid rgba(255,255,255,.24); border-radius: 99px; background: rgba(255,255,255,.11); color: #f1e8ff; font-size: .63rem; font-weight: 700; }
@@ -112,7 +101,6 @@
 }
 @media (max-width: 700px) {
   .home { padding: .65rem .85rem 2rem; }
-  .topbar { margin-bottom: .8rem; }
   .hero-card { padding: 1.55rem 1.25rem; border-radius: 1rem; }
   .hero-card h1 { max-width: 18ch; font-size: clamp(1.8rem,8vw,2.5rem); }
   .hero-card > p { max-width: 500px; font-size: .75rem; }
@@ -142,8 +130,6 @@
 }
 @media (max-width: 430px) {
   .home { padding-inline: .65rem; }
-  .brand { font-size: 1rem; }
-  .topbar nav a { min-height: 2.1rem; padding-inline: .65rem; font-size: .65rem; }
   .hero-card { padding: 1.2rem .95rem; }
   .hero-kicker { max-width: 100%; font-size: .53rem; }
   .hero-card h1 { font-size: 1.75rem; }

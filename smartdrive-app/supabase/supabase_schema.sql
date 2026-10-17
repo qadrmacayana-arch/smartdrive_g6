@@ -367,6 +367,7 @@ create table if not exists public.bookings (
   insurance numeric(10,2) default 500.00,
   discount numeric(10,2) default 0.00,
   discount_label text default null,
+  promo_code text default null,
   total_price numeric(10,2) not null,
   payment_method text not null,
   payment_status text default 'pending'
@@ -650,7 +651,11 @@ drop policy if exists "Customers can create their own bookings" on public.bookin
 create policy "Customers can create their own bookings"
 on public.bookings for insert
 to authenticated
-with check (user_id = (select auth.uid()));
+with check (
+  user_id = (select auth.uid())
+  and payment_status = 'pending'
+  and payment_method = 'srpoints'
+);
 
 drop policy if exists "Customers can update their own bookings" on public.bookings;
 create policy "Customers can update their own bookings"
@@ -697,26 +702,14 @@ create policy "wallet_balances_select_own"
 on public.wallet_balances for select
 using (auth.uid() = user_id);
 
-drop policy if exists "wallet_balances_insert_own" on public.wallet_balances;
-create policy "wallet_balances_insert_own"
-on public.wallet_balances for insert
-with check (auth.uid() = user_id);
-
-drop policy if exists "wallet_balances_update_own" on public.wallet_balances;
-create policy "wallet_balances_update_own"
-on public.wallet_balances for update
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
-
 drop policy if exists "wallet_transactions_select_own" on public.wallet_transactions;
 create policy "wallet_transactions_select_own"
 on public.wallet_transactions for select
 using (auth.uid() = user_id);
 
+drop policy if exists "wallet_balances_insert_own" on public.wallet_balances;
+drop policy if exists "wallet_balances_update_own" on public.wallet_balances;
 drop policy if exists "wallet_transactions_insert_own" on public.wallet_transactions;
-create policy "wallet_transactions_insert_own"
-on public.wallet_transactions for insert
-with check (auth.uid() = user_id);
 
 drop policy if exists "vehicles_select_public" on public.vehicles;
 -- Keep this policy rerunnable so the browser can read fleet rows.

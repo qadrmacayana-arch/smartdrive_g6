@@ -1,17 +1,16 @@
-.sd-toolbar {
-  --background: var(--sd-card);
-  --border-color: transparent;
-}
-
 .planner-shell {
   width: min(100% - 2rem, 820px);
   margin: 0 auto;
-  padding: 1rem 0 3rem;
+  padding: 0 0 3rem;
+}
+
+.planner-site-header {
+  margin-bottom: 0.75rem;
 }
 
 .planner-hero {
   display: flex;
-  min-height: 15rem;
+  min-height: 14rem;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
@@ -74,7 +73,7 @@
 
 .planner-form {
   display: grid;
-  gap: 1.1rem;
+  gap: 0.9rem;
   margin-top: -1.2rem;
   position: relative;
   z-index: 2;

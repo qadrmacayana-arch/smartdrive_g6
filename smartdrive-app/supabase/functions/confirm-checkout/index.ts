@@ -135,6 +135,7 @@ Deno.serve(async (request) => {
     const { error: insertError } = await admin.from('bookings').insert({
       ...attempt.booking_payload,
       paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
+      test_auto_confirmed: testAutoConfirm,
     });
     if (insertError) {
       console.error('Unable to create paid booking from checkout return.', insertError);
@@ -146,6 +147,7 @@ Deno.serve(async (request) => {
       .update({
         ...attempt.booking_payload,
         paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
+        test_auto_confirmed: testAutoConfirm,
       })
       .eq('id', existingBooking.id)
       .eq('user_id', attempt.user_id);

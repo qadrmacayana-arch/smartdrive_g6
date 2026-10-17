@@ -26,6 +26,7 @@ import {
   SupportMessage,
   SupportTicket,
 } from '../../core/services/support-conversation.service';
+import { ContactMessage, ContactMessageService } from '../../core/services/contact-message.service';
 
 interface AdminStats {
   revenue: number;
@@ -34,7 +35,7 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'promos';
+type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'promos';
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
@@ -102,6 +103,7 @@ export class AdminPage implements OnInit {
   private readonly demoTracking = inject(DemoTrackingService);
   private readonly predictiveInsights = inject(PredictiveInsightsService);
   private readonly supportService = inject(SupportConversationService);
+  private readonly contactMessageService = inject(ContactMessageService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly sanitizer = inject(DomSanitizer);
@@ -133,6 +135,10 @@ export class AdminPage implements OnInit {
   readonly reviews = signal<AdminReview[]>([]);
   readonly supportConversations = signal<SupportConversation[]>([]);
   readonly supportTickets = signal<SupportTicket[]>([]);
+  readonly contactMessages = signal<ContactMessage[]>([]);
+  readonly unreadContactMessageCount = computed(
+    () => this.contactMessages().filter((message) => !message.is_read).length,
+  );
   readonly supportMessages = signal<SupportMessage[]>([]);
   readonly supportNotes = signal<SupportAdminNote[]>([]);
   readonly selectedSupportConversation = signal<SupportConversation | null>(null);
@@ -215,6 +221,7 @@ export class AdminPage implements OnInit {
       if (section === 'reviews') await this.loadReviews();
       if (section === 'tracking') await this.loadLocations();
       if (section === 'support') await this.loadSupport();
+      if (section === 'email-concerns') await this.loadContactMessages();
       if (section === 'promos') await this.loadPromos();
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : `Unable to load ${section}.`);
@@ -276,6 +283,22 @@ export class AdminPage implements OnInit {
       const selected = conversations.find((item) => item.id === this.selectedSupportConversation()?.id);
       if (selected) await this.selectSupportConversation(selected);
       else this.selectedSupportConversation.set(null);
+    }
+  }
+
+  private async loadContactMessages(): Promise<void> {
+    this.contactMessages.set(await this.contactMessageService.listForAdmin());
+  }
+
+  async setContactMessageRead(message: ContactMessage, isRead: boolean): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      await this.contactMessageService.markRead(message.id, isRead);
+      this.contactMessages.update((items) =>
+        items.map((item) => item.id === message.id ? { ...item, is_read: isRead } : item),
+      );
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update the contact message.');
     }
   }
 

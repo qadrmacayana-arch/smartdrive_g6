@@ -16,10 +16,12 @@ export interface Booking {
   insurance: number;
   discount: number;
   discount_label: string | null;
+  promo_code?: string | null;
   total_price: number;
   payment_method: string;
   payment_status: 'pending' | 'completed' | 'failed' | 'refunded';
   paymongo_checkout_session_id?: string | null;
+  test_auto_confirmed?: boolean;
   booking_status: 'confirmed' | 'ongoing' | 'completed' | 'cancelled';
   is_pwd_senior: boolean;
   driver_age?: number | null;

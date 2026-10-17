@@ -1,3 +1,14 @@
+<ion-header class="ion-no-border sd-page-header">
+  <ion-toolbar class="sd-page-toolbar">
+    <ion-title slot="start" class="sd-page-brand">
+      <span>SmartDrive<sup>TM</sup></span>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-menu-button aria-label="Open menu"></ion-menu-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
 <ion-content [fullscreen]="true">
   <main class="dashboard-page-shell">
     <section class="dashboard-page-main">
@@ -29,11 +40,7 @@
               <strong>{{ (balance()?.total_spent ?? 0) | number }}</strong>
             </div>
           </div>
-          <ion-button expand="block" class="sd-gradient-btn top-up-btn" (click)="openTopUp()">
-            <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-            Top Up Points
-          </ion-button>
-          <p class="balance-footnote">Use SR Points toward eligible future bookings.</p>
+          <p class="balance-footnote">Earn SR Points equal to your final paid booking total. Cancelled or unsuccessful bookings earn no points.</p>
         </section>
 
         <section class="wallet-history">
@@ -82,42 +89,4 @@
     </section>
   </main>
 
-  <ion-modal [isOpen]="topUpOpen()" (didDismiss)="topUpOpen.set(false)" [breakpoints]="[0, 0.5]" [initialBreakpoint]="0.5">
-    <ng-template>
-      <ion-content class="ion-padding top-up-modal">
-        <h2 class="sd-section-title">Top Up SR Points</h2>
-        <p class="sd-muted">1 SR Point = ₱1. Choose an amount to add to your wallet.</p>
-
-        <ion-item class="auth-item" lines="none">
-          <ion-input
-            type="number"
-            label="Amount"
-            labelPlacement="floating"
-            [ngModel]="topUpAmount()"
-            (ngModelChange)="topUpAmount.set($event)"
-          ></ion-input>
-        </ion-item>
-
-        <div class="quick-amounts">
-          @for (amount of [500, 1000, 2000, 5000]; track amount) {
-            <button type="button" (click)="topUpAmount.set(amount)">₱{{ amount | number }}</button>
-          }
-        </div>
-
-        <ion-button
-          expand="block"
-          class="sd-gradient-btn"
-          style="margin-top: 1.5rem"
-          [disabled]="!topUpAmount() || topUpSubmitting()"
-          (click)="confirmTopUp()"
-        >
-          @if (topUpSubmitting()) {
-            <ion-spinner name="dots"></ion-spinner>
-          } @else {
-            Confirm Top Up
-          }
-        </ion-button>
-      </ion-content>
-    </ng-template>
-  </ion-modal>
 </ion-content>

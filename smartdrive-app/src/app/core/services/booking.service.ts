@@ -264,6 +264,7 @@ export class BookingService {
       insurance: draft.pricing.insurance,
       discount: draft.pricing.discount,
       discount_label: draft.pricing.discountLabel,
+      promo_code: draft.promoCode?.code ?? null,
       total_price: draft.pricing.total,
       payment_method: paymentMethod,
       payment_status: paymentStatus,

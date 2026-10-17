@@ -1,14 +1,6 @@
 @mixin styles {
 & { display: block; }
-.fleet-page { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 0 clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--sd-foreground); }
-.fleet-header { display: flex; min-height: 60px; align-items: center; justify-content: space-between; margin: 0 calc(-1 * clamp(1rem,3vw,2rem)) 1.5rem; padding: 0 clamp(1rem,3vw,2rem); border-bottom: 1px solid var(--sd-border); background: rgba(255,255,255,.7); }
-.brand { display: inline-flex; align-items: center; gap: .5rem; color: var(--sd-heading); font: 800 1.05rem 'Sora',sans-serif; letter-spacing: -.05em; text-decoration: none; }
-.brand img { width: 2.1rem; height: 2.1rem; border-radius: .6rem; object-fit: cover; }
-.brand span { display: inline-flex; align-items: flex-start; }
-.brand sup { color: var(--sd-primary); font: 800 .52rem 'Plus Jakarta Sans',sans-serif; }
-.fleet-header nav { display: flex; gap: .45rem; }
-.fleet-header nav a { display: inline-flex; min-height: 2.2rem; align-items: center; padding: 0 .75rem; border: 1px solid var(--sd-border); border-radius: .6rem; color: var(--sd-primary); font-size: .68rem; font-weight: 750; text-decoration: none; }
-.fleet-header nav .sign-up { border-color: transparent; background: var(--sd-gradient-primary); color: #fff; }
+.fleet-page { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 1.05rem clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--sd-foreground); }
 
 .page-heading { position: relative; overflow: hidden; padding: 1.35rem 0 1.3rem; text-align: center; }
 .eyebrow { display: inline-flex; align-items: center; gap: .38rem; margin: 0 0 .5rem; color: var(--sd-primary); font-size: .59rem; font-weight: 850; letter-spacing: .13em; }
@@ -103,8 +95,7 @@
   .pick-groups,.vehicle-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 700px) {
-  .fleet-page { padding: 0 .8rem 2rem; }
-  .fleet-header { min-height: 54px; margin: 0 -.8rem 1rem; padding: 0 .8rem; }
+  .fleet-page { padding: .65rem .85rem 2rem; }
   .page-heading { padding: 1rem 0; }
   .page-heading h1 { max-width: 18ch; margin: auto; font-size: clamp(1.75rem,7.5vw,2.4rem); }
   .mobile-break { display: initial; }
@@ -131,7 +122,6 @@
 }
 @media (max-width: 440px) {
   .fleet-page { padding-inline: .65rem; }
-  .fleet-header { margin-inline: -.65rem; padding-inline: .65rem; }
   .page-heading h1 { font-size: 1.7rem; }
   .fleet-assurances { gap: .4rem .65rem; }
   .fleet-assurances span { font-size: .5rem; }

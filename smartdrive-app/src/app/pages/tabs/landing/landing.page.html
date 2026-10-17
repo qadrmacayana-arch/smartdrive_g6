@@ -3,10 +3,10 @@
     <ion-refresher-content pullingText="Pull to refresh the fleet" refreshingSpinner="crescent"></ion-refresher-content>
   </ion-refresher>
   <main class="fleet-page">
-    <header class="fleet-header">
-      <a routerLink="/tabs/home" class="brand"><img src="assets/icon/smartdrive-icon.png" alt=""><span>SmartDrive<sup>TM</sup></span></a>
+    <header class="sd-site-header">
+      <a routerLink="/tabs/home" class="sd-site-brand"><span>SmartDrive<sup>TM</sup></span></a>
       @if (!currentUser()) {
-        <nav><a routerLink="/login" class="log-in">Log in</a><a routerLink="/signup" class="sign-up">Sign up</a></nav>
+        <nav class="sd-site-actions"><a routerLink="/login">Log in</a><a routerLink="/signup" class="sd-site-sign-up">Sign up</a></nav>
       }
     </header>
 

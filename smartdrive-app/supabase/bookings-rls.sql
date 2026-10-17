@@ -12,7 +12,11 @@ create policy "Customers can create their own bookings"
   on public.bookings
   for insert
   to authenticated
-  with check (user_id = (select auth.uid()));
+  with check (
+    user_id = (select auth.uid())
+    and payment_status = 'pending'
+    and payment_method = 'srpoints'
+  );
 
 drop policy if exists "Customers can update their own bookings" on public.bookings;
 create policy "Customers can update their own bookings"

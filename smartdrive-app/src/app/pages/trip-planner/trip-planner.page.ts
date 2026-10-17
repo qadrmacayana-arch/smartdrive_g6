@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   IonBackButton,
   IonButtons,
@@ -340,14 +341,10 @@ const TRIP_DESTINATIONS: TripDestination[] = [
   imports: [
     CommonModule,
     FormsModule,
-    IonBackButton,
-    IonButtons,
+    RouterLink,
     IonContent,
     IonDatetime,
-    IonHeader,
     IonIcon,
-    IonTitle,
-    IonToolbar,
   ],
   templateUrl: './trip-planner.page.html',
   styleUrl: './trip-planner.page.scss',

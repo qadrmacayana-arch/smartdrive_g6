@@ -1,14 +1,14 @@
-<ion-header class="ion-no-border trip-planner-header">
-  <ion-toolbar class="sd-toolbar">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Trip Planner</ion-title>
-  </ion-toolbar>
-</ion-header>
-
 <ion-content class="trip-planner-content">
   <main class="planner-shell">
+    <header class="sd-site-header planner-site-header">
+      <a routerLink="/tabs/home" class="sd-site-brand">
+        <span>SmartDrive<sup>TM</sup></span>
+      </a>
+      <a routerLink="/tabs/home" class="sd-site-back">
+        <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+        <span>Home</span>
+      </a>
+    </header>
     <section class="planner-hero">
       <div class="hero-copy">
         <p class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> SMARTDRIVE · PHILIPPINES</p>
