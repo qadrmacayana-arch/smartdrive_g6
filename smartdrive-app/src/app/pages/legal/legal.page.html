@@ -1,0 +1,13 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="Back"></ion-back-button>
+    </ion-buttons>
+    <div class="legal-toolbar-brand">SMARTDRIVE <span>LEGAL</span></div>
+  </ion-toolbar>
+</ion-header>
+<ion-content [fullscreen]="true" class="legal-page">
+  <main>
+    <app-legal-document [type]="documentType"></app-legal-document>
+  </main>
+</ion-content>

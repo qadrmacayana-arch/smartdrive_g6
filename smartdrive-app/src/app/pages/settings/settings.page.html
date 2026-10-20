@@ -217,6 +217,17 @@
 
       <p class="settings-privacy-note"><ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon>Your profile information is used to support your bookings and keep your account up to date.</p>
 
+      <section class="settings-card legal-settings-card">
+        <header class="settings-card-heading">
+          <span class="settings-icon"><ion-icon name="document-text-outline"></ion-icon></span>
+          <div><h2>Legal &amp; privacy</h2><p>Review the terms and learn how account and booking data is handled.</p></div>
+        </header>
+        <nav class="legal-settings-links" aria-label="Legal documents">
+          <a routerLink="/legal/terms">Terms of Use <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></a>
+          <a routerLink="/legal/privacy">Privacy Notice <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></a>
+        </nav>
+      </section>
+
       <div class="danger-zone">
         <div><h2>Delete account</h2><p>This permanently removes your account and cannot be undone.</p></div>
         <button type="button" class="delete-account-btn" (click)="deleteAccount()">Delete My Account</button>

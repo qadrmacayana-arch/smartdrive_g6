@@ -20,6 +20,7 @@ import {
   IonButtons,
 } from '@ionic/angular';
 import { AuthService, type SignupPayload } from '../../../core/services/auth.service';
+import { LegalDocumentComponent } from '../../legal/legal-document.component';
 import {
   PhilippineBarangay,
   PhilippineCityMunicipality,
@@ -80,6 +81,7 @@ function toIsoDate(value: string): string {
     IonToolbar,
     IonTitle,
     IonButtons,
+    LegalDocumentComponent,
   ],
   templateUrl: './signup.page.html',
   styleUrl: './signup.page.scss',

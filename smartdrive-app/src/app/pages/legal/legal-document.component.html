@@ -1,0 +1,43 @@
+<article class="legal-document">
+  <header class="legal-hero">
+    <span class="legal-kicker">SMARTDRIVE · {{ type() === 'terms' ? 'YOUR AGREEMENT' : 'YOUR INFORMATION' }}</span>
+    <h2>{{ document().title }}</h2>
+    <p class="legal-intro">{{ document().introduction }}</p>
+    <div class="legal-meta">
+      <span><ion-icon name="calendar-outline" aria-hidden="true"></ion-icon> Updated {{ updatedOn }}</span>
+      <span><ion-icon name="location-outline" aria-hidden="true"></ion-icon> Philippines</span>
+    </div>
+  </header>
+
+  <aside class="legal-notice" role="note">
+    <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+    <p>{{ document().notice }}</p>
+  </aside>
+
+  <div class="legal-sections">
+    @for (section of document().sections; track section.title) {
+      <section class="legal-section">
+        <h3>{{ section.title }}</h3>
+        @for (paragraph of section.paragraphs; track paragraph) {
+          <p>{{ paragraph }}</p>
+        }
+        @if (section.bullets?.length) {
+          <ul>
+            @for (bullet of section.bullets; track bullet) {
+              <li>{{ bullet }}</li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+
+  <footer class="legal-contact">
+    <span class="legal-contact-icon"><ion-icon name="mail-outline" aria-hidden="true"></ion-icon></span>
+    <div>
+      <strong>Questions or privacy requests?</strong>
+      <p>Contact the SmartDrive project team.</p>
+      <a href="mailto:smartdriveteam@smartdrive.com">smartdriveteam&#64;smartdrive.com</a>
+    </div>
+  </footer>
+</article>

@@ -69,5 +69,17 @@
   </main>
 </ion-content>
 @if (legalOpen(); as document) {
-  <ion-modal [isOpen]="true" (didDismiss)="closeLegal()"><ng-template><ion-header><ion-toolbar><ion-title>{{ document === 'terms' ? 'Terms of Use' : 'Privacy Policy' }}</ion-title><ion-buttons slot="end"><ion-button (click)="closeLegal()">Close</ion-button></ion-buttons></ion-toolbar></ion-header><ion-content class="ion-padding legal-content">@if (document === 'terms') {<h2>SmartDrive terms</h2><p>Use SmartDrive responsibly and provide accurate account and booking information. Rentals remain subject to vehicle availability, verification, and the booking rules shown before payment.</p>} @else {<h2>Your privacy</h2><p>SmartDrive uses your account, contact, and booking information to provide rentals, payments, support, and security. We do not sell your personal information.</p>}<p class="sd-muted">Last updated: March 15, 2026.</p></ion-content></ng-template></ion-modal>
+  <ion-modal [isOpen]="true" (didDismiss)="closeLegal()" class="legal-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ document === 'terms' ? 'Terms of Use' : 'Privacy Notice' }}</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeLegal()">Close</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="legal-modal-content">
+        <app-legal-document [type]="document"></app-legal-document>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 }

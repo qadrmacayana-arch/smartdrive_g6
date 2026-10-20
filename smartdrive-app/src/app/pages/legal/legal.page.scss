@@ -1,0 +1,27 @@
+.legal-page {
+  --background: #f7f8fc;
+}
+
+.legal-page ion-toolbar {
+  --background: rgba(255, 255, 255, 0.92);
+  --border-color: #e9ecf2;
+  border-bottom: 1px solid #e9ecf2;
+}
+
+.legal-toolbar-brand {
+  color: #222d42;
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+
+.legal-toolbar-brand span {
+  margin-left: 0.35rem;
+  color: #7345df;
+  font-size: 0.65rem;
+}
+
+.legal-page main {
+  min-height: 100%;
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}

@@ -9,6 +9,16 @@ import {
 export const routes: Routes = [
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
   {
+    path: 'legal/terms',
+    data: { document: 'terms' },
+    loadComponent: () => import('./pages/legal/legal.page').then((m) => m.LegalPage),
+  },
+  {
+    path: 'legal/privacy',
+    data: { document: 'privacy' },
+    loadComponent: () => import('./pages/legal/legal.page').then((m) => m.LegalPage),
+  },
+  {
     path: 'login',
     canActivate: [guestGuard],
     loadComponent: () => import('./pages/auth/login/login.page').then((m) => m.LoginPage),
