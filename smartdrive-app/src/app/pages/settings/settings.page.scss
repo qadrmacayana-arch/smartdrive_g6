@@ -159,6 +159,16 @@
   font-weight: 700;
 }
 
+.license-review-status {
+  margin: .8rem 0 0;
+  color: var(--sd-muted-foreground);
+  font-size: .75rem;
+}
+
+.license-review-status strong {
+  color: var(--sd-primary);
+}
+
 .avatar-settings {
   display: flex;
   align-items: center;

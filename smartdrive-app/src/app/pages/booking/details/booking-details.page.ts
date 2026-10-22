@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, inject, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,6 +21,7 @@ import {
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingDraft } from '../../../core/models/booking.model';
 import { BookingService } from '../../../core/services/booking.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { calculateAgeOnDate } from '../../../core/utils/age';
 
 @Component({
@@ -48,10 +49,17 @@ import { calculateAgeOnDate } from '../../../core/utils/age';
   styleUrl: './booking-details.page.scss',
 })
 export class BookingDetailsPage implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
+  private readonly bookingService = inject(BookingService);
+  private readonly supabase = inject(SupabaseService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly draft = this.bookingService.draft;
   readonly isPwdSenior = signal(false);
   readonly pwdFileName = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
+  readonly profileLicenseStatus = signal<'not_provided' | 'pending' | 'verified' | 'rejected'>('not_provided');
   readonly maxBirthDate = this.getTodayDate();
 
   readonly form = this.fb.group({
@@ -74,14 +82,6 @@ export class BookingDetailsPage implements OnInit {
   readonly insurance = 500;
   readonly discount = computed(() => (this.isPwdSenior() ? this.subtotal() * 0.2 : 0));
   readonly total = computed(() => this.subtotal() + this.insurance - this.discount());
-
-  constructor(
-    private readonly fb: FormBuilder,
-    private readonly auth: AuthService,
-    private readonly bookingService: BookingService,
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-  ) {}
 
   ngOnInit(): void {
     if (!this.draft()) {
@@ -115,6 +115,30 @@ export class BookingDetailsPage implements OnInit {
         conditionsAccepted: customer.conditionsAccepted,
       });
     }
+    if (user && !user.id.startsWith('local-')) void this.loadDriverLicenseProfile(user.id);
+  }
+
+  private async loadDriverLicenseProfile(userId: string): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('profiles')
+      .select('renter_type,driver_license_type,driver_license_country,license_verification_status')
+      .eq('id', userId)
+      .maybeSingle();
+    if (error) {
+      console.error('Unable to load saved driver license details.', error);
+      this.errorMessage.set(`Saved driver license details could not be loaded: ${error.message}`);
+      return;
+    }
+    if (!data) return;
+    const currentRenterType = this.form.controls.renterType.value;
+    const savedRenterType = data.renter_type ?? '';
+    const useSavedLicenseDetails = !currentRenterType || currentRenterType === savedRenterType;
+    this.form.patchValue({
+      renterType: currentRenterType || savedRenterType,
+      driverLicenseType: this.form.controls.driverLicenseType.value || (useSavedLicenseDetails ? data.driver_license_type : '') || '',
+      driverLicenseCountry: this.form.controls.driverLicenseCountry.value || (useSavedLicenseDetails ? data.driver_license_country : '') || '',
+    });
+    this.profileLicenseStatus.set(data.license_verification_status ?? 'not_provided');
   }
 
   continue(): void {

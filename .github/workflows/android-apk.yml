@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-apk-${{ github.ref }}
@@ -52,17 +52,77 @@ jobs:
         working-directory: smartdrive-app/android
         run: chmod +x gradlew
 
-      - name: Build debug APK
+      - name: Build debug APK for pull requests
+        if: github.event_name == 'pull_request'
         working-directory: smartdrive-app/android
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Name APK for distribution
-        run: cp smartdrive-app/android/app/build/outputs/apk/debug/app-debug.apk smartdrive-app/android/app/build/outputs/apk/debug/smartdrivetm.apk
-
-      - name: Upload APK artifact
+      - name: Upload pull request APK artifact
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: smartdrivetm-apk-${{ github.sha }}
-          path: smartdrive-app/android/app/build/outputs/apk/debug/smartdrivetm.apk
+          path: smartdrive-app/android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Verify release signing secrets
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Actions secret: $name"
+              exit 1
+            fi
+          done
+
+      - name: Prepare Android signing key
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/smartdrive-release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/smartdrive-release.jks" >> "$GITHUB_ENV"
+          echo "ANDROID_KEYSTORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=$ANDROID_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=$ANDROID_KEY_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Set Android release version
+        if: github.event_name != 'pull_request'
+        id: android-version
+        run: |
+          version_code=$((20 + GITHUB_RUN_NUMBER))
+          version_name="1.0.$((version_code - 1))"
+          echo "code=$version_code" >> "$GITHUB_OUTPUT"
+          echo "name=$version_name" >> "$GITHUB_OUTPUT"
+
+      - name: Build signed release APK
+        if: github.event_name != 'pull_request'
+        working-directory: smartdrive-app/android
+        run: ./gradlew --no-daemon assembleRelease -PandroidVersionCode=${{ steps.android-version.outputs.code }}
+
+      - name: Name release APK
+        if: github.event_name != 'pull_request'
+        run: cp smartdrive-app/android/app/build/outputs/apk/release/app-release.apk smartdrive-app/android/app/build/outputs/apk/release/SmartDriveTM.apk
+
+      - name: Publish latest SmartDriveTM APK release
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_CODE: ${{ steps.android-version.outputs.code }}
+          VERSION_NAME: ${{ steps.android-version.outputs.name }}
+        run: |
+          gh release create "smartdrivetm-build-${VERSION_CODE}" \
+            "smartdrive-app/android/app/build/outputs/apk/release/SmartDriveTM.apk" \
+            --title "SmartDriveTM ${VERSION_NAME} (build ${VERSION_CODE})" \
+            --notes "Automatically built from commit ${GITHUB_SHA}." \
+            --latest

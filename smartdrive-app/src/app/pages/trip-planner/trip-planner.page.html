@@ -174,7 +174,7 @@
                           [attr.aria-label]="'View photo of ' + stop.name"
                           (click)="openPhoto(stop)"
                         >
-                          <img [src]="photo.image.thumbnail" [alt]="'Photo of ' + stop.name" loading="lazy" (error)="onPhotoError(stop)">
+                          <img [src]="photo.image.thumbnail" [alt]="'Photo of ' + stop.name" loading="lazy" decoding="async" referrerpolicy="no-referrer" (error)="onPhotoError(stop)">
                           <span><ion-icon name="expand-outline"></ion-icon> Tap to enlarge</span>
                         </button>
                       } @else if (photo.status === 'loading') {

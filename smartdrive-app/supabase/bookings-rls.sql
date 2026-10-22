@@ -46,6 +46,9 @@ begin
     if new.booking_status = 'cancelled' or old.booking_status = 'cancelled' then
       raise exception 'Only the customer can cancel a booking, and customer cancellations cannot be reversed by an admin.';
     end if;
+    if old.booking_status is distinct from 'ongoing' or new.booking_status is distinct from 'completed' then
+      raise exception 'Admins can only mark an in-progress booking completed after confirming the vehicle was returned.';
+    end if;
   elsif auth.uid() = old.user_id then
     if old.booking_status is distinct from 'confirmed' or new.booking_status is distinct from 'cancelled' then
       raise exception 'Customers can only cancel their own confirmed bookings.';

@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { jsPDF } from 'jspdf';
 import {
   IonContent,
   IonIcon,
@@ -21,6 +23,10 @@ import { AuthService } from '../../../core/services/auth.service';
   styleUrl: './booking-confirmation.page.scss',
 })
 export class BookingConfirmationPage implements OnInit, OnDestroy {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly bookingService = inject(BookingService);
+  private readonly auth = inject(AuthService);
   private paymentPollTimer: ReturnType<typeof setTimeout> | null = null;
   private paymentReference: string | null = null;
   private paymentAttemptId: string | null = null;
@@ -35,13 +41,6 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
   readonly paymentCancelled = signal(false);
   readonly sharing = signal(false);
   readonly shareMessage = signal<string | null>(null);
-
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly bookingService: BookingService,
-    private readonly auth: AuthService,
-  ) {}
 
   readonly customerAddress = computed(() => {
     const booking = this.booking();
@@ -195,46 +194,42 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     const booking = this.booking();
     if (!booking) return;
 
-    const paymentComplete = booking.payment_status === 'completed';
-    const address = this.customerAddress();
-    const text = [
-      `SmartDrive™ ${paymentComplete ? 'Booking Confirmed' : 'Reservation Saved'}`,
-      `Reference: ${booking.reference_number}`,
-      `Customer: ${booking.customer_name}`,
-      `Email: ${booking.customer_email}`,
-      `Phone: ${booking.customer_phone || 'Not provided'}`,
-      `Address: ${address}`,
-      `Vehicle: ${booking.vehicle_name}`,
-      `Pick-up: ${booking.pickup_date}`,
-      `Return: ${booking.return_date}`,
-      `Pick-up location: ${booking.pickup_location || 'Not provided'}`,
-      `Primary driver age: ${booking.driver_age ?? 'Not provided'}`,
-      `Renter type: ${booking.renter_type || 'Not provided'}`,
-      `License type: ${booking.driver_license_type || 'Not provided'}`,
-      `License country: ${booking.driver_license_country || 'Not applicable'}`,
-      `License confirmed: ${booking.driver_license_confirmed ? 'Yes' : 'No'}`,
-      `Documents ready: ${booking.booking_documents_ready ? 'Yes' : 'No'}`,
-      `Booking conditions accepted: ${booking.booking_conditions_accepted ? 'Yes' : 'No'}`,
-      `Payment method: ${this.paymentMethodLabel(booking.payment_method)}`,
-      `Payment processed via: ${this.paymentProviderLabel(booking.payment_method)}`,
-      `Payment status: ${booking.payment_status}`,
-      `Rental subtotal: ₱${Number(booking.subtotal).toLocaleString()}`,
-      `Insurance: ₱${Number(booking.insurance).toLocaleString()}`,
-      `Discount: ${booking.discount_label || 'N/A'} · ₱${Number(booking.discount).toLocaleString()}`,
-      `${paymentComplete ? 'Total paid' : 'Total due'}: ₱${Number(booking.total_price).toLocaleString()}`,
-    ].join('\n');
-
     this.sharing.set(true);
     this.shareMessage.set(null);
     try {
+      const pdf = this.createReceiptPdf(booking);
+      const blob = pdf.output('blob');
+      const fileName = `SmartDrive-receipt-${booking.reference_number.replace(/[^a-zA-Z0-9_-]/g, '-')}.pdf`;
+
       if (Capacitor.isNativePlatform()) {
-        await Share.share({ title: 'SmartDrive™ Booking Receipt', text, dialogTitle: 'Share booking receipt' });
-      } else if (navigator.share) {
-        await navigator.share({ title: 'SmartDrive™ Booking Receipt', text });
+        const dataUri = pdf.output('datauristring');
+        const { uri } = await Filesystem.writeFile({
+          path: `receipts/${fileName}`,
+          data: dataUri.slice(dataUri.indexOf(',') + 1),
+          directory: Directory.Cache,
+          recursive: true,
+        });
+        await Share.share({
+          title: 'SmartDrive™ Booking Receipt',
+          text: booking.reference_number,
+          files: [uri],
+          dialogTitle: 'Share booking receipt PDF',
+        });
+        this.shareMessage.set('Booking receipt PDF is ready to share.');
       } else {
-        await this.copyOrDownloadReceipt(text);
+        const file = new File([blob], fileName, { type: 'application/pdf' });
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          await navigator.share({
+            title: 'SmartDrive™ Booking Receipt',
+            text: booking.reference_number,
+            files: [file],
+          });
+          this.shareMessage.set('Booking receipt PDF is ready to share.');
+        } else {
+          this.downloadReceiptPdf(blob, fileName);
+          this.shareMessage.set('Booking receipt PDF downloaded.');
+        }
       }
-      this.shareMessage.set('Choose an app to share your booking receipt.');
     } catch (error) {
       if (error instanceof Error && (
         error.name === 'AbortError' || /cancelled|canceled/i.test(error.message)
@@ -243,10 +238,13 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
       } else {
         console.error('Unable to share booking receipt.', error);
         try {
-          await this.copyOrDownloadReceipt(text);
+          const pdf = this.createReceiptPdf(booking);
+          const fileName = `SmartDrive-receipt-${booking.reference_number.replace(/[^a-zA-Z0-9_-]/g, '-')}.pdf`;
+          this.downloadReceiptPdf(pdf.output('blob'), fileName);
+          this.shareMessage.set('Sharing was unavailable. Booking receipt PDF downloaded instead.');
         } catch (fallbackError) {
-          console.error('Unable to create a receipt fallback.', fallbackError);
-          this.shareMessage.set('Unable to share or save the receipt. Please try again.');
+          console.error('Unable to create or download the booking receipt PDF.', fallbackError);
+          this.shareMessage.set('Unable to create or share the receipt PDF. Please try again.');
         }
       }
     } finally {
@@ -254,25 +252,91 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     }
   }
 
-  private async copyOrDownloadReceipt(text: string): Promise<void> {
-    if (navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(text);
-        this.shareMessage.set('Receipt details copied to your clipboard.');
-        return;
-      } catch (error) {
-        console.error('Unable to copy booking receipt.', error);
-      }
-    }
+  private createReceiptPdf(booking: Booking): jsPDF {
+    const pdf = new jsPDF({ format: 'a4', unit: 'mm' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const margin = 18;
+    let y = 48;
 
-    const receipt = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(receipt);
+    pdf.setFillColor(22, 76, 60);
+    pdf.rect(0, 0, pageWidth, 37, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(17);
+    pdf.text('SmartDrive Booking Receipt', margin, 17);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text(booking.payment_status === 'completed' ? 'BOOKING CONFIRMED' : 'RESERVATION SAVED', margin, 26);
+    pdf.text(`Reference: ${booking.reference_number}`, pageWidth - margin, 26, { align: 'right' });
+    pdf.setTextColor(35, 45, 42);
+
+    const addSection = (title: string): void => {
+      if (y > 265) {
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(11);
+      pdf.setTextColor(22, 76, 60);
+      pdf.text(title, margin, y);
+      y += 7;
+    };
+    const addRow = (label: string, value: string): void => {
+      if (y > 275) {
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(9);
+      pdf.setTextColor(95, 105, 101);
+      pdf.text(label, margin, y);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(35, 45, 42);
+      const lines = pdf.splitTextToSize(value || 'Not provided', pageWidth - margin * 2 - 48);
+      pdf.text(lines, margin + 48, y);
+      y += Math.max(6, lines.length * 4.5);
+    };
+
+    addSection('CUSTOMER');
+    addRow('Name', booking.customer_name);
+    addRow('Email', booking.customer_email);
+    addRow('Phone', booking.customer_phone || 'Not provided');
+    addRow('Address', this.customerAddress());
+
+    addSection('RENTAL');
+    addRow('Vehicle', booking.vehicle_name);
+    addRow('Pick-up', booking.pickup_date);
+    addRow('Return', booking.return_date);
+    addRow('Pick-up location', booking.pickup_location || 'Not provided');
+    addRow('Primary driver age', String(booking.driver_age ?? 'Not provided'));
+    addRow('Renter type', booking.renter_type || 'Not provided');
+    addRow('License', `${booking.driver_license_type || 'Not provided'} · ${booking.driver_license_country || 'Not applicable'}`);
+    addRow('License confirmed', booking.driver_license_confirmed ? 'Yes' : 'No');
+    addRow('Documents ready', booking.booking_documents_ready ? 'Yes' : 'No');
+    addRow('Conditions accepted', booking.booking_conditions_accepted ? 'Yes' : 'No');
+
+    addSection('PAYMENT');
+    addRow('Payment method', this.paymentMethodLabel(booking.payment_method));
+    addRow('Processed via', this.paymentProviderLabel(booking.payment_method));
+    addRow('Payment status', booking.payment_status);
+    addRow('Rental subtotal', `PHP ${Number(booking.subtotal).toLocaleString()}`);
+    addRow('Insurance', `PHP ${Number(booking.insurance).toLocaleString()}`);
+    addRow('Discount', `${booking.discount_label || 'N/A'} · PHP ${Number(booking.discount).toLocaleString()}`);
+    addRow(booking.payment_status === 'completed' ? 'TOTAL PAID' : 'TOTAL DUE', `PHP ${Number(booking.total_price).toLocaleString()}`);
+
+    pdf.setFontSize(8);
+    pdf.setTextColor(120, 130, 126);
+    pdf.text('Keep this receipt for your records. Contact SmartDrive if any booking details need correction.', margin, Math.min(y + 7, 285));
+    return pdf;
+  }
+
+  private downloadReceiptPdf(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `SmartDrive-receipt-${this.booking()?.reference_number ?? 'booking'}.txt`;
+    link.download = fileName;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    this.shareMessage.set('Receipt saved as a text file.');
   }
 
   goHome(): void {

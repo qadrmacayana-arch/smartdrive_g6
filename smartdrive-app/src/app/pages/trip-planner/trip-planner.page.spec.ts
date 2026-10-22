@@ -61,4 +61,37 @@ describe('TripPlannerPage', () => {
     expect(page.photoStates()).toEqual({});
     expect(page.selectedImage()).toBeNull();
   });
+
+  it('tries another place photo when the first image fails to load', () => {
+    const destination = page.destinations.find((item) => item.id === 'tagaytay');
+    expect(destination).toBeDefined();
+    if (!destination) return;
+    page.selectDestination(destination);
+
+    const stop = destination.days[0].stops[0];
+    const firstImage = {
+      thumbnail: 'https://example.com/broken.jpg',
+      original: 'https://example.com/broken.jpg',
+      filePage: 'https://commons.wikimedia.org/wiki/File:Broken.jpg',
+      fileName: 'Broken.jpg',
+      artist: 'Photographer',
+      license: 'CC BY-SA 4.0',
+    };
+    const fallbackImage = { ...firstImage, thumbnail: 'https://example.com/fallback.jpg', fileName: 'Fallback.jpg' };
+    page.photoStates.set({
+      [`${destination.id}:${stop.name}`]: { status: 'loaded', image: firstImage, fallbackImages: [fallbackImage] },
+    });
+
+    page.onPhotoError(stop);
+
+    expect(page.getPhotoState(stop)).toEqual({
+      status: 'loaded',
+      image: fallbackImage,
+      fallbackImages: [],
+    });
+
+    page.onPhotoError(stop);
+
+    expect(page.getPhotoState(stop)).toEqual({ status: 'error' });
+  });
 });

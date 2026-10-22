@@ -127,6 +127,15 @@ The home page can recommend currently available vehicles using only the signed-i
 
 Android builds with Capacitor 8 require JDK 21. Use a JDK 21 installation for this Gradle wrapper and set `JAVA_HOME` to its path before building.
 
+The GitHub Actions workflow builds a signed APK and publishes it as `SmartDriveTM.apk` on each push to `main`. Configure these repository Actions secrets before pushing:
+
+- `ANDROID_KEYSTORE_BASE64`: base64-encoded Android keystore file
+- `ANDROID_KEYSTORE_PASSWORD`: keystore password
+- `ANDROID_KEY_ALIAS`: signing key alias
+- `ANDROID_KEY_PASSWORD`: signing key password
+
+Use the same signing key as the existing installed app so users can install updates without uninstalling first. Pull requests build an unsigned debug APK artifact and do not publish a release.
+
 ```bash
 npx cap add ios       # or android
 npx cap sync

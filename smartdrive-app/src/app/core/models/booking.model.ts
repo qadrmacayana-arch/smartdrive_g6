@@ -28,7 +28,10 @@ export interface Booking {
   driver_age?: number | null;
   renter_type?: 'local' | 'foreign-tourist' | null;
   driver_license_type?: string | null;
+  driver_license_number?: string | null;
   driver_license_country?: string | null;
+  driver_license_expiry?: string | null;
+  license_verification_status?: 'not_provided' | 'pending' | 'verified' | 'rejected';
   foreign_license_support?: 'not-required' | 'idp' | 'embassy-translation' | null;
   philippines_arrival_date?: string | null;
   driver_license_confirmed?: boolean;

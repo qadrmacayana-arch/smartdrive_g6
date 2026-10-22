@@ -110,6 +110,7 @@ const DOCUMENTS: Record<LegalDocumentType, LegalDocument> = {
         bullets: [
           'Account details such as your name, email address, password authentication data, and information received from Google when you choose Google sign-in.',
           'Profile details you provide, including birthday, phone number, gender, and Philippine address or location selections.',
+          'Optional driver-license profile details, including license type, number, issuing country, and expiry date. Staff review status is recorded so you can see whether the details are pending, verified after inspection, or need correction.',
           'Booking and payment records such as the selected vehicle, dates, booking reference, amount, payment method, and payment status.',
           'Messages you send through the contact form, including your name, email, subject, and message.',
           'An optional profile photo. The app stores profile photos in a publicly readable avatar bucket; do not upload an image you expect to remain private.',
@@ -117,9 +118,9 @@ const DOCUMENTS: Record<LegalDocumentType, LegalDocument> = {
         ],
       },
       {
-        title: '2. Information we do not request through this app',
+        title: '2. Identity documents and in-person checks',
         paragraphs: [
-          'The app does not ask you to enter a driver’s licence number or upload identity documents in its profile form. Vehicle providers may need to inspect required documents separately before a rental.',
+          'You may save your driver-license number and expiry date in Account Settings. The app does not accept license or identity-document images. Staff must inspect the original license and any required identity documents in person before vehicle handover; an in-app status is not a substitute for that inspection.',
           'The app does not collect your precise device location through a location-permission feature. Do not include sensitive identity, health, or financial information in a support message.',
         ],
       },
@@ -138,7 +139,7 @@ const DOCUMENTS: Record<LegalDocumentType, LegalDocument> = {
         title: '4. Service providers and sharing',
         paragraphs: [
           'SmartDrive uses Supabase for authentication, database, and avatar storage; Google for Google sign-in; and PayMongo for external payment checkout. These providers process information as needed to supply their services and under their own terms and privacy notices.',
-          'Authorized project administrators may access account, booking, payment-status, and support information to operate and troubleshoot the app. Information may be shared with a vehicle provider only when needed to respond to or arrange a booking, and applicable provider terms should be reviewed before confirming a rental.',
+          'Authorized project administrators may access account, driver-license, booking, payment-status, and support information to operate and troubleshoot the app. Information may be shared with a vehicle provider only when needed to respond to or arrange a booking, and applicable provider terms should be reviewed before confirming a rental.',
           'Information may also be disclosed when required by law or when reasonably necessary to protect users, the service, or legal rights. The app does not intentionally sell personal information.',
         ],
       },

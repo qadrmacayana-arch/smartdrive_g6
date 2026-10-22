@@ -44,7 +44,7 @@ interface WikimediaImage {
 type PlacePhotoState =
   | { status: 'loading' }
   | { status: 'error' }
-  | { status: 'loaded'; image: WikimediaImage };
+  | { status: 'loaded'; image: WikimediaImage; fallbackImages: WikimediaImage[] };
 
 interface WikimediaPage {
   title?: string;
@@ -449,8 +449,14 @@ export class TripPlannerPage {
     const destination = this.selectedDestination();
     if (!destination) return;
     const key = this.getPhotoKey(destination, stop);
+    const state = this.photoStates()[key];
+    if (state?.status === 'loaded' && state.fallbackImages.length) {
+      const [image, ...fallbackImages] = state.fallbackImages;
+      this.photoStates.update((states) => ({ ...states, [key]: { status: 'loaded', image, fallbackImages } }));
+      return;
+    }
     this.photoStates.update((states) => ({ ...states, [key]: { status: 'error' } }));
-    console.error(`The Wikimedia Commons photo for ${stop.name} could not be displayed.`);
+    console.warn(`No available Wikimedia Commons photo could be displayed for ${stop.name}.`);
   }
 
   getDateLabel(dayIndex: number): string {
@@ -482,14 +488,15 @@ export class TripPlannerPage {
 
   private async loadStopImages(destination: TripDestination, request: number): Promise<void> {
     const stops = destination.days.slice(0, this.numberOfDays()).flatMap((day) => day.stops);
-    for (const stop of stops) {
+    await Promise.all(stops.map(async (stop) => {
       if (request !== this.photoRequest) return;
       try {
-        const image = await this.searchCommonsImage(stop, destination);
+        const images = await this.searchCommonsImages(stop, destination);
         if (request !== this.photoRequest) return;
         const key = this.getPhotoKey(destination, stop);
-        if (image) {
-          this.photoStates.update((states) => ({ ...states, [key]: { status: 'loaded', image } }));
+        if (images.length) {
+          const [image, ...fallbackImages] = images;
+          this.photoStates.update((states) => ({ ...states, [key]: { status: 'loaded', image, fallbackImages } }));
         } else {
           this.photoStates.update((states) => ({ ...states, [key]: { status: 'error' } }));
           console.warn(`No Wikimedia Commons photo was found for ${stop.name}.`);
@@ -500,16 +507,16 @@ export class TripPlannerPage {
         this.photoStates.update((states) => ({ ...states, [key]: { status: 'error' } }));
         console.error(`Unable to load a Wikimedia Commons photo for ${stop.name}.`, error);
       }
-    }
+    }));
   }
 
-  private async searchCommonsImage(stop: TripStop, destination: TripDestination): Promise<WikimediaImage | null> {
+  private async searchCommonsImages(stop: TripStop, destination: TripDestination): Promise<WikimediaImage[]> {
     const params = new URLSearchParams({
       action: 'query',
       generator: 'search',
       gsrsearch: `"${stop.name}" ${destination.name} ${destination.region}`,
       gsrnamespace: '6',
-      gsrlimit: '5',
+      gsrlimit: '8',
       prop: 'imageinfo',
       iiprop: 'url|extmetadata',
       iiurlwidth: '900',
@@ -525,11 +532,12 @@ export class TripPlannerPage {
     const payload: unknown = await response.json();
     if (!this.isRecord(payload)) throw new Error('Wikimedia Commons returned an invalid response.');
     const queryResult = payload['query'];
-    if (!this.isRecord(queryResult) || !this.isRecord(queryResult['pages'])) return null;
+    if (!this.isRecord(queryResult) || !this.isRecord(queryResult['pages'])) return [];
 
     const pages = Object.values(queryResult['pages'])
       .filter((page): page is WikimediaPage => this.isRecord(page) && typeof page['title'] === 'string')
       .sort((first, second) => this.scoreImageTitle(second.title ?? '', stop.name) - this.scoreImageTitle(first.title ?? '', stop.name));
+    const images: WikimediaImage[] = [];
     for (const page of pages) {
       if (this.scoreImageTitle(page.title ?? '', stop.name) === 0) continue;
       const imageInfo = page.imageinfo?.[0];
@@ -543,16 +551,16 @@ export class TripPlannerPage {
         || this.plainText(metadata['Credit']?.value)
         || 'Wikimedia Commons contributor';
       const license = this.plainText(metadata['LicenseShortName']?.value) || 'See image page';
-      return {
+      images.push({
         thumbnail,
         original,
         filePage,
         fileName: (page.title ?? stop.name).replace(/^File:/, ''),
         artist,
         license,
-      };
+      });
     }
-    return null;
+    return images;
   }
 
   private scoreImageTitle(title: string, placeName: string): number {

@@ -18,6 +18,13 @@ export interface Profile {
   barangay_name?: string | null;
   gender: 'male' | 'female' | 'other' | 'prefer_not_to_say';
   phone: string | null;
+  renter_type?: 'local' | 'foreign-tourist' | null;
+  driver_license_type?: string | null;
+  driver_license_number?: string | null;
+  driver_license_country?: string | null;
+  driver_license_expiry?: string | null;
+  license_verification_status?: 'not_provided' | 'pending' | 'verified' | 'rejected';
+  license_reviewed_at?: string | null;
   member_type: string;
   login_source?: 'web' | 'app' | 'unknown' | null;
   registration_date: string;
@@ -49,4 +56,10 @@ export interface AppUser {
   barangayName?: string | null;
   gender?: string | null;
   phone?: string | null;
+  renterType?: 'local' | 'foreign-tourist' | null;
+  driverLicenseType?: string | null;
+  driverLicenseNumber?: string | null;
+  driverLicenseCountry?: string | null;
+  driverLicenseExpiry?: string | null;
+  licenseVerificationStatus?: 'not_provided' | 'pending' | 'verified' | 'rejected';
 }

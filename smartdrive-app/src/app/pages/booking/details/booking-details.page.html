@@ -146,6 +146,13 @@
             }
           }
 
+          @if (profileLicenseStatus() !== 'not_provided') {
+            <p class="conditions-privacy" role="status">
+              Saved license profile: {{ profileLicenseStatus() === 'verified' ? 'verified by staff' : profileLicenseStatus() === 'rejected' ? 'needs correction' : 'pending staff review' }}.
+              Bring your original license for inspection at pickup.
+            </p>
+          }
+
           <ion-checkbox formControlName="licenseConfirmed">
             I confirm the primary driver holds a current, valid license for the vehicle.
           </ion-checkbox>

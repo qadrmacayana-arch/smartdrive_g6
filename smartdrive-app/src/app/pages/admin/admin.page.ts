@@ -40,7 +40,21 @@ type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions'
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
-interface AdminUser { id: string; full_name: string; email: string; phone?: string | null; is_active?: boolean; created_at?: string; }
+interface AdminUser {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  is_active?: boolean;
+  created_at?: string;
+  renter_type?: 'local' | 'foreign-tourist' | null;
+  driver_license_type?: string | null;
+  driver_license_number?: string | null;
+  driver_license_country?: string | null;
+  driver_license_expiry?: string | null;
+  license_verification_status?: 'not_provided' | 'pending' | 'verified' | 'rejected';
+  license_reviewed_at?: string | null;
+}
 interface AdminReview { id?: string; customer_name?: string; customer_email?: string; rating: number; comment?: string; created_at?: string; }
 interface AdminLocation {
   key: string;
@@ -158,14 +172,83 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly supportNoteDraft = signal('');
   readonly savingSupportNote = signal(false);
   readonly promoCodes = signal<AdminPromo[]>([]);
-  readonly reportSummary = signal({
-    revenue: 0,
-    bookings: 0,
-    activeCustomers: 0,
-    activePromos: 0,
-    completedTrips: 0,
-    pendingPayments: 0,
+  readonly reportPeriod = signal<'all' | '30' | '365'>('all');
+  readonly reportBookings = signal<Booking[]>([]);
+  readonly activePromoCount = signal(0);
+  readonly reportSummary = computed(() => {
+    const bookings = this.filteredReportBookings();
+    return {
+      revenue: bookings
+        .filter((booking) => booking.payment_status === 'completed' && booking.booking_status !== 'cancelled')
+        .reduce((sum, booking) => sum + Number(booking.total_price ?? 0), 0),
+      bookings: bookings.length,
+      activeCustomers: new Set(bookings.map((booking) => booking.customer_email).filter(Boolean)).size,
+      activePromos: this.activePromoCount(),
+      completedTrips: bookings.filter((booking) => booking.booking_status === 'completed').length,
+      pendingPayments: bookings.filter((booking) => booking.payment_status === 'pending').length,
+    };
   });
+  readonly reportStatusBreakdown = computed(() => {
+    const bookings = this.filteredReportBookings();
+    return ([
+      ['confirmed', 'Confirmed'],
+      ['ongoing', 'In progress'],
+      ['completed', 'Completed'],
+      ['cancelled', 'Cancelled'],
+    ] as const).map(([status, label]) => ({
+      status,
+      label,
+      count: bookings.filter((booking) => booking.booking_status === status).length,
+    }));
+  });
+  readonly reportPaymentBreakdown = computed(() => {
+    const bookings = this.filteredReportBookings();
+    const groups = new Map<string, { method: string; count: number; paid: number; pending: number; refunded: number }>();
+    for (const booking of bookings) {
+      const method = this.paymentMethod(booking.payment_method);
+      const group = groups.get(method) ?? { method, count: 0, paid: 0, pending: 0, refunded: 0 };
+      group.count++;
+      if (booking.payment_status === 'completed') group.paid += Number(booking.total_price ?? 0);
+      if (booking.payment_status === 'pending') group.pending += Number(booking.total_price ?? 0);
+      if (booking.payment_status === 'refunded') group.refunded += Number(booking.total_price ?? 0);
+      groups.set(method, group);
+    }
+    return [...groups.values()].sort((first, second) => second.paid - first.paid);
+  });
+  readonly reportVehicleBreakdown = computed(() => {
+    const groups = new Map<string, { vehicle: string; bookings: number; revenue: number; cancelled: number }>();
+    for (const booking of this.filteredReportBookings()) {
+      const group = groups.get(booking.vehicle_name) ?? { vehicle: booking.vehicle_name, bookings: 0, revenue: 0, cancelled: 0 };
+      group.bookings++;
+      if (booking.payment_status === 'completed' && booking.booking_status !== 'cancelled') {
+        group.revenue += Number(booking.total_price ?? 0);
+      }
+      if (booking.booking_status === 'cancelled') group.cancelled++;
+      groups.set(booking.vehicle_name, group);
+    }
+    return [...groups.values()].sort((first, second) => second.bookings - first.bookings);
+  });
+  readonly reportCustomerBreakdown = computed(() => {
+    const groups = new Map<string, { customer: string; email: string; bookings: number; paid: number }>();
+    for (const booking of this.filteredReportBookings()) {
+      const key = booking.customer_email.trim().toLowerCase() || booking.customer_name;
+      const customer = groups.get(key) ?? {
+        customer: booking.customer_name,
+        email: booking.customer_email,
+        bookings: 0,
+        paid: 0,
+      };
+      customer.bookings++;
+      if (booking.payment_status === 'completed' && booking.booking_status !== 'cancelled') {
+        customer.paid += Number(booking.total_price ?? 0);
+      }
+      groups.set(key, customer);
+    }
+    return [...groups.values()].sort((first, second) => second.bookings - first.bookings).slice(0, 10);
+  });
+  readonly reportCancellationCount = computed(() =>
+    this.filteredReportBookings().filter((booking) => booking.booking_status === 'cancelled').length,
+  );
   readonly promoFeedback = signal<string | null>(null);
   readonly savingPromo = signal(false);
   readonly newPromo = {
@@ -276,15 +359,59 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   private async loadBookings(): Promise<void> {
-    const { data, error } = await this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false });
-    if (error) throw new Error(error.message);
-    this.bookings.set((data ?? []) as Booking[]);
+    const [bookings, profiles] = await Promise.all([
+      this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
+      this.supabase.client.from('profiles').select('id,renter_type,driver_license_type,driver_license_number,driver_license_country,driver_license_expiry,license_verification_status'),
+    ]);
+    if (bookings.error) throw new Error(bookings.error.message);
+    if (profiles.error) throw new Error(profiles.error.message);
+    const licenses = new Map((profiles.data ?? []).map((profile) => [profile.id, profile]));
+    this.bookings.set(((bookings.data ?? []) as Booking[]).map((booking) => {
+      const license = booking.user_id ? licenses.get(booking.user_id) : undefined;
+      if (!license) return booking;
+      return {
+        ...booking,
+        renter_type: booking.renter_type ?? license.renter_type,
+        driver_license_type: booking.driver_license_type ?? license.driver_license_type,
+        driver_license_number: license.driver_license_number,
+        driver_license_country: booking.driver_license_country ?? license.driver_license_country,
+        driver_license_expiry: license.driver_license_expiry,
+        license_verification_status: license.license_verification_status,
+      };
+    }));
   }
 
   private async loadUsers(): Promise<void> {
     const { data, error } = await this.supabase.client.from('profiles').select('*').order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     this.users.set((data ?? []) as AdminUser[]);
+  }
+
+  async updateLicenseReview(
+    user: AdminUser,
+    status: NonNullable<AdminUser['license_verification_status']>,
+  ): Promise<void> {
+    if (!user.id || status === 'not_provided' || !user.driver_license_number) return;
+    if (status === 'verified' && user.driver_license_expiry && user.driver_license_expiry < new Date().toISOString().slice(0, 10)) {
+      this.errorMessage.set('This driver license has expired and cannot be marked verified.');
+      return;
+    }
+    this.errorMessage.set(null);
+    try {
+      const { error } = await this.supabase.client
+        .from('profiles')
+        .update({ license_verification_status: status })
+        .eq('id', user.id);
+      if (error) throw new Error(error.message);
+      this.users.update((items) => items.map((item) => item.id === user.id
+        ? { ...item, license_verification_status: status, license_reviewed_at: status === 'pending' ? null : new Date().toISOString() }
+        : item));
+      this.bookings.update((items) => items.map((booking) => booking.user_id === user.id
+        ? { ...booking, license_verification_status: status }
+        : booking));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update driver license review status.');
+    }
   }
 
   private async loadTransactions(): Promise<void> {
@@ -417,16 +544,50 @@ export class AdminPage implements OnDestroy, OnInit {
     if (users.error) throw new Error(users.error.message);
     if (promos.error) throw new Error(promos.error.message);
 
-    const reportBookings = (bookings.data ?? []) as Booking[];
-    const activeCustomers = new Set(reportBookings.map((booking) => booking.customer_email).filter(Boolean)).size;
-    this.reportSummary.set({
-      revenue: reportBookings.reduce((sum, booking) => sum + Number(booking.total_price ?? 0), 0),
-      bookings: reportBookings.length,
-      activeCustomers,
-      activePromos: (promos.data ?? []).length,
-      completedTrips: reportBookings.filter((booking) => booking.booking_status === 'completed').length,
-      pendingPayments: reportBookings.filter((booking) => booking.payment_status === 'pending').length,
+    this.reportBookings.set((bookings.data ?? []) as Booking[]);
+    this.activePromoCount.set((promos.data ?? []).length);
+  }
+
+  filteredReportBookings(): Booking[] {
+    const period = this.reportPeriod();
+    if (period === 'all') return this.reportBookings();
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - Number(period));
+    return this.reportBookings().filter((booking) => {
+      if (!booking.created_at) return false;
+      const createdAt = new Date(booking.created_at);
+      return !Number.isNaN(createdAt.getTime()) && createdAt >= start;
     });
+  }
+
+  exportBusinessReport(): void {
+    const bookings = this.filteredReportBookings();
+    const quote = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
+    const rows = [
+      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
+      ...bookings.map((booking) => [
+        booking.reference_number,
+        booking.created_at ?? '',
+        booking.customer_name,
+        booking.customer_email,
+        booking.vehicle_name,
+        booking.pickup_date,
+        booking.return_date,
+        booking.booking_status,
+        this.paymentMethod(booking.payment_method),
+        booking.payment_status,
+        Number(booking.total_price ?? 0).toFixed(2),
+      ]),
+    ];
+    const csv = `\uFEFF${rows.map((row) => row.map(quote).join(',')).join('\r\n')}`;
+    const file = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `SmartDrive-business-report-${this.reportPeriod()}-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   private async loadPromos(): Promise<void> {
@@ -699,7 +860,15 @@ export class AdminPage implements OnDestroy, OnInit {
 
   filteredUsers(): AdminUser[] {
     const term = this.search().trim().toLowerCase();
-    return this.users().filter((user) => !term || [user.full_name, user.email, user.phone].some((value) => String(value ?? '').toLowerCase().includes(term)));
+    return this.users().filter((user) => !term || [
+      user.full_name,
+      user.email,
+      user.phone,
+      user.driver_license_type,
+      user.driver_license_number,
+      user.driver_license_country,
+      user.license_verification_status,
+    ].some((value) => String(value ?? '').toLowerCase().includes(term)));
   }
 
   filteredTransactionSummaries(): UserTransactionSummary[] {
@@ -733,8 +902,15 @@ export class AdminPage implements OnDestroy, OnInit {
 
   async updateBookingStatus(booking: Booking, status: Booking['booking_status']): Promise<void> {
     if (!booking.id) return;
-    if (status === 'cancelled' || booking.booking_status === 'cancelled') {
+    if (booking.booking_status === 'cancelled') {
       this.errorMessage.set('Customers control booking cancellations. Cancelled bookings cannot be changed by admins.');
+      return;
+    }
+    if (status !== 'completed' || booking.booking_status !== 'ongoing') {
+      this.errorMessage.set('Bookings become in progress automatically on the pickup date. Admins can mark an in-progress booking completed only after confirming the vehicle was returned.');
+      return;
+    }
+    if (!window.confirm(`Confirm the vehicle for booking ${booking.reference_number} has been returned? This will mark the booking completed.`)) {
       return;
     }
     this.errorMessage.set(null);
