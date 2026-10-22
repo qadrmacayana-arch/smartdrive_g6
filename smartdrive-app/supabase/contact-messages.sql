@@ -19,6 +19,8 @@ create index if not exists idx_contact_messages_created_at
 
 alter table public.contact_messages enable row level security;
 
+grant select, insert, update on public.contact_messages to authenticated;
+
 drop policy if exists contact_messages_insert_own on public.contact_messages;
 create policy contact_messages_insert_own
 on public.contact_messages for insert to authenticated

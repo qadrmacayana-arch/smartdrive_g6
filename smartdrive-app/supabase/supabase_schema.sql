@@ -716,6 +716,40 @@ alter table public.wallet_transactions enable row level security;
 alter table public.contact_messages enable row level security;
 alter table public.discount_codes enable row level security;
 
+grant select, insert, update on public.contact_messages to authenticated;
+
+drop policy if exists contact_messages_insert_own on public.contact_messages;
+create policy contact_messages_insert_own
+on public.contact_messages for insert to authenticated
+with check (
+  lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  and char_length(trim(full_name)) between 1 and 120
+  and char_length(trim(email)) between 3 and 254
+  and (subject is null or char_length(trim(subject)) between 3 and 120)
+  and char_length(trim(message)) between 5 and 2000
+  and is_read = false
+);
+
+drop policy if exists contact_messages_select_admin on public.contact_messages;
+create policy contact_messages_select_admin
+on public.contact_messages for select to authenticated
+using (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
+);
+
+drop policy if exists contact_messages_update_admin on public.contact_messages;
+create policy contact_messages_update_admin
+on public.contact_messages for update to authenticated
+using (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
+)
+with check (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
+  or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
+);
+
 drop policy if exists "Customers can read their own bookings" on public.bookings;
 create policy "Customers can read their own bookings"
 on public.bookings for select
