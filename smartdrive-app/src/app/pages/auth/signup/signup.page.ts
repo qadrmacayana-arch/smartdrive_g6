@@ -102,6 +102,12 @@ export class SignupPage implements OnInit, OnDestroy {
   readonly googleRegistration = signal(false);
   readonly googleEmail = signal('');
   readonly profilePhotoPreview = signal<string | null>(null);
+  readonly signupStep = signal(1);
+  readonly signupSteps = [
+    { number: 1, label: 'Account' },
+    { number: 2, label: 'About you' },
+    { number: 3, label: 'Address' },
+  ];
   private selectedProfilePhoto: File | null = null;
   private profilePhotoObjectUrl: string | null = null;
   readonly form = this.fb.group(
@@ -314,6 +320,49 @@ export class SignupPage implements OnInit, OnDestroy {
       return 'Use uppercase, lowercase, a number, and a symbol.';
     }
     return 'Strong password.';
+  }
+
+  nextStep(): void {
+    const controlsByStep: Record<number, Array<keyof typeof this.form.controls>> = {
+      1: ['firstName', 'surname', 'email', 'password', 'confirmPassword'],
+      2: ['birthday', 'gender', 'phone'],
+    };
+    const controls = controlsByStep[this.signupStep()];
+    if (!controls) return;
+
+    const invalidControls = controls.filter((name) =>
+      (!this.googleRegistration() || !['email', 'password', 'confirmPassword'].includes(name))
+      && this.form.controls[name].invalid,
+    );
+    const passwordMismatch = this.signupStep() === 1
+      && !this.googleRegistration()
+      && this.form.hasError('mismatch');
+    if (invalidControls.length || passwordMismatch) {
+      invalidControls.forEach((name) => this.form.controls[name].markAsTouched());
+      if (passwordMismatch) this.form.controls.confirmPassword.markAsTouched();
+      this.errorMessage.set(passwordMismatch
+        ? 'Passwords do not match.'
+        : 'Complete the highlighted fields to continue.');
+      return;
+    }
+
+    this.errorMessage.set(null);
+    this.signupStep.update((step) => Math.min(step + 1, this.signupSteps.length));
+    void document.querySelector<HTMLIonContentElement>('ion-content.auth-page')?.scrollToTop(200);
+  }
+
+  previousStep(): void {
+    this.errorMessage.set(null);
+    this.signupStep.update((step) => Math.max(step - 1, 1));
+    void document.querySelector<HTMLIonContentElement>('ion-content.auth-page')?.scrollToTop(200);
+  }
+
+  onFormSubmit(): void {
+    if (this.signupStep() === this.signupSteps.length) {
+      void this.submit();
+      return;
+    }
+    this.nextStep();
   }
 
   @HostListener('document:visibilitychange')
