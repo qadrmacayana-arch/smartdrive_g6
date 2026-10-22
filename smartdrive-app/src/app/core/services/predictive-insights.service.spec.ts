@@ -6,15 +6,44 @@ import { PredictiveInsightsService } from './predictive-insights.service';
 
 describe('PredictiveInsightsService', () => {
   let service: PredictiveInsightsService;
+  let rpc: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    rpc = vi.fn();
     TestBed.configureTestingModule({
       providers: [
         PredictiveInsightsService,
-        { provide: SupabaseService, useValue: { client: { rpc: vi.fn() } } },
+        { provide: SupabaseService, useValue: { client: { rpc } } },
       ],
     });
     service = TestBed.inject(PredictiveInsightsService);
+  });
+
+  it('returns anonymous overlap counts alongside date conflicts', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: [{ has_conflict: true, historical_signal_percent: null }],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [{ using_count: 1, reserved_count: 2, pending_count: 1 }],
+        error: null,
+      });
+
+    const result = await service.getBookingDateEstimate(4, '2026-10-23', '2026-10-25');
+
+    expect(result).toEqual({
+      hasConflict: true,
+      historicalSignalPercent: null,
+      usingCount: 1,
+      reservedCount: 2,
+      pendingCount: 1,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, 'get_vehicle_booking_availability', {
+      p_vehicle_id: 4,
+      p_pickup_date: '2026-10-23',
+      p_return_date: '2026-10-25',
+    });
   });
 
   it('estimates the next 30 days from the previous two periods and excludes cancelled bookings', () => {

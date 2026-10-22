@@ -33,6 +33,9 @@
         <a class="nav-item" [class.active]="section() === 'bookings'" [attr.aria-current]="section() === 'bookings' ? 'page' : null" (click)="openSection('bookings')">
           <ion-icon name="calendar-outline"></ion-icon><span>Bookings</span>
         </a>
+        <a class="nav-item nav-sub-item" [class.active]="section() === 'availability'" [attr.aria-current]="section() === 'availability' ? 'page' : null" (click)="openSection('availability')">
+          <ion-icon name="car-outline"></ion-icon><span>Availability</span>
+        </a>
         <a class="nav-item" [class.active]="section() === 'fleet'" [attr.aria-current]="section() === 'fleet' ? 'page' : null" (click)="openSection('fleet')">
           <ion-icon name="car-outline"></ion-icon><span>Fleet</span>
         </a>
@@ -353,6 +356,65 @@
         </section>
       }
 
+      @if (section() === 'availability') {
+        <section class="data-card admin-module">
+          <div class="module-toolbar">
+            <div class="module-title">
+              <span class="section-kicker">FLEET SCHEDULE</span>
+              <h2>Vehicle availability</h2>
+              <p>See who has an active reservation or is using each vehicle on the selected date.</p>
+            </div>
+            <label class="availability-date">
+              <span>Schedule date</span>
+              <input type="date" [value]="availabilityDate()" (change)="setAvailabilityDate($any($event.target).value)">
+            </label>
+            <button class="secondary-action" type="button" (click)="loadSection('availability')">
+              <ion-icon name="refresh-outline"></ion-icon>Refresh
+            </button>
+          </div>
+          <div class="availability-stats">
+            <article><span>Currently using</span><strong>{{ availabilitySummary().using }}</strong></article>
+            <article><span>Confirmed reservations</span><strong>{{ availabilitySummary().reserved }}</strong></article>
+            <article><span>Pending checkout holds</span><strong>{{ availabilitySummary().pending }}</strong><small>Expire after 10 minutes</small></article>
+            <article><span>Total active bookings</span><strong>{{ availabilitySummary().total }}</strong></article>
+          </div>
+          <div class="availability-fleet">
+            @for (item of vehicleAvailability(); track item.vehicle.id) {
+              <article class="availability-vehicle">
+                <header>
+                  <div><h3>{{ item.vehicle.name }}</h3><p>{{ item.vehicle.vehicle_id }} · {{ item.vehicle.status | titlecase }}</p></div>
+                  <div class="availability-counts">
+                    <span class="status-pill ongoing">{{ item.using.length }} using</span>
+                    <span class="status-pill">{{ item.reserved.length }} reserved</span>
+                    <span class="status-pill pending">{{ item.pending.length }} pending</span>
+                  </div>
+                </header>
+                @if (item.using.length + item.reserved.length + item.pending.length) {
+                  <div class="table-scroll"><table>
+                    <thead><tr><th>Customer</th><th>Reference</th><th>Rental period</th><th>Status</th></tr></thead>
+                    <tbody>
+                      @for (booking of item.using; track booking.id ?? booking.reference_number) {
+                        <tr><td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small></td><td>{{ booking.reference_number }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} → {{ booking.return_date | date:'MMM d, y' }}</td><td><span class="status-pill ongoing">Currently using</span></td></tr>
+                      }
+                      @for (booking of item.reserved; track booking.id ?? booking.reference_number) {
+                        <tr><td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small></td><td>{{ booking.reference_number }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} → {{ booking.return_date | date:'MMM d, y' }}</td><td><span class="status-pill">Confirmed reservation</span></td></tr>
+                      }
+                      @for (booking of item.pending; track booking.id ?? booking.reference_number) {
+                        <tr><td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small></td><td>{{ booking.reference_number }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} → {{ booking.return_date | date:'MMM d, y' }}</td><td><span class="status-pill pending">Pending · expires in 10 min</span></td></tr>
+                      }
+                    </tbody>
+                  </table></div>
+                } @else {
+                  <p class="availability-empty">No active use, reservation, or pending hold for this date.</p>
+                }
+              </article>
+            } @empty {
+              <p class="empty">No vehicles are available to schedule.</p>
+            }
+          </div>
+        </section>
+      }
+
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
           <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
@@ -411,10 +473,12 @@
 
       @if (section() === 'fleet') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Add vehicles or update your active inventory.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Each listing represents one physical vehicle. Add each car separately with its own vehicle ID or plate so bookings and availability are tracked per unit.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
           <form class="vehicle-form" (submit)="$event.preventDefault(); saveVehicle()">
+            <label><span>Vehicle ID / plate</span><input placeholder="e.g. ABC-1234" [(ngModel)]="newVehicle.vehicle_id" name="vehicleId" maxlength="32" required></label>
             <label><span>Vehicle name</span><input placeholder="e.g. Toyota Vios" [(ngModel)]="newVehicle.name" name="vehicleName" required></label>
             <label><span>Vehicle type</span><input placeholder="e.g. Sedan" [(ngModel)]="newVehicle.type" name="vehicleType" required></label>
+            <label><span>Category</span><select [(ngModel)]="newVehicle.main_category" name="vehicleCategory" required><option value="Cars">Cars</option><option value="Motorcycles">Motorcycles</option><option value="Recreational">Recreational Vehicles</option></select></label>
             <label><span>Daily rate (₱)</span><input type="number" min="1" placeholder="2500" [(ngModel)]="newVehicle.price" name="vehiclePrice" required></label>
             <label class="image-url-field"><span>Image URL</span><input type="url" placeholder="https://..." [(ngModel)]="newVehicle.image" name="vehicleImage"></label>
             <button class="primary-action" type="submit"><ion-icon name="add-outline"></ion-icon>Add vehicle</button>

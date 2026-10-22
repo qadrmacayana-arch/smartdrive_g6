@@ -76,3 +76,73 @@ $$;
 
 revoke all on function public.get_vehicle_booking_signal(bigint, date, date) from public, anon;
 grant execute on function public.get_vehicle_booking_signal(bigint, date, date) to authenticated;
+
+create or replace function public.get_vehicle_booking_availability(
+  p_vehicle_id bigint,
+  p_pickup_date date,
+  p_return_date date
+)
+returns table (
+  using_count integer,
+  reserved_count integer,
+  pending_count integer
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Sign in to check booking dates.';
+  end if;
+
+  if p_pickup_date is null
+    or p_return_date is null
+    or p_vehicle_id is null
+    or p_pickup_date < current_date
+    or p_return_date <= p_pickup_date
+    or p_pickup_date > current_date + 365 then
+    raise exception 'Choose a valid future rental period within the next year.';
+  end if;
+
+  if not exists (
+    select 1
+    from public.vehicles v
+    where v.id = p_vehicle_id
+      and v.status <> 'archived'
+  ) then
+    raise exception 'Vehicle not found.';
+  end if;
+
+  return query
+  select
+    count(*) filter (
+      where b.booking_status = 'ongoing'
+        and b.payment_status = 'completed'
+    )::integer,
+    count(*) filter (
+      where b.booking_status = 'confirmed'
+        and b.payment_status = 'completed'
+    )::integer,
+    count(*) filter (
+      where b.booking_status = 'confirmed'
+        and b.payment_status = 'pending'
+        and b.created_at > now() - interval '10 minutes'
+    )::integer
+  from public.bookings b
+  where b.vehicle_id = p_vehicle_id
+    and b.booking_status in ('confirmed', 'ongoing')
+    and (
+      b.payment_status = 'completed'
+      or (
+        b.payment_status = 'pending'
+        and b.created_at > now() - interval '10 minutes'
+      )
+    )
+    and b.pickup_date < p_return_date
+    and b.return_date > p_pickup_date;
+end;
+$$;
+
+revoke all on function public.get_vehicle_booking_availability(bigint, date, date) from public, anon;
+grant execute on function public.get_vehicle_booking_availability(bigint, date, date) to authenticated;

@@ -6,6 +6,9 @@ import { SupabaseService } from './supabase.service';
 export interface BookingDateEstimate {
   hasConflict: boolean;
   historicalSignalPercent: number | null;
+  usingCount: number;
+  reservedCount: number;
+  pendingCount: number;
 }
 
 export interface VehicleDemandInsight {
@@ -33,14 +36,22 @@ export class PredictiveInsightsService {
     pickupDate: string,
     returnDate: string,
   ): Promise<BookingDateEstimate> {
-    const { data, error } = await this.supabase.client.rpc('get_vehicle_booking_signal', {
-      p_vehicle_id: vehicleId,
-      p_pickup_date: pickupDate,
-      p_return_date: returnDate,
-    });
-    if (error) throw new Error(`Date estimate unavailable: ${error.message}`);
+    const [signalResult, availabilityResult] = await Promise.all([
+      this.supabase.client.rpc('get_vehicle_booking_signal', {
+        p_vehicle_id: vehicleId,
+        p_pickup_date: pickupDate,
+        p_return_date: returnDate,
+      }),
+      this.supabase.client.rpc('get_vehicle_booking_availability', {
+        p_vehicle_id: vehicleId,
+        p_pickup_date: pickupDate,
+        p_return_date: returnDate,
+      }),
+    ]);
+    if (signalResult.error) throw new Error(`Date estimate unavailable: ${signalResult.error.message}`);
+    if (availabilityResult.error) throw new Error(`Date availability counts unavailable: ${availabilityResult.error.message}`);
 
-    const row = Array.isArray(data) ? data[0] : data;
+    const row = Array.isArray(signalResult.data) ? signalResult.data[0] : signalResult.data;
     if (
       !row
       || typeof row !== 'object'
@@ -57,9 +68,39 @@ export class PredictiveInsightsService {
     ) {
       throw new Error('Date estimate returned invalid values.');
     }
+    const availabilityRow = Array.isArray(availabilityResult.data)
+      ? availabilityResult.data[0]
+      : availabilityResult.data;
+    if (
+      !availabilityRow
+      || typeof availabilityRow !== 'object'
+      || !('using_count' in availabilityRow)
+      || !('reserved_count' in availabilityRow)
+      || !('pending_count' in availabilityRow)
+    ) {
+      throw new Error('Date availability counts returned an unexpected response.');
+    }
+    const counts = availabilityRow as {
+      using_count: unknown;
+      reserved_count: unknown;
+      pending_count: unknown;
+    };
+    if (
+      !Number.isInteger(counts.using_count)
+      || !Number.isInteger(counts.reserved_count)
+      || !Number.isInteger(counts.pending_count)
+      || Number(counts.using_count) < 0
+      || Number(counts.reserved_count) < 0
+      || Number(counts.pending_count) < 0
+    ) {
+      throw new Error('Date availability counts returned invalid values.');
+    }
     return {
       hasConflict: result.has_conflict,
       historicalSignalPercent: result.historical_signal_percent,
+      usingCount: Number(counts.using_count),
+      reservedCount: Number(counts.reserved_count),
+      pendingCount: Number(counts.pending_count),
     };
   }
 

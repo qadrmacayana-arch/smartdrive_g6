@@ -171,13 +171,17 @@
                 } @else if (bookingEstimate(); as estimate) {
                   @if (estimate.hasConflict) {
                     <strong>Booking conflict: this vehicle is already reserved</strong>
-                    <p>These dates overlap an existing reservation. Choose another pick-up or drop-off date to continue.</p>
+                    <p>These dates overlap {{ estimate.usingCount + estimate.reservedCount + estimate.pendingCount }} active booking(s): {{ estimate.usingCount }} in use, {{ estimate.reservedCount }} confirmed, and {{ estimate.pendingCount }} pending checkout(s). Choose another pick-up or drop-off date to continue.</p>
+                    <small>Customer identities are kept private. Pending checkouts hold the vehicle for up to 10 minutes.</small>
                   } @else if (estimate.historicalSignalPercent !== null) {
                     <strong>{{ estimate.historicalSignalPercent }}% historical booking signal</strong>
-                    <p>Availability checked: no current reservation conflict was found. The percentage is based on past bookings for this vehicle on similar weekdays.</p>
+                    <p>No active booking overlaps your dates. The percentage is based on past bookings for this vehicle on similar weekdays.</p>
                   } @else {
                     <strong>No current reservation conflict found</strong>
-                    <p>There is not enough booking history to provide a demand estimate for these dates.</p>
+                    <p>No active booking overlaps your dates. There is not enough history for a demand estimate.</p>
+                  }
+                  @if (!estimate.hasConflict && (estimate.usingCount + estimate.reservedCount + estimate.pendingCount > 0)) {
+                    <p>{{ estimate.usingCount }} in use, {{ estimate.reservedCount }} confirmed, and {{ estimate.pendingCount }} pending checkout(s) overlap the selected period.</p>
                   }
                 }
               </div>

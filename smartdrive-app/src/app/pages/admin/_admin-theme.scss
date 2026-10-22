@@ -32,6 +32,8 @@
 .sidebar-nav { display: grid; gap: .24rem; }
 .nav-group-label { margin: 1.1rem .8rem .35rem; font-size: .58rem; }
 .nav-item { position: relative; display: flex; min-height: 43px; align-items: center; gap: .75rem; padding: 0 .8rem; border-radius: .7rem; color: #69797d; font-size: .79rem; font-weight: 650; text-decoration: none; cursor: pointer; transition: background .18s ease, color .18s ease; }
+.nav-sub-item { min-height: 36px; margin-left: .85rem; padding-left: .7rem; font-size: .72rem; }
+.nav-sub-item ion-icon { font-size: .92rem; }
 .nav-item ion-icon { color: #869496; font-size: 1.08rem; }
 .nav-report-icon { width: 1.08rem; height: 1.08rem; flex: 0 0 auto; fill: none; stroke: #869496; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .nav-item:hover { background: #edf3f0; color: var(--admin-ink); }
@@ -178,6 +180,7 @@ tbody tr:hover { background: #fafcfb; }
 .status-pill.cancelled,.status-pill.suspended { background: #fff0ee; color: #b75b4f; }
 .status-pill.ongoing { background: #fff4e7; color: #b6782d; }
 .status-pill.completed { background: #edf1fa; color: #586e9e; }
+.status-pill.pending { background: #fff5e8; color: #a96b19; }
 .empty { padding: 1.2rem .5rem; color: #8a9698; font-size: .78rem; text-align: center; }
 .top-user-list { display: grid; }
 .top-user-row { display: flex; align-items: center; gap: .55rem; min-width: 0; padding: .7rem 0; border-bottom: 1px solid #eff2f0; }
@@ -214,12 +217,25 @@ tbody tr:hover { background: #fafcfb; }
 .date-separator { padding: 0 .15rem; color: #9eaaa7; }
 .customer-cell-avatar,.vehicle-cell-icon { display: inline-grid; width: 1.85rem; height: 1.85rem; margin-right: .5rem; vertical-align: middle; place-items: center; border-radius: .55rem; background: #eaf3ef; color: var(--admin-green-dark); font-size: .7rem; }
 .vehicle-cell-icon ion-icon { font-size: 1rem; }
+.availability-date { display: grid; gap: .35rem; color: #647478; font-size: .68rem; font-weight: 700; }
+.availability-date input { min-height: 2.45rem; padding: .5rem .65rem; border: 1px solid var(--admin-border); border-radius: .55rem; background: white; color: var(--admin-ink); font: 650 .72rem 'Plus Jakarta Sans',sans-serif; }
+.availability-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .7rem; margin: 0 0 1rem; }
+.availability-stats article { display: grid; gap: .32rem; padding: .9rem; border: 1px solid var(--admin-border); border-radius: .7rem; background: #fbfcfb; }
+.availability-stats article span,.availability-stats article small { color: var(--admin-muted); font-size: .65rem; }
+.availability-stats article strong { color: var(--admin-ink); font: 750 1.3rem 'Sora',sans-serif; }
+.availability-fleet { display: grid; gap: .8rem; }
+.availability-vehicle { min-width: 0; padding: .95rem; border: 1px solid var(--admin-border); border-radius: .75rem; }
+.availability-vehicle > header { display: flex; align-items: center; justify-content: space-between; gap: .8rem; margin-bottom: .65rem; }
+.availability-vehicle h3 { margin: 0; color: var(--admin-ink); font: 720 .9rem 'Sora',sans-serif; }
+.availability-vehicle header p { margin: .3rem 0 0; color: var(--admin-muted); font-size: .64rem; }
+.availability-counts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
+.availability-empty { margin: 0; padding: .75rem 0 .2rem; color: var(--admin-muted); font-size: .7rem; }
 
-.vehicle-form { display: grid; grid-template-columns: 1.1fr .8fr .7fr 1.25fr auto; align-items: end; gap: .65rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e7eeea; border-radius: .75rem; background: #f8faf9; }
+.vehicle-form { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: end; gap: .65rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e7eeea; border-radius: .75rem; background: #f8faf9; }
 .vehicle-form label,.edit-card label { display: grid; gap: .38rem; color: #617174; font-size: .67rem; font-weight: 700; }
 .vehicle-form label > span { color: #728184; }
-.vehicle-form input,.edit-card input:not([type="checkbox"]) { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
-.vehicle-form input:focus,.edit-card input:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
+.vehicle-form input,.vehicle-form select,.edit-card input:not([type="checkbox"]) { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
+.vehicle-form input:focus,.vehicle-form select:focus,.edit-card input:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
 .vehicle-form .primary-action { min-height: 2.45rem; }
 .vehicle-edit-card { max-height: min(90vh, 850px); overflow-y: auto; }
 .vehicle-edit-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
@@ -392,6 +408,9 @@ tbody tr:hover { background: #fafcfb; }
   .module-toolbar { align-items: stretch; flex-direction: column; }
   .module-title h2 { font-size: 1rem; }
   .search-field { width: 100%; }
+  .availability-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .availability-vehicle > header { align-items: flex-start; flex-direction: column; }
+  .availability-counts { justify-content: flex-start; }
   .vehicle-form { grid-template-columns: 1fr; padding: .8rem; }
   .vehicle-form .primary-action { width: 100%; }
   .promo-form { grid-template-columns: 1fr; }

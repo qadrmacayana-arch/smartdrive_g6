@@ -36,10 +36,16 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos';
+type AdminSection = 'overview' | 'bookings' | 'availability' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos';
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
+interface VehicleAvailability {
+  vehicle: Vehicle;
+  using: Booking[];
+  reserved: Booking[];
+  pending: Booking[];
+}
 interface AdminUser {
   id: string;
   full_name: string;
@@ -153,6 +159,46 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly errorMessage = signal<string | null>(null);
   readonly section = signal<AdminSection>('overview');
   readonly bookings = signal<Booking[]>([]);
+  readonly availabilityDate = signal(this.todayDate());
+  readonly availabilityClock = signal(Date.now());
+  readonly vehicleAvailability = computed<VehicleAvailability[]>(() => {
+    const date = this.availabilityDate();
+    const now = this.availabilityClock();
+    const eligible = this.bookings().filter((booking) =>
+      booking.booking_status !== 'cancelled'
+      && booking.payment_status !== 'failed'
+      && booking.payment_status !== 'refunded'
+      && booking.pickup_date <= date
+      && booking.return_date > date,
+    );
+    return this.vehicles()
+      .filter((vehicle) => vehicle.status !== 'archived')
+      .map((vehicle) => {
+        const vehicleBookings = eligible.filter((booking) => booking.vehicle_id === vehicle.id);
+        return {
+          vehicle,
+          using: vehicleBookings.filter((booking) =>
+            booking.booking_status === 'ongoing' && booking.payment_status === 'completed',
+          ),
+          reserved: vehicleBookings.filter((booking) =>
+            booking.booking_status === 'confirmed' && booking.payment_status === 'completed',
+          ),
+          pending: vehicleBookings.filter((booking) =>
+            booking.booking_status === 'confirmed'
+            && booking.payment_status === 'pending'
+            && booking.created_at != null
+            && Date.parse(booking.created_at) > now - 10 * 60 * 1000,
+          ),
+        };
+      });
+  });
+  readonly availabilitySummary = computed(() => {
+    const vehicles = this.vehicleAvailability();
+    const using = vehicles.reduce((count, item) => count + item.using.length, 0);
+    const reserved = vehicles.reduce((count, item) => count + item.reserved.length, 0);
+    const pending = vehicles.reduce((count, item) => count + item.pending.length, 0);
+    return { using, reserved, pending, total: using + reserved + pending };
+  });
   readonly users = signal<AdminUser[]>([]);
   readonly vehicles = signal<Vehicle[]>([]);
   readonly reviews = signal<AdminReview[]>([]);
@@ -295,7 +341,15 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly editingVehicle = signal<VehicleEditDraft | null>(null);
   readonly vehicleEditError = signal<string | null>(null);
   readonly savingVehicleEdit = signal(false);
-  readonly newVehicle = { name: '', type: '', price: 0, image: '', status: 'available' };
+  readonly newVehicle = {
+    vehicle_id: '',
+    name: '',
+    type: '',
+    main_category: 'Cars',
+    price: 0,
+    image: '',
+    status: 'available',
+  };
   private contactMessageChannel: RealtimeChannel | null = null;
 
   ngOnInit(): void {
@@ -313,6 +367,7 @@ export class AdminPage implements OnDestroy, OnInit {
     });
     window.setInterval(() => {
       if (this.section() === 'tracking') void this.loadLocations();
+      if (this.section() === 'availability') this.availabilityClock.set(Date.now());
     }, 10000);
   }
 
@@ -337,6 +392,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.errorMessage.set(null);
     try {
       if (section === 'bookings') await this.loadBookings();
+      if (section === 'availability') await Promise.all([this.loadBookings(), this.loadFleet()]);
       if (section === 'users') await this.loadUsers();
       if (section === 'transactions') await this.loadTransactions();
       if (section === 'fleet') await this.loadFleet();
@@ -360,6 +416,18 @@ export class AdminPage implements OnDestroy, OnInit {
       .order('created_at', { ascending: false });
     if (bookings.error) throw new Error(bookings.error.message);
     this.bookings.set((bookings.data ?? []) as Booking[]);
+  }
+
+  private todayDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  setAvailabilityDate(value: string): void {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) this.availabilityDate.set(value);
   }
 
   private async loadUsers(): Promise<void> {
@@ -954,12 +1022,35 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   async saveVehicle(): Promise<void> {
-    const vehicle = { ...this.newVehicle };
-    if (!vehicle.name || !vehicle.type || !vehicle.price) return;
+    const vehicle = {
+      ...this.newVehicle,
+      vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
+      name: this.newVehicle.name.trim(),
+      type: this.newVehicle.type.trim(),
+      main_category: this.newVehicle.main_category.trim(),
+    };
+    if (!vehicle.vehicle_id || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0) {
+      this.errorMessage.set('Enter a unique vehicle ID or plate, name, type, category, and a positive daily rate.');
+      return;
+    }
+    this.errorMessage.set(null);
     const { data, error } = await this.supabase.client.from('vehicles').insert([vehicle]).select().single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key')
+        ? 'That vehicle ID or plate is already in the fleet. Enter a unique ID for each physical vehicle.'
+        : `Could not add this vehicle: ${error.message}`);
+      return;
+    }
     this.vehicles.update((items) => [data, ...items]);
-    Object.assign(this.newVehicle, { name: '', type: '', price: 0, image: '', status: 'available' });
+    Object.assign(this.newVehicle, {
+      vehicle_id: '',
+      name: '',
+      type: '',
+      main_category: 'Cars',
+      price: 0,
+      image: '',
+      status: 'available',
+    });
   }
 
   openVehicleEditor(vehicle: Vehicle): void {
