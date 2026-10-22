@@ -196,6 +196,52 @@ export class BookingService {
     return [...new Set((data ?? []).map((booking) => Number(booking.vehicle_id)))];
   }
 
+  validateCustomerBookingRequirements(customer: BookingDraft['customer'] | undefined): string | null {
+    if (!customer) return 'Booking details are incomplete.';
+    if (
+      !Number.isInteger(customer.driverAge)
+      || customer.driverAge < 18
+      || customer.driverAge > 100
+      || !customer.conditionsAccepted
+      || !customer.documentsReady
+    ) {
+      return 'Complete the driver and booking conditions section before confirming this booking.';
+    }
+
+    if (
+      customer.renterType === 'local'
+      && (
+        !['local-non-professional', 'local-professional'].includes(customer.driverLicenseType)
+        || customer.driverLicenseCountry !== null
+        || customer.philippinesArrivalDate !== null
+        || customer.foreignLicenseSupport !== null
+      )
+    ) {
+      return 'Local renters must provide a valid local driver’s license type and cannot include foreign-license fields.';
+    }
+
+    if (
+      customer.renterType === 'foreign-tourist'
+      && (
+        !customer.driverLicenseCountry
+        || !customer.philippinesArrivalDate
+        || !['foreign-english', 'foreign-other'].includes(customer.driverLicenseType)
+        || (
+          customer.driverLicenseType === 'foreign-other'
+          && !['idp', 'embassy-translation'].includes(customer.foreignLicenseSupport ?? '')
+        )
+        || (
+          customer.driverLicenseType === 'foreign-english'
+          && customer.foreignLicenseSupport !== 'not-required'
+        )
+      )
+    ) {
+      return 'Foreign tourists must provide their license country, Philippine arrival date, and valid driving document details.';
+    }
+
+    return null;
+  }
+
   async createBooking(
     userId: string | null,
     paymentMethod: string,
@@ -204,39 +250,9 @@ export class BookingService {
     const draft = this.draft();
     if (!draft?.customer || !draft.pricing) throw new Error('Booking details are incomplete.');
     const customer = draft.customer;
-    if (
-      !Number.isInteger(customer.driverAge)
-      || customer.driverAge < 18
-      || customer.driverAge > 100
-      || !customer.conditionsAccepted
-      || !customer.documentsReady
-      || (
-        customer.renterType === 'local'
-        && (
-          !['local-non-professional', 'local-professional'].includes(customer.driverLicenseType)
-          || customer.driverLicenseCountry !== null
-          || customer.philippinesArrivalDate !== null
-          || customer.foreignLicenseSupport !== null
-        )
-      )
-      || (
-        customer.renterType === 'foreign-tourist'
-        && (
-          !customer.driverLicenseCountry
-          || !customer.philippinesArrivalDate
-          || !['foreign-english', 'foreign-other'].includes(customer.driverLicenseType)
-          || (
-            customer.driverLicenseType === 'foreign-other'
-            && !['idp', 'embassy-translation'].includes(customer.foreignLicenseSupport ?? '')
-          )
-          || (
-            customer.driverLicenseType === 'foreign-english'
-            && customer.foreignLicenseSupport !== 'not-required'
-          )
-        )
-      )
-    ) {
-      throw new Error('Complete the driver and booking conditions section before confirming this booking.');
+    const validationError = this.validateCustomerBookingRequirements(customer);
+    if (validationError) {
+      throw new Error(validationError);
     }
     const { data: sessionData, error: sessionError } = await this.supabase.client.auth.getSession();
     if (sessionError) throw new Error(`Your sign-in could not be verified: ${sessionError.message}`);

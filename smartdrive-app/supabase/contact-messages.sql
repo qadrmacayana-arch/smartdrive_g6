@@ -1,4 +1,4 @@
--- Run in the Supabase SQL Editor to connect the About page contact form to the admin inbox.
+-- Run or re-run in the Supabase SQL Editor to connect the About page contact form to the admin inbox.
 
 create table if not exists public.contact_messages (
   id bigint generated always as identity primary key,
@@ -24,7 +24,7 @@ create policy contact_messages_insert_own
 on public.contact_messages for insert to authenticated
 with check (
   lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
-  and char_length(trim(full_name)) between 2 and 120
+  and char_length(trim(full_name)) between 1 and 120
   and char_length(trim(email)) between 3 and 254
   and (subject is null or char_length(trim(subject)) between 3 and 120)
   and char_length(trim(message)) between 5 and 2000
@@ -50,5 +50,18 @@ with check (
   lower(coalesce(auth.jwt() ->> 'email', '')) = 'admin@smartrentals.com'
   or coalesce((auth.jwt() -> 'app_metadata' ->> 'is_admin')::boolean, false)
 );
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'contact_messages'
+  ) then
+    alter publication supabase_realtime add table public.contact_messages;
+  end if;
+end;
+$$;
 
 notify pgrst, 'reload schema';

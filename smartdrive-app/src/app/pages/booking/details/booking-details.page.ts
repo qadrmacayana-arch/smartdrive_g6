@@ -19,6 +19,7 @@ import {
   IonCheckbox,
 } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
+import { BookingDraft } from '../../../core/models/booking.model';
 import { BookingService } from '../../../core/services/booking.service';
 
 @Component({
@@ -122,28 +123,8 @@ export class BookingDetailsPage implements OnInit {
 
     const value = this.form.getRawValue();
     const driverAge = Number(value.driverAge);
-    if (!Number.isInteger(driverAge) || driverAge < 18 || driverAge > 100) {
-      this.errorMessage.set('Enter a valid age for the primary driver.');
-      return;
-    }
     const isForeignTourist = value.renterType === 'foreign-tourist';
-    if (
-      isForeignTourist
-      && (!value.driverLicenseCountry?.trim() || !value.philippinesArrivalDate)
-    ) {
-      this.errorMessage.set('Enter the driver’s license country and Philippine arrival date for manual verification.');
-      return;
-    }
-    if (
-      isForeignTourist
-      && value.driverLicenseType === 'foreign-other'
-      && !['idp', 'embassy-translation'].includes(value.foreignLicenseSupport ?? '')
-    ) {
-      this.errorMessage.set('Select the IDP or official translation you will present with a non-Roman-alphabet license.');
-      return;
-    }
-
-    this.bookingService.updateCustomer({
+    const customer: BookingDraft['customer'] = {
       name: value.name!.trim(),
       email: value.email!.trim(),
       phone: value.phone!.trim(),
@@ -151,16 +132,24 @@ export class BookingDetailsPage implements OnInit {
       driverAge,
       renterType: value.renterType as 'local' | 'foreign-tourist',
       driverLicenseType: value.driverLicenseType!,
-      driverLicenseCountry: isForeignTourist ? value.driverLicenseCountry!.trim() : null,
+      driverLicenseCountry: isForeignTourist ? value.driverLicenseCountry?.trim() || null : null,
       foreignLicenseSupport: isForeignTourist
         ? value.driverLicenseType === 'foreign-other'
-          ? value.foreignLicenseSupport as 'idp' | 'embassy-translation'
+          ? (value.foreignLicenseSupport as 'idp' | 'embassy-translation')
           : 'not-required'
         : null,
       philippinesArrivalDate: isForeignTourist ? value.philippinesArrivalDate! : null,
       documentsReady: value.documentsReady!,
       conditionsAccepted: value.conditionsAccepted!,
-    });
+    };
+
+    const validationError = this.bookingService.validateCustomerBookingRequirements(customer);
+    if (validationError) {
+      this.errorMessage.set(validationError);
+      return;
+    }
+
+    this.bookingService.updateCustomer(customer);
 
     const vehicleId = this.draft()!.vehicle.id;
     this.router.navigate(['/booking', vehicleId, 'payment']);

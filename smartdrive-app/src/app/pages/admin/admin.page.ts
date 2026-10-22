@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -27,6 +27,7 @@ import {
   SupportTicket,
 } from '../../core/services/support-conversation.service';
 import { ContactMessage, ContactMessageService } from '../../core/services/contact-message.service';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface AdminStats {
   revenue: number;
@@ -35,7 +36,7 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'promos';
+type AdminSection = 'overview' | 'bookings' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos';
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
@@ -97,7 +98,7 @@ interface VehicleEditDraft {
   ],
   templateUrl: './admin.page.html',
 })
-export class AdminPage implements OnInit {
+export class AdminPage implements OnDestroy, OnInit {
   private readonly auth = inject(AuthService);
   private readonly supabase = inject(SupabaseService);
   private readonly demoTracking = inject(DemoTrackingService);
@@ -136,15 +137,22 @@ export class AdminPage implements OnInit {
   readonly supportConversations = signal<SupportConversation[]>([]);
   readonly supportTickets = signal<SupportTicket[]>([]);
   readonly contactMessages = signal<ContactMessage[]>([]);
-  readonly unreadContactMessageCount = computed(
-    () => this.contactMessages().filter((message) => !message.is_read).length,
-  );
+  readonly unreadContactMessageCount = signal(0);
+  readonly contactNotification = signal<string | null>(null);
   readonly supportMessages = signal<SupportMessage[]>([]);
   readonly supportNotes = signal<SupportAdminNote[]>([]);
   readonly selectedSupportConversation = signal<SupportConversation | null>(null);
   readonly supportNoteDraft = signal('');
   readonly savingSupportNote = signal(false);
   readonly promoCodes = signal<AdminPromo[]>([]);
+  readonly reportSummary = signal({
+    revenue: 0,
+    bookings: 0,
+    activeCustomers: 0,
+    activePromos: 0,
+    completedTrips: 0,
+    pendingPayments: 0,
+  });
   readonly promoFeedback = signal<string | null>(null);
   readonly savingPromo = signal(false);
   readonly newPromo = {
@@ -197,8 +205,16 @@ export class AdminPage implements OnInit {
   readonly vehicleEditError = signal<string | null>(null);
   readonly savingVehicleEdit = signal(false);
   readonly newVehicle = { name: '', type: '', price: 0, image: '', status: 'available' };
+  private contactMessageChannel: RealtimeChannel | null = null;
 
   ngOnInit(): void {
+    this.contactMessageChannel = this.contactMessageService.watchForNewMessages((message) => {
+      if (!message.is_read) {
+        this.unreadContactMessageCount.update((count) => count + 1);
+      }
+      this.contactNotification.set(`New customer message from ${message.full_name}.`);
+    });
+    void this.loadUnreadContactMessageCount();
     this.route.queryParamMap.subscribe((params) => {
       const requested = params.get('section') as AdminSection | null;
       this.section.set(requested ?? 'overview');
@@ -207,6 +223,21 @@ export class AdminPage implements OnInit {
     window.setInterval(() => {
       if (this.section() === 'tracking') void this.loadLocations();
     }, 10000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.contactMessageChannel) {
+      void this.supabase.client.removeChannel(this.contactMessageChannel);
+      this.contactMessageChannel = null;
+    }
+  }
+
+  private async loadUnreadContactMessageCount(): Promise<void> {
+    try {
+      this.unreadContactMessageCount.set(await this.contactMessageService.countUnreadForAdmin());
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load unread customer messages.');
+    }
   }
 
   async loadSection(section: AdminSection): Promise<void> {
@@ -222,6 +253,7 @@ export class AdminPage implements OnInit {
       if (section === 'tracking') await this.loadLocations();
       if (section === 'support') await this.loadSupport();
       if (section === 'email-concerns') await this.loadContactMessages();
+      if (section === 'reports') await this.loadReports();
       if (section === 'promos') await this.loadPromos();
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : `Unable to load ${section}.`);
@@ -287,7 +319,9 @@ export class AdminPage implements OnInit {
   }
 
   private async loadContactMessages(): Promise<void> {
-    this.contactMessages.set(await this.contactMessageService.listForAdmin());
+    const messages = await this.contactMessageService.listForAdmin();
+    this.contactMessages.set(messages);
+    this.unreadContactMessageCount.set(messages.filter((message) => !message.is_read).length);
   }
 
   async setContactMessageRead(message: ContactMessage, isRead: boolean): Promise<void> {
@@ -297,9 +331,32 @@ export class AdminPage implements OnInit {
       this.contactMessages.update((items) =>
         items.map((item) => item.id === message.id ? { ...item, is_read: isRead } : item),
       );
+      this.unreadContactMessageCount.update((count) => Math.max(0, count + (isRead ? -1 : 1)));
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update the contact message.');
     }
+  }
+
+  private async loadReports(): Promise<void> {
+    const [bookings, users, promos] = await Promise.all([
+      this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
+      this.supabase.client.from('profiles').select('id, email').order('created_at', { ascending: false }),
+      this.supabase.client.from('discount_codes').select('*').eq('is_active', true),
+    ]);
+    if (bookings.error) throw new Error(bookings.error.message);
+    if (users.error) throw new Error(users.error.message);
+    if (promos.error) throw new Error(promos.error.message);
+
+    const reportBookings = (bookings.data ?? []) as Booking[];
+    const activeCustomers = new Set(reportBookings.map((booking) => booking.customer_email).filter(Boolean)).size;
+    this.reportSummary.set({
+      revenue: reportBookings.reduce((sum, booking) => sum + Number(booking.total_price ?? 0), 0),
+      bookings: reportBookings.length,
+      activeCustomers,
+      activePromos: (promos.data ?? []).length,
+      completedTrips: reportBookings.filter((booking) => booking.booking_status === 'completed').length,
+      pendingPayments: reportBookings.filter((booking) => booking.payment_status === 'pending').length,
+    });
   }
 
   private async loadPromos(): Promise<void> {

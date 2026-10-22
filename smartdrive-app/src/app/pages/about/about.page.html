@@ -16,7 +16,7 @@
     <nav class="about-subnav" aria-label="About page sections">
       <button type="button" [class.active]="activeTab() === 'about'" (click)="selectTab('about')">About SmartDrive</button>
       <button type="button" [class.active]="activeTab() === 'history'" (click)="selectTab('history')">Company History</button>
-      <button type="button" [class.active]="activeTab() === 'contact'" (click)="selectTab('contact')">Contacts</button>
+      <button type="button" [class.active]="activeTab() === 'contact'" (click)="selectTab('contact')">Contact Us</button>
       <button type="button" [class.active]="activeTab() === 'developers'" (click)="selectTab('developers')">Developers</button>
     </nav>
 
@@ -69,7 +69,8 @@
       <div>
         <p class="eyebrow">GET IN TOUCH</p><h2>Contact SmartDrive</h2>
         <p>Questions or concerns? Send a message to our team and an administrator will follow up.</p>
-        <button class="contact-email-link" type="button" (click)="contactComposerOpen.set(true)">smartdriveteam&#64;smartdrive.com</button>
+        <a class="contact-email-link" href="mailto:smartdriveteam@smartdrive.com">smartdriveteam&#64;smartdrive.com</a>
+        <button class="contact-send contact-open-form" type="button" (click)="contactComposerOpen.set(true)">Send a message</button>
         @if (contactSuccess()) { <p class="contact-feedback success" role="status">{{ contactSuccess() }}</p> }
         @if (contactError()) { <p class="contact-feedback error" role="alert">{{ contactError() }}</p> }
         @if (contactComposerOpen()) {

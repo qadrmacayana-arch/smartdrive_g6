@@ -60,6 +60,9 @@
           @if (supportTickets().length) { <span class="nav-live-dot" aria-label="Support tickets available"></span> }
         </a>
         <span class="nav-group-label">GROWTH</span>
+        <a class="nav-item" [class.active]="section() === 'reports'" [attr.aria-current]="section() === 'reports' ? 'page' : null" (click)="openSection('reports')">
+          <ion-icon name="bar-chart-outline"></ion-icon><span>Reports</span>
+        </a>
         <a class="nav-item" [class.active]="section() === 'promos'" [attr.aria-current]="section() === 'promos' ? 'page' : null" (click)="openSection('promos')">
           <ion-icon name="pricetag-outline"></ion-icon><span>Promo codes</span>
         </a>
@@ -76,7 +79,7 @@
       <header class="dashboard-heading">
         <div>
           <p class="eyebrow">SMARTDRIVE <span>/</span> {{ section() | titlecase }}</p>
-          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'email-concerns' ? 'Email concerns' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
+          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'email-concerns' ? 'Email concerns' : section() === 'reports' ? 'Business reports' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
           <p class="subtitle">
             @switch (section()) {
               @case ('overview') { Here's what's happening across your rental business today. }
@@ -88,11 +91,16 @@
               @case ('tracking') { View the latest reported and sample vehicle locations. }
               @case ('support') { Review saved conversations, reported problems, and internal follow-up notes. }
               @case ('email-concerns') { Read and manage messages sent to smartdriveteam&#64;smartdrive.com. }
+              @case ('reports') { Review operational performance, booking volume, and business health trends. }
               @case ('promos') { Create and manage discount codes available at checkout. }
             }
           </p>
         </div>
         <div class="heading-actions">
+          <button class="icon-action admin-notification-action" type="button" (click)="openSection('email-concerns')" [attr.aria-label]="unreadContactMessageCount() ? unreadContactMessageCount() + ' unread customer messages' : 'Customer message notifications'">
+            <ion-icon name="notifications-outline"></ion-icon>
+            @if (unreadContactMessageCount()) { <span class="notification-count">{{ unreadContactMessageCount() > 99 ? '99+' : unreadContactMessageCount() }}</span> }
+          </button>
           <span class="today-label"><ion-icon name="shield-checkmark-outline"></ion-icon>Admin portal</span>
           @if (section() !== 'overview') {
             <button class="icon-action" type="button" (click)="loadSection(section())" aria-label="Refresh this section">
@@ -104,6 +112,15 @@
           </div>
         </div>
       </header>
+
+      @if (contactNotification()) {
+        <div class="admin-notification-toast" role="status">
+          <ion-icon name="mail-unread-outline"></ion-icon>
+          <span>{{ contactNotification() }}</span>
+          <button type="button" (click)="openSection('email-concerns')">View</button>
+          <button type="button" class="dismiss-notification" aria-label="Dismiss notification" (click)="contactNotification.set(null)">×</button>
+        </div>
+      }
 
       @if (errorMessage()) {
         <div class="admin-alert" role="alert"><ion-icon name="alert-circle-outline"></ion-icon><span>{{ errorMessage() }}</span></div>
@@ -283,6 +300,38 @@
             </div>
           </section>
         </div>
+      }
+
+      @if (section() === 'reports') {
+        <section class="data-card admin-module">
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">OPERATIONS</span><h2>Business reports <span class="count-pill">{{ reportSummary().bookings }}</span></h2><p>Monitor bookings, active customers, and promotion coverage across the platform.</p></div></div>
+          <div class="stats-grid" aria-label="Business reports summary">
+            <article class="stat-card"><span class="stat-label">Gross revenue</span><strong>₱{{ reportSummary().revenue | number }}</strong><small>Across all bookings</small></article>
+            <article class="stat-card"><span class="stat-label">Bookings</span><strong>{{ reportSummary().bookings }}</strong><small>Total reservations</small></article>
+            <article class="stat-card"><span class="stat-label">Active customers</span><strong>{{ reportSummary().activeCustomers }}</strong><small>Customers with bookings</small></article>
+            <article class="stat-card"><span class="stat-label">Active promos</span><strong>{{ reportSummary().activePromos }}</strong><small>Currently available</small></article>
+            <article class="stat-card"><span class="stat-label">Completed trips</span><strong>{{ reportSummary().completedTrips }}</strong><small>Closed rentals</small></article>
+            <article class="stat-card"><span class="stat-label">Pending payments</span><strong>{{ reportSummary().pendingPayments }}</strong><small>Awaiting payment</small></article>
+          </div>
+          <div class="tables-grid">
+            <section class="data-card overview-table-card">
+              <div class="section-heading"><div><span class="section-kicker">RUNTIME SNAPSHOT</span><h2>Recent reservation summary</h2></div></div>
+              <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th></tr></thead><tbody>
+                @for (booking of recentBookings().slice(0, 6); track booking.id ?? booking.reference_number) {
+                  <tr><td><strong>{{ booking.reference_number }}</strong></td><td>{{ booking.customer_name }}</td><td>{{ booking.vehicle_name }}</td><td class="amount-cell">₱{{ booking.total_price | number }}</td><td><span class="status-pill" [class]="'status-pill ' + (booking.booking_status || 'pending').toLowerCase()">{{ booking.booking_status | titlecase }}</span></td></tr>
+                } @empty { <tr><td colspan="5" class="empty">No bookings available.</td></tr> }
+              </tbody></table></div>
+            </section>
+            <section class="data-card top-users-card">
+              <div class="section-heading"><div><span class="section-kicker">RISK SIGNALS</span><h2>Customer waitlist</h2></div></div>
+              <div class="top-user-list">
+                @for (user of topUsers().slice(0, 4); track user.email) {
+                  <article class="top-user-row"><span class="rank-number">{{ ($index + 1).toString().padStart(2, '0') }}</span><span class="top-user-avatar">{{ user.name.charAt(0).toUpperCase() }}</span><span class="top-user-copy"><strong>{{ user.name }}</strong><small>{{ user.email }}</small></span><strong class="top-user-spend">₱{{ user.spent | number }}</strong></article>
+                } @empty { <p class="empty">No customer activity yet.</p> }
+              </div>
+            </section>
+          </div>
+        </section>
       }
 
       @if (section() === 'bookings') {

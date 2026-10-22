@@ -1,4 +1,6 @@
 import { Injectable, signal } from '@angular/core';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import { AppUser, Profile } from '../models/profile.model';
@@ -271,23 +273,51 @@ export class AuthService {
     const oauthIntentKey = 'smartdrive_google_oauth_intent';
     localStorage.setItem(oauthIntentKey, intent);
     localStorage.setItem(`${oauthIntentKey}_started_at`, String(Date.now()));
-    const { error } = await this.supabase.client.auth.signInWithOAuth({
+    if (intent === 'login') {
+      const returnUrl = new URL(window.location.href).searchParams.get('returnUrl');
+      const destination = returnUrl?.startsWith('/') && !returnUrl.startsWith('//')
+        ? returnUrl
+        : '/tabs/home';
+      localStorage.setItem(`${oauthIntentKey}_return_to`, destination);
+    }
+
+    const isAndroid = Capacitor.getPlatform() === 'android';
+    const { data, error } = await this.supabase.client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin,
+        redirectTo: isAndroid ? 'com.smartdrive.tm://login-callback' : window.location.origin,
+        skipBrowserRedirect: isAndroid,
         queryParams: { prompt: 'select_account' },
       },
     });
     if (error) {
-      localStorage.removeItem(oauthIntentKey);
-      localStorage.removeItem(`${oauthIntentKey}_started_at`);
+      this.clearGoogleOAuthIntent();
       throw new Error(error.message);
     }
+    if (isAndroid) {
+      if (!data.url) {
+        this.clearGoogleOAuthIntent();
+        throw new Error('Google sign-in did not return an authorization URL.');
+      }
+      try {
+        await Browser.open({ url: data.url });
+      } catch (browserError) {
+        this.clearGoogleOAuthIntent();
+        throw browserError;
+      }
+    }
+  }
+
+  async completeGoogleOAuthCallback(code: string): Promise<void> {
+    const { error } = await this.supabase.client.auth.exchangeCodeForSession(code);
+    if (error) throw new Error(`Google sign-in could not be completed: ${error.message}`);
+    await this.refreshSession();
   }
 
   clearGoogleOAuthIntent(): void {
     localStorage.removeItem('smartdrive_google_oauth_intent');
     localStorage.removeItem('smartdrive_google_oauth_intent_started_at');
+    localStorage.removeItem('smartdrive_google_oauth_intent_return_to');
   }
 
   async completeGoogleSignup(payload: SignupPayload): Promise<void> {

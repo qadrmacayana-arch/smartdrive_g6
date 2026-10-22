@@ -34,6 +34,8 @@ src/app/
 - **Insurance**: flat ₱500 per booking.
 - **SR Points wallet**: paying with SR Points deducts the total; paying any other way earns the vehicle's `sr_points`. Mirrors `payment.js` / `srwallet.js`.
 - **Auth**: Supabase email/password against the existing `profiles` table and trigger. Admin accounts (`admin@smartrentals.com` / `is_admin` metadata) aren't specially handled here since this build is customer-only.
+- **Google auth**: Supabase Google OAuth returns to the web app origin on browsers and uses an Android custom URL scheme with the system browser in Capacitor.
+- **Legal**: `/legal/terms` and `/legal/privacy` provide the project’s Terms of Use and Privacy Notice; both are also linked from signup and account settings. The documents identify SmartDrive as a student project/prototype and should be reviewed and updated by the responsible operator before commercial launch.
 
 ## Running it
 
@@ -47,6 +49,10 @@ ionic serve          # or: ng serve
 The repository-root `vercel.json` installs and builds the app from `smartdrive-app`, publishes its Angular output, and sends browser routes to the app shell so refreshing a nested route works.
 
 To deploy, import this GitHub repository into Vercel and keep the project root set to the repository root (do not set it to `smartdrive-app`). The build, install, and output settings are supplied by `vercel.json`. After the first deployment, add the Vercel domain to the Supabase Auth URL configuration if email confirmation, password recovery, or OAuth redirects need to return to the deployed app.
+
+### Google sign-in setup
+
+Enable Google in Supabase Authentication, configure the Google OAuth client with Supabase's callback URL (`https://<project-ref>.supabase.co/auth/v1/callback`), and add the deployed web origin and `com.smartdrive.tm://login-callback` to Supabase's allowed redirect URLs. Google sign-in opens the system browser on Android and returns to the app through that custom URL scheme.
 
 ### Mobile experience
 
@@ -75,6 +81,10 @@ If signup shows “Database error saving new user”, run [`supabase/fix-google-
 ### Booking row security
 
 Run [`supabase/bookings-rls.sql`](./supabase/bookings-rls.sql) in the Supabase SQL Editor for this project. It enables row-level security, lets authenticated customers read, create, and update only their own bookings, and lets authorized admins view, update, and delete bookings. Admin status is accepted only for `admin@smartrentals.com` or a server-managed `app_metadata.is_admin` claim; user-editable `user_metadata` is not trusted. Local-only accounts cannot submit cloud bookings.
+
+### Contact form row security
+
+Run or re-run [`supabase/contact-messages.sql`](./supabase/contact-messages.sql) in the Supabase SQL Editor to enable customer messages and the admin inbox. Contact form submissions require an online Supabase account; local-only sign-ins should use the displayed email link instead. If Supabase rejects a message under row-level security, apply this script and sign in again.
 
 ### Separate admin portal
 
@@ -125,4 +135,3 @@ npx cap open ios      # or android
 
 - Admin panel and live user-location tracking (`admin.php`, `vehicletracking.php`, `manage*.php`) — ops tooling, not a mobile end-user feature.
 - The FAQ page's scripted "AI assistant" chat widget — replaced with a plain accordion using the same Q&A content.
-- Google OAuth buttons — Supabase supports `signInWithOAuth('google')` the same way, but wiring up native OAuth redirect handling for Capacitor needs an extra deep-link plugin, so it was left as a follow-up rather than half-done.

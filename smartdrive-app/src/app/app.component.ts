@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, firstValueFrom, take } from 'rxjs';
 import { App } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import {
@@ -103,7 +104,7 @@ export class AppComponent {
       if (oauthError) {
         sessionStorage.setItem(
           'smartdrive_google_oauth_error',
-          decodeURIComponent(oauthError.replace(/\+/g, ' ')),
+          oauthError,
         );
         this.clearGoogleOAuthIntent();
         void this.router.navigateByUrl(
@@ -121,6 +122,7 @@ export class AppComponent {
         this.waitForGoogleSession(oauthIntent);
         return;
       }
+      const loginDestination = localStorage.getItem('smartdrive_google_oauth_intent_return_to');
       this.clearGoogleOAuthIntent();
       if (user.isAdmin) {
         void this.auth.logout().then(() => this.router.navigateByUrl('/login?adminPortal=1'));
@@ -128,6 +130,11 @@ export class AppComponent {
       }
       if (oauthIntent === 'registration' || this.auth.needsGoogleProfileCompletion()) {
         void this.router.navigateByUrl('/signup?googleRegistration=1');
+      } else if (oauthIntent === 'login') {
+        const destination = loginDestination?.startsWith('/') && !loginDestination.startsWith('//')
+          ? loginDestination
+          : '/tabs/home';
+        void this.router.navigateByUrl(destination);
       }
     });
   }
@@ -138,6 +145,10 @@ export class AppComponent {
       if (routingUrls.has(value)) return;
       try {
         const deepLink = new URL(value);
+        if (deepLink.protocol === 'com.smartdrive.tm:' && deepLink.hostname === 'login-callback') {
+          await this.handleGoogleOAuthReturn(deepLink);
+          return;
+        }
         if (deepLink.protocol !== 'smartdrive:' || deepLink.hostname !== 'booking') return;
         if (!/^\/confirmation\/SD-\d{4}-[A-F\d]{12}$/.test(deepLink.pathname)) return;
         if (!deepLink.searchParams.has('attempt')) return;
@@ -172,6 +183,35 @@ export class AppComponent {
     this.googleSessionTimer = null;
     localStorage.removeItem('smartdrive_google_oauth_intent');
     localStorage.removeItem('smartdrive_google_oauth_intent_started_at');
+    localStorage.removeItem('smartdrive_google_oauth_intent_return_to');
+  }
+
+  private async handleGoogleOAuthReturn(callback: URL): Promise<void> {
+    const intent = localStorage.getItem('smartdrive_google_oauth_intent');
+    if (intent !== 'login' && intent !== 'registration') return;
+
+    try {
+      const error = callback.searchParams.get('error_description')
+        ?? callback.searchParams.get('error')
+        ?? callback.searchParams.get('error_code');
+      if (error) throw new Error(error);
+
+      const code = callback.searchParams.get('code');
+      if (!code) throw new Error('Google did not return an authorization code.');
+      await this.auth.completeGoogleOAuthCallback(code);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Google sign-in failed.';
+      sessionStorage.setItem('smartdrive_google_oauth_error', message);
+      this.clearGoogleOAuthIntent();
+      const destination = intent === 'registration'
+        ? '/signup?googleError=1'
+        : '/login?googleError=1';
+      await this.router.navigateByUrl(destination);
+    } finally {
+      await Browser.close().catch((error: unknown) => {
+        console.error('Unable to close the Google sign-in browser.', error);
+      });
+    }
   }
 
   private waitForGoogleSession(intent: 'login' | 'registration'): void {
@@ -185,7 +225,7 @@ export class AppComponent {
         ? '/signup?googleError=1'
         : '/login?googleError=1';
       void this.router.navigateByUrl(destination);
-    }, 5000);
+    }, 15000);
   }
 
   private getStoredTheme(): 'light' | 'dark' {
