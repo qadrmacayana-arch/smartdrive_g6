@@ -246,15 +246,11 @@
           <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
           <span>Favorites</span>
         </a>
-        <a class="desktop-bookings-link" routerLink="/tabs/bookings" routerLinkActive="active" (click)="tapNavigation()">
+        <a routerLink="/tabs/bookings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          <span>Bookings</span>
+          <span>My Bookings</span>
         </a>
       }
-      <a routerLink="/about" routerLinkActive="active" (click)="tapNavigation()">
-        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-        <span>About</span>
-      </a>
       <span class="customer-desktop-actions">
         @if (currentUser()) {
           <a routerLink="/tabs/account" (click)="tapNavigation()">Account</a>

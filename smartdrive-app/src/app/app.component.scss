@@ -26,8 +26,7 @@ ion-menu {
 
   .customer-desktop-brand,
   .customer-desktop-actions,
-  .desktop-menu-label,
-  .desktop-bookings-link {
+  .desktop-menu-label {
     display: none;
   }
 
@@ -218,8 +217,7 @@ ion-menu {
     display: none;
   }
 
-  ion-app:not(.android-native) .desktop-menu-label,
-  ion-app:not(.android-native) .desktop-bookings-link {
+  ion-app:not(.android-native) .desktop-menu-label {
     display: inline-flex;
   }
 
@@ -264,9 +262,6 @@ ion-menu {
     margin-top: 76px !important;
   }
 
-  ion-app:not(.android-native) .home > .sd-site-header {
-    display: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
