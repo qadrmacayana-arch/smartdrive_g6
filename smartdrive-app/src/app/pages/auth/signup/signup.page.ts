@@ -18,9 +18,6 @@ import {
   IonToolbar,
   IonTitle,
   IonButtons,
-  IonDatetime,
-  IonDatetimeButton,
-  IonLabel,
 } from '@ionic/angular';
 import { AuthService, type SignupPayload } from '../../../core/services/auth.service';
 import { LegalDocumentComponent } from '../../legal/legal-document.component';
@@ -84,9 +81,6 @@ function birthdayDateValidator(control: AbstractControl): ValidationErrors | nul
     IonToolbar,
     IonTitle,
     IonButtons,
-    IonDatetime,
-    IonDatetimeButton,
-    IonLabel,
     LegalDocumentComponent,
   ],
   templateUrl: './signup.page.html',
