@@ -2,6 +2,9 @@ alter table public.bookings
   add column if not exists paymongo_checkout_session_id text;
 
 alter table public.bookings
+  add column if not exists customer_address text;
+
+alter table public.bookings
   add column if not exists driver_age smallint check (driver_age between 18 and 100),
   add column if not exists renter_type text check (renter_type in ('local', 'foreign-tourist')),
   add column if not exists driver_license_type text check (
@@ -90,6 +93,7 @@ begin
     or new.customer_email is distinct from old.customer_email
     or new.customer_name is distinct from old.customer_name
     or new.customer_phone is distinct from old.customer_phone
+    or new.customer_address is distinct from old.customer_address
     or new.pickup_location is distinct from old.pickup_location
     or new.pickup_date is distinct from old.pickup_date
     or new.return_date is distinct from old.return_date

@@ -178,6 +178,7 @@ export class BookingPaymentPage implements OnInit {
             customerName: customer.name,
             customerEmail: customer.email,
             customerPhone: customer.phone,
+            customerAddress: customer.address,
             driverAge: customer.driverAge,
             renterType: customer.renterType,
             driverLicenseType: customer.driverLicenseType,

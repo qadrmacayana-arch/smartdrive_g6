@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
@@ -11,6 +11,7 @@ import {
 } from '@ionic/angular';
 import { BookingService } from '../../../core/services/booking.service';
 import { Booking } from '../../../core/models/booking.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-booking-confirmation',
@@ -39,7 +40,16 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly bookingService: BookingService,
+    private readonly auth: AuthService,
   ) {}
+
+  readonly customerAddress = computed(() => {
+    const booking = this.booking();
+    if (booking?.customer_address !== undefined) {
+      return booking.customer_address?.trim() || 'Not provided';
+    }
+    return this.auth.currentUser()?.address?.trim() || 'Not provided';
+  });
 
   async ngOnInit(): Promise<void> {
     const reference = this.route.snapshot.paramMap.get('reference');
@@ -66,7 +76,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
           && await this.tryOpenAndroidApp(reference, attemptId)
         ) return;
       } else if (this.paymentCancelled()) {
-        this.errorMessage.set('Checkout was cancelled. No payment was confirmed.');
+        this.errorMessage.set('Checkout was cancelled. No payment was confirmed and the booking is not confirmed. You can return to checkout to try again.');
       } else {
         const booking = await this.bookingService.getByReference(reference);
         if (!booking) throw new Error('This booking could not be found.');
@@ -159,12 +169,60 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     void this.refreshPaymentStatus(reference, attemptId, 0);
   }
 
+  retryCancelledCheckout(): void {
+    const draft = this.bookingService.draft();
+    if (!draft) {
+      this.errorMessage.set('Your booking details are no longer available. Please start a new booking.');
+      return;
+    }
+    this.router.navigate(['/booking', draft.vehicle.id, 'payment']);
+  }
+
+  paymentMethodLabel(method: string): string {
+    return ({
+      'credit-card': 'Credit / Debit Card',
+      srpoints: 'SR Wallet',
+      gcash: 'GCash',
+      maya: 'Maya',
+    } as Record<string, string>)[method] ?? method;
+  }
+
+  paymentProviderLabel(method: string): string {
+    return method === 'srpoints' ? 'SmartDrive Wallet' : 'PayMongo';
+  }
+
   async share(): Promise<void> {
     const booking = this.booking();
     if (!booking) return;
 
     const paymentComplete = booking.payment_status === 'completed';
-    const text = `SmartDrive™ ${paymentComplete ? 'Booking Confirmed' : 'Reservation Saved'}\nReference: ${booking.reference_number}\nVehicle: ${booking.vehicle_name}\nPick-up: ${booking.pickup_date}\nReturn: ${booking.return_date}\nPayment status: ${booking.payment_status}\n${paymentComplete ? 'Total paid' : 'Total due'}: ₱${booking.total_price.toLocaleString()}`;
+    const address = this.customerAddress();
+    const text = [
+      `SmartDrive™ ${paymentComplete ? 'Booking Confirmed' : 'Reservation Saved'}`,
+      `Reference: ${booking.reference_number}`,
+      `Customer: ${booking.customer_name}`,
+      `Email: ${booking.customer_email}`,
+      `Phone: ${booking.customer_phone || 'Not provided'}`,
+      `Address: ${address}`,
+      `Vehicle: ${booking.vehicle_name}`,
+      `Pick-up: ${booking.pickup_date}`,
+      `Return: ${booking.return_date}`,
+      `Pick-up location: ${booking.pickup_location || 'Not provided'}`,
+      `Primary driver age: ${booking.driver_age ?? 'Not provided'}`,
+      `Renter type: ${booking.renter_type || 'Not provided'}`,
+      `License type: ${booking.driver_license_type || 'Not provided'}`,
+      `License country: ${booking.driver_license_country || 'Not applicable'}`,
+      `License confirmed: ${booking.driver_license_confirmed ? 'Yes' : 'No'}`,
+      `Documents ready: ${booking.booking_documents_ready ? 'Yes' : 'No'}`,
+      `Booking conditions accepted: ${booking.booking_conditions_accepted ? 'Yes' : 'No'}`,
+      `Payment method: ${this.paymentMethodLabel(booking.payment_method)}`,
+      `Payment processed via: ${this.paymentProviderLabel(booking.payment_method)}`,
+      `Payment status: ${booking.payment_status}`,
+      `Rental subtotal: ₱${Number(booking.subtotal).toLocaleString()}`,
+      `Insurance: ₱${Number(booking.insurance).toLocaleString()}`,
+      `Discount: ${booking.discount_label || 'N/A'} · ₱${Number(booking.discount).toLocaleString()}`,
+      `${paymentComplete ? 'Total paid' : 'Total due'}: ₱${Number(booking.total_price).toLocaleString()}`,
+    ].join('\n');
 
     this.sharing.set(true);
     this.shareMessage.set(null);

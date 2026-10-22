@@ -53,7 +53,7 @@
         <span class="nav-group-label">CUSTOMER CARE</span>
         <a class="nav-item" [class.active]="section() === 'email-concerns'" [attr.aria-current]="section() === 'email-concerns' ? 'page' : null" (click)="openSection('email-concerns')">
           <ion-icon name="mail-outline"></ion-icon><span>Email concerns</span>
-          @if (unreadContactMessageCount()) { <span class="nav-live-dot" [attr.aria-label]="unreadContactMessageCount() + ' unread messages'"></span> }
+          @if (unreadContactMessageCount()) { <span class="nav-notification-count" [attr.aria-label]="unreadContactMessageCount() + ' unread messages'">{{ unreadContactMessageCount() > 99 ? '99+' : unreadContactMessageCount() }}</span> }
         </a>
         <a class="nav-item" [class.active]="section() === 'support'" [attr.aria-current]="section() === 'support' ? 'page' : null" (click)="openSection('support')">
           <ion-icon name="chatbubbles-outline"></ion-icon><span>Support inbox</span>
@@ -61,7 +61,9 @@
         </a>
         <span class="nav-group-label">GROWTH</span>
         <a class="nav-item" [class.active]="section() === 'reports'" [attr.aria-current]="section() === 'reports' ? 'page' : null" (click)="openSection('reports')">
-          <ion-icon name="bar-chart-outline"></ion-icon><span>Reports</span>
+          <svg class="nav-report-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 19V5m0 14h17M8 15l3-4 3 2 5-7" />
+          </svg><span>Reports</span>
         </a>
         <a class="nav-item" [class.active]="section() === 'promos'" [attr.aria-current]="section() === 'promos' ? 'page' : null" (click)="openSection('promos')">
           <ion-icon name="pricetag-outline"></ion-icon><span>Promo codes</span>
@@ -97,11 +99,7 @@
           </p>
         </div>
         <div class="heading-actions">
-          <button class="icon-action admin-notification-action" type="button" (click)="openSection('email-concerns')" [attr.aria-label]="unreadContactMessageCount() ? unreadContactMessageCount() + ' unread customer messages' : 'Customer message notifications'">
-            <ion-icon name="notifications-outline"></ion-icon>
-            @if (unreadContactMessageCount()) { <span class="notification-count">{{ unreadContactMessageCount() > 99 ? '99+' : unreadContactMessageCount() }}</span> }
-          </button>
-          <span class="today-label"><ion-icon name="shield-checkmark-outline"></ion-icon>Admin portal</span>
+          <span class="today-label">Admin portal</span>
           @if (section() !== 'overview') {
             <button class="icon-action" type="button" (click)="loadSection(section())" aria-label="Refresh this section">
               <ion-icon name="refresh-outline"></ion-icon>
@@ -337,17 +335,17 @@
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
           <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
-          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Total</th><th>Status</th></tr></thead><tbody>
+          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th></tr></thead><tbody>
             @for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {
-              <tr><td><strong>{{ booking.reference_number }}</strong></td><td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small><small class="cell-subtitle">Driver: {{ booking.driver_age ?? 'Not provided' }} · {{ booking.renter_type === 'foreign-tourist' ? 'Tourist' : booking.renter_type === 'local' ? 'Local' : 'Details not captured' }}</small><small class="cell-subtitle">License: {{ booking.driver_license_type || 'Not provided' }}{{ booking.driver_license_country ? ' · ' + booking.driver_license_country : '' }}</small><small class="cell-subtitle">Arrival: {{ booking.philippines_arrival_date || 'N/A' }} · Supporting document: {{ booking.foreign_license_support || 'N/A' }}</small><small class="cell-subtitle">License confirmed: {{ booking.driver_license_confirmed ? 'Yes' : 'No' }} · Documents: {{ booking.booking_documents_ready ? 'Will present at pickup' : 'Not confirmed' }}</small><small class="cell-subtitle">Conditions: {{ booking.booking_conditions_accepted ? 'Accepted' : 'Not recorded' }}</small></td><td>{{ booking.vehicle_name }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} <span class="date-separator">→</span> {{ booking.return_date | date:'MMM d, y' }}</td><td class="amount-cell">₱{{ booking.total_price | number }}</td><td><select class="status-select" aria-label="Booking progress status" [ngModel]="booking.booking_status" (ngModelChange)="updateBookingStatus(booking, $event)" [disabled]="booking.booking_status === 'cancelled'"><option value="confirmed">Confirmed</option><option value="ongoing">In Progress</option><option value="completed">Completed</option><option value="cancelled" [disabled]="true">Cancelled by customer</option></select><small class="cell-subtitle">Cancellation is customer-controlled</small></td></tr>
-            } @empty { <tr><td colspan="6" class="empty">No bookings found. Try changing your search.</td></tr> }
+              <tr><td><strong>{{ booking.reference_number }}</strong></td><td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small><small class="cell-subtitle">{{ booking.customer_phone || 'Phone not provided' }}</small><small class="cell-subtitle">{{ booking.customer_address || 'Address not provided' }}</small><small class="cell-subtitle">Driver: {{ booking.driver_age ?? 'Not provided' }} · {{ booking.renter_type === 'foreign-tourist' ? 'Tourist' : booking.renter_type === 'local' ? 'Local' : 'Details not captured' }}</small><small class="cell-subtitle">License: {{ booking.driver_license_type || 'Not provided' }}{{ booking.driver_license_country ? ' · ' + booking.driver_license_country : '' }}</small><small class="cell-subtitle">Arrival: {{ booking.philippines_arrival_date || 'N/A' }} · Supporting document: {{ booking.foreign_license_support || 'N/A' }}</small><small class="cell-subtitle">License confirmed: {{ booking.driver_license_confirmed ? 'Yes' : 'No' }} · Documents: {{ booking.booking_documents_ready ? 'Will present at pickup' : 'Not confirmed' }}</small><small class="cell-subtitle">Conditions: {{ booking.booking_conditions_accepted ? 'Accepted' : 'Not recorded' }}</small></td><td>{{ booking.vehicle_name }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} <span class="date-separator">→</span> {{ booking.return_date | date:'MMM d, y' }}</td><td>{{ paymentProvider(booking.payment_method) }}<small class="cell-subtitle">{{ paymentMethod(booking.payment_method) }} · {{ booking.payment_status | titlecase }}</small></td><td class="amount-cell">₱{{ booking.total_price | number }}</td><td><select class="status-select" aria-label="Booking progress status" [ngModel]="booking.booking_status" (ngModelChange)="updateBookingStatus(booking, $event)" [disabled]="booking.booking_status === 'cancelled'"><option value="confirmed">Confirmed</option><option value="ongoing">In Progress</option><option value="completed">Completed</option><option value="cancelled" [disabled]="true">Cancelled by customer</option></select><small class="cell-subtitle">Cancellation is customer-controlled</small></td></tr>
+            } @empty { <tr><td colspan="7" class="empty">No bookings found. Try changing your search.</td></tr> }
           </tbody></table></div>
         </section>
       }
 
       @if (section() === 'users' || section() === 'transactions') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">{{ section() === 'users' ? 'CUSTOMER DIRECTORY' : 'ACCOUNT ACTIVITY' }}</span><h2>{{ section() === 'users' ? 'Customer accounts' : 'User transaction summary' }} <span class="count-pill">{{ filteredUsers().length }}</span></h2><p>{{ section() === 'users' ? 'Manage account details and access.' : 'Wallet and booking activity by customer.' }}</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search users" placeholder="Search by name, email, phone..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">{{ section() === 'users' ? 'CUSTOMER DIRECTORY' : 'ACCOUNT ACTIVITY' }}</span><h2>{{ section() === 'users' ? 'Customer accounts' : 'User transaction summary' }} <span class="count-pill">{{ section() === 'users' ? filteredUsers().length : filteredTransactionSummaries().length }}</span></h2><p>{{ section() === 'users' ? 'Manage account details and access.' : 'Wallet and booking activity by customer.' }}</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search users" placeholder="Search by name, email, phone, or booking..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
           @if (section() === 'users') {
             <div class="table-scroll"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Member since</th><th>Account</th><th>Actions</th></tr></thead><tbody>
               @for (user of filteredUsers(); track user.id) {
@@ -356,19 +354,19 @@
             </tbody></table></div>
           } @else {
             <div class="transaction-list">
-              @for (summary of transactionSummaries(); track summary.user.id) {
+              @for (summary of filteredTransactionSummaries(); track summary.user.id) {
                 <article class="transaction-card">
                   <div class="transaction-header"><span class="customer-cell-avatar">{{ (summary.user.full_name || 'U').charAt(0).toUpperCase() }}</span><div><h3>{{ summary.user.full_name }}</h3><small>{{ summary.user.email }}</small></div><span class="wallet-balance"><small>WALLET BALANCE</small><strong>₱{{ summary.balance | number:'1.2-2' }}</strong></span></div>
-                  <div class="transaction-metrics"><span><strong>{{ summary.bookings.length }}</strong> bookings</span><span><strong>{{ summary.transactions.length }}</strong> wallet transactions</span></div>
+                  <div class="transaction-metrics"><span><strong>{{ summary.bookings.length }}</strong> bookings</span><span><strong>{{ summary.transactions.length }}</strong> wallet transactions</span><span><strong>{{ summary.bookings.length + summary.transactions.length }}</strong> recorded transactions</span></div>
                   @if (summary.transactions.length) {
                     <div class="table-scroll"><table><thead><tr><th>Date</th><th>Type / description</th><th>Method</th><th>Status</th><th>Amount</th></tr></thead><tbody>@for (transaction of summary.transactions; track transaction.id ?? transaction.created_at) {<tr><td>{{ transaction.created_at | date:'MMM d, y' }}</td><td>{{ transaction.type | titlecase }} · {{ transaction.description }}</td><td>{{ transaction.payment_method || '—' }}</td><td>{{ transaction.status | titlecase }}</td><td class="amount-cell">₱{{ transaction.amount | number:'1.2-2' }}</td></tr>}</tbody></table></div>
                   } @else { <p class="empty transaction-empty">No wallet transactions recorded.</p> }
                   @if (summary.bookings.length) {
                     <h4 class="transaction-bookings-title">Booking payments</h4>
-                    <div class="table-scroll"><table><thead><tr><th>Reference</th><th>Vehicle</th><th>Dates</th><th>Payment</th><th>Booking status</th><th>Total</th></tr></thead><tbody>@for (booking of summary.bookings; track booking.id ?? booking.reference_number) {<tr><td>{{ booking.reference_number }}</td><td>{{ booking.vehicle_name }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} – {{ booking.return_date | date:'MMM d, y' }}</td><td>{{ booking.payment_method | titlecase }} · {{ booking.payment_status | titlecase }}</td><td>{{ booking.booking_status | titlecase }}</td><td class="amount-cell">₱{{ booking.total_price | number:'1.2-2' }}</td></tr>}</tbody></table></div>
+                    <div class="table-scroll"><table><thead><tr><th>Reference</th><th>Vehicle</th><th>Dates</th><th>Payment provider / method</th><th>Payment status</th><th>Booking status</th><th>Total</th></tr></thead><tbody>@for (booking of summary.bookings; track booking.id ?? booking.reference_number) {<tr><td>{{ booking.reference_number }}</td><td>{{ booking.vehicle_name }}</td><td>{{ booking.pickup_date | date:'MMM d, y' }} – {{ booking.return_date | date:'MMM d, y' }}</td><td>{{ paymentProvider(booking.payment_method) }} · {{ paymentMethod(booking.payment_method) }}</td><td>{{ booking.payment_status | titlecase }}</td><td>{{ booking.booking_status | titlecase }}</td><td class="amount-cell">₱{{ booking.total_price | number:'1.2-2' }}</td></tr>}</tbody></table></div>
                   }
                 </article>
-              } @empty { <p class="empty">No registered users found.</p> }
+              } @empty { <p class="empty">No customer transactions match this search.</p> }
             </div>
           }
         </section>

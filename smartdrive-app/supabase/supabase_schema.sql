@@ -356,6 +356,7 @@ create table if not exists public.bookings (
   customer_email text not null,
   customer_name text not null,
   customer_phone text default null,
+  customer_address text default null,
   vehicle_id bigint not null references public.vehicles(id) on delete cascade on update cascade,
   vehicle_name text not null,
   pickup_date date not null,
@@ -428,9 +429,14 @@ create table if not exists public.reviews (
   updated_at timestamptz default now()
 );
 
+alter table public.reviews
+  add column if not exists booking_id bigint
+  references public.bookings(id) on delete set null on update cascade;
+
 create index if not exists idx_reviews_created_at on public.reviews (created_at desc);
 create index if not exists idx_reviews_rating on public.reviews (rating);
 create index if not exists idx_reviews_user_id on public.reviews (user_id);
+create index if not exists idx_reviews_booking_id on public.reviews (booking_id);
 
 create trigger trg_reviews_updated_at
 before update on public.reviews

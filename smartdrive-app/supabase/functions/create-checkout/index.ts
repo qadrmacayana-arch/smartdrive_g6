@@ -15,6 +15,7 @@ type CheckoutInput = {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  customerAddress?: string | null;
   driverAge: number;
   renterType: 'local' | 'foreign-tourist';
   driverLicenseType: 'local-non-professional' | 'local-professional' | 'foreign-english' | 'foreign-other';
@@ -92,6 +93,7 @@ Deno.serve(async (request) => {
     || typeof input.customerName !== 'string'
     || typeof input.customerEmail !== 'string'
     || typeof input.customerPhone !== 'string'
+    || (input.customerAddress != null && typeof input.customerAddress !== 'string')
     || !Number.isInteger(input.driverAge)
     || input.driverAge < 18
     || input.driverAge > 100
@@ -113,9 +115,13 @@ Deno.serve(async (request) => {
   }
   const days = rentalDays(input.pickupDate, input.returnDate);
   const today = new Date().toISOString().slice(0, 10);
+  const latestPickupDate = new Date(Date.parse(`${today}T00:00:00Z`) + 365 * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
   const name = input.customerName?.trim();
   const email = input.customerEmail?.trim().toLowerCase();
   const phone = input.customerPhone?.trim();
+  const customerAddress = input.customerAddress?.trim() ?? '';
   const location = input.pickupLocation?.trim();
   const licenseCountry = input.driverLicenseCountry?.trim() ?? null;
   const isLocalRenter = input.renterType === 'local';
@@ -130,10 +136,11 @@ Deno.serve(async (request) => {
       && arrivalDate <= today
     );
   if (
-    !days || input.pickupDate < today || days > 365
+    !days || input.pickupDate < today || input.pickupDate > latestPickupDate || days > 365
     || !name || name.length > 160
     || !email || email !== (authData.user.email ?? '').toLowerCase()
     || !phone || phone.length > 40
+    || customerAddress.length > 500
     || !location || location.length > 160
     || !validArrivalDate
     || (isLocalRenter && (!isLocalLicense || licenseCountry || arrivalDate || input.foreignLicenseSupport))
@@ -212,8 +219,8 @@ Deno.serve(async (request) => {
     .from('bookings')
     .select('id')
     .eq('vehicle_id', vehicle.id)
-    .neq('booking_status', 'cancelled')
-    .eq('payment_status', 'completed')
+    .in('booking_status', ['confirmed', 'ongoing'])
+    .in('payment_status', ['pending', 'completed'])
     .lt('pickup_date', input.returnDate)
     .gt('return_date', input.pickupDate)
     .limit(1);
@@ -318,6 +325,7 @@ Deno.serve(async (request) => {
     customer_email: email,
     customer_name: name,
     customer_phone: phone,
+    customer_address: customerAddress || null,
     vehicle_id: vehicle.id,
     vehicle_name: vehicle.name,
     pickup_date: input.pickupDate,

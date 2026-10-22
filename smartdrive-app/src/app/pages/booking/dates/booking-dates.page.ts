@@ -48,8 +48,19 @@ export class BookingDatesPage implements OnInit {
   readonly pickupLocation = signal('Manila');
   readonly selectingDate = signal<'pickup' | 'return'>('pickup');
   readonly calendarMonth = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
-  readonly todayMonth = new Date().getMonth();
-  readonly todayYear = new Date().getFullYear();
+  readonly calendarMonthOptions = computed(() => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), 1);
+    const horizonDate = this.selectingDate() === 'return' && this.pickupDate()
+      ? this.addDaysAsDate(new Date(`${this.pickupDate()}T00:00:00`), 365)
+      : this.addDaysAsDate(today, 365);
+    const end = new Date(horizonDate.getFullYear(), horizonDate.getMonth(), 1);
+    const options: Date[] = [];
+    for (let month = new Date(start); month <= end; month.setMonth(month.getMonth() + 1)) {
+      options.push(new Date(month));
+    }
+    return options;
+  });
   readonly calendarDays = computed(() => {
     const month = this.calendarMonth();
     const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -93,6 +104,10 @@ export class BookingDatesPage implements OnInit {
     return this.formatDate(d);
   }
 
+  private addDaysAsDate(date: Date, days: number): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+  }
+
   private formatDate(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -117,6 +132,7 @@ export class BookingDatesPage implements OnInit {
       if (!Number.isNaN(date.getTime()) && this.formatDate(date) === requestedDate && date >= today) {
         this.pickupDate.set(requestedDate);
         this.returnDate.set(this.addDays(date, 1));
+        this.selectingDate.set('return');
         this.calendarMonth.set(new Date(date.getFullYear(), date.getMonth(), 1));
       }
     }
@@ -146,9 +162,27 @@ export class BookingDatesPage implements OnInit {
   changeMonth(offset: number): void {
     const month = this.calendarMonth();
     const nextMonth = new Date(month.getFullYear(), month.getMonth() + offset, 1);
-    const today = new Date();
-    const earliestMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (nextMonth >= earliestMonth) this.calendarMonth.set(nextMonth);
+    const options = this.calendarMonthOptions();
+    const earliestMonth = options[0];
+    const latestMonth = options.at(-1);
+    if (earliestMonth && latestMonth && nextMonth >= earliestMonth && nextMonth <= latestMonth) {
+      this.calendarMonth.set(nextMonth);
+    }
+  }
+
+  selectCalendarMonth(value: string): void {
+    const [year, month] = value.split('-').map(Number);
+    const selected = new Date(year, month - 1, 1);
+    if (this.calendarMonthOptions().some((option) =>
+      option.getFullYear() === selected.getFullYear() && option.getMonth() === selected.getMonth(),
+    )) {
+      this.calendarMonth.set(selected);
+    }
+  }
+
+  calendarMonthValue(): string {
+    const month = this.calendarMonth();
+    return `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, '0')}`;
   }
 
   selectDate(date: Date): void {
@@ -171,11 +205,26 @@ export class BookingDatesPage implements OnInit {
 
   selectDateField(field: 'pickup' | 'return'): void {
     this.selectingDate.set(field);
+    const selected = field === 'pickup' ? this.pickupDate() : this.returnDate();
+    if (selected) {
+      const date = new Date(`${selected}T00:00:00`);
+      this.calendarMonth.set(new Date(date.getFullYear(), date.getMonth(), 1));
+      return;
+    }
+    const options = this.calendarMonthOptions();
+    const currentMonth = this.calendarMonth();
+    if (!options.some((month) =>
+      month.getFullYear() === currentMonth.getFullYear() && month.getMonth() === currentMonth.getMonth(),
+    )) {
+      const latestMonth = options.at(-1);
+      if (latestMonth) this.calendarMonth.set(latestMonth);
+    }
   }
 
   isDateDisabled(date: Date): boolean {
     const value = this.formatDate(date);
     if (value < this.today()) return true;
+    if (value > this.latestSelectableDate()) return true;
     return this.selectingDate() === 'return' && (!this.pickupDate() || value <= this.pickupDate());
   }
 
@@ -207,6 +256,13 @@ export class BookingDatesPage implements OnInit {
     return this.formatDate(new Date());
   }
 
+  private latestSelectableDate(): string {
+    const anchor = this.selectingDate() === 'return' && this.pickupDate()
+      ? new Date(`${this.pickupDate()}T00:00:00`)
+      : new Date();
+    return this.addDays(anchor, 365);
+  }
+
   private async loadBookingEstimate(): Promise<void> {
     const request = ++this.bookingEstimateRequest;
     const vehicle = this.vehicle();
@@ -232,11 +288,24 @@ export class BookingDatesPage implements OnInit {
     }
   }
 
+  refreshBookingEstimate(): void {
+    void this.loadBookingEstimate();
+  }
+
   continue(): void {
     const vehicle = this.vehicle();
     const pickup = this.pickupDate();
     const returnDate = this.returnDate();
-    if (!vehicle || !pickup || !returnDate || returnDate <= pickup) return;
+    if (
+      !vehicle
+      || !pickup
+      || !returnDate
+      || returnDate <= pickup
+      || this.bookingEstimateLoading()
+      || this.bookingEstimateError()
+      || !this.bookingEstimate()
+      || this.bookingEstimate()?.hasConflict
+    ) return;
 
     this.bookingService.startDraft(
       { id: vehicle.id, name: vehicle.name, price: vehicle.price, srPoints: vehicle.sr_points, image: vehicle.image },

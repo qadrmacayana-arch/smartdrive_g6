@@ -46,6 +46,11 @@
         <ion-input type="tel" label="Phone Number" labelPlacement="floating" formControlName="phone"></ion-input>
       </ion-item>
 
+      <ion-item class="auth-item" lines="none">
+        <ion-icon slot="start" name="location-outline"></ion-icon>
+        <ion-input maxlength="500" label="Customer Address" labelPlacement="floating" formControlName="address"></ion-input>
+      </ion-item>
+
       <section class="conditions-card sd-card" aria-labelledby="conditions-title">
         <div class="conditions-heading">
           <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
@@ -81,17 +86,19 @@
 
         <div class="driver-fields">
           <ion-item class="auth-item" lines="none">
-            <ion-icon slot="start" name="person-outline"></ion-icon>
+            <ion-icon slot="start" name="calendar-outline"></ion-icon>
             <ion-input
-              type="number"
-              inputmode="numeric"
-              min="18"
-              max="100"
-              label="Primary driver’s age"
+              type="date"
+              label="Primary driver’s date of birth"
               labelPlacement="floating"
-              formControlName="driverAge"
+              [max]="maxBirthDate"
+              formControlName="driverBirthDate"
             ></ion-input>
           </ion-item>
+          <p class="conditions-privacy">
+            Age on pick-up: {{ driverAgeOnPickup() ?? 'Enter a valid date of birth' }}.
+            Your date of birth is used to calculate eligibility and is not saved with the booking.
+          </p>
 
           <label class="booking-select">
             <span>Renter type</span>

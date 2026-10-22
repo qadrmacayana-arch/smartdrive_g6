@@ -5,6 +5,7 @@ export interface Booking {
   customer_email: string;
   customer_name: string;
   customer_phone: string | null;
+  customer_address?: string | null;
   vehicle_id: number;
   vehicle_name: string;
   pickup_date: string;
@@ -56,8 +57,10 @@ export interface BookingDraft {
     name: string;
     email: string;
     phone: string;
+    address?: string | null;
     isPwdSenior: boolean;
     driverAge: number;
+    driverBirthDate?: string;
     renterType: 'local' | 'foreign-tourist';
     driverLicenseType: string;
     driverLicenseCountry: string | null;

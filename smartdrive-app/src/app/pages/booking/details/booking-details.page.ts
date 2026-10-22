@@ -21,6 +21,7 @@ import {
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingDraft } from '../../../core/models/booking.model';
 import { BookingService } from '../../../core/services/booking.service';
+import { calculateAgeOnDate } from '../../../core/utils/age';
 
 @Component({
   selector: 'app-booking-details',
@@ -51,12 +52,14 @@ export class BookingDetailsPage implements OnInit {
   readonly isPwdSenior = signal(false);
   readonly pwdFileName = signal<string | null>(null);
   readonly errorMessage = signal<string | null>(null);
+  readonly maxBirthDate = this.getTodayDate();
 
   readonly form = this.fb.group({
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
     phone: ['', [Validators.required]],
-    driverAge: [null as number | null, [Validators.required, Validators.min(18), Validators.max(100)]],
+    address: ['', [Validators.maxLength(500)]],
+    driverBirthDate: ['', [Validators.required]],
     renterType: ['', [Validators.required]],
     driverLicenseType: ['', [Validators.required]],
     driverLicenseCountry: [''],
@@ -89,12 +92,19 @@ export class BookingDetailsPage implements OnInit {
 
     const user = this.auth.currentUser();
     if (user) {
-      this.form.patchValue({ name: user.fullName, email: user.email, phone: user.phone ?? '' });
+      this.form.patchValue({
+        name: user.fullName,
+        email: user.email,
+        phone: user.phone ?? '',
+        address: user.address ?? '',
+        driverBirthDate: user.birthday ?? '',
+      });
     }
     const customer = this.draft()?.customer;
     if (customer) {
       this.form.patchValue({
-        driverAge: customer.driverAge,
+        driverBirthDate: customer.driverBirthDate ?? user?.birthday ?? '',
+        address: customer.address ?? user?.address ?? '',
         renterType: customer.renterType,
         driverLicenseType: customer.driverLicenseType,
         driverLicenseCountry: customer.driverLicenseCountry ?? '',
@@ -122,14 +132,22 @@ export class BookingDetailsPage implements OnInit {
     }
 
     const value = this.form.getRawValue();
-    const driverAge = Number(value.driverAge);
+    const driverBirthDate = value.driverBirthDate!;
+    const driverAgeOnToday = calculateAgeOnDate(driverBirthDate, this.maxBirthDate);
+    const driverAge = calculateAgeOnDate(driverBirthDate, this.draft()!.pickupDate);
+    if (driverAgeOnToday === null || driverAge === null || driverAge < 18 || driverAge > 100) {
+      this.errorMessage.set('The primary driver must be between 18 and 100 years old on the pickup date. Enter a valid date of birth.');
+      return;
+    }
     const isForeignTourist = value.renterType === 'foreign-tourist';
     const customer: BookingDraft['customer'] = {
       name: value.name!.trim(),
       email: value.email!.trim(),
       phone: value.phone!.trim(),
+      address: value.address?.trim() || null,
       isPwdSenior: this.isPwdSenior(),
       driverAge,
+      driverBirthDate,
       renterType: value.renterType as 'local' | 'foreign-tourist',
       driverLicenseType: value.driverLicenseType!,
       driverLicenseCountry: isForeignTourist ? value.driverLicenseCountry?.trim() || null : null,
@@ -181,5 +199,19 @@ export class BookingDetailsPage implements OnInit {
       ? 'not-required'
       : '';
     this.form.controls.foreignLicenseSupport.setValue(support);
+  }
+
+  driverAgeOnPickup(): number | null {
+    const birthday = this.form.controls.driverBirthDate.value;
+    const pickupDate = this.draft()?.pickupDate;
+    return birthday && pickupDate ? calculateAgeOnDate(birthday, pickupDate) : null;
+  }
+
+  private getTodayDate(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

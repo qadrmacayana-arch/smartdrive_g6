@@ -94,7 +94,7 @@ export class VehicleDetailPage implements OnInit {
       const params = new URLSearchParams({
         action: 'query',
         generator: 'search',
-        gsrsearch: `"${vehicle.name}" car`,
+        gsrsearch: `"${vehicle.name}" ${vehicle.main_category === 'Motorcycles' ? 'motorcycle' : 'car'}`,
         gsrnamespace: '6',
         gsrlimit: '12',
         prop: 'imageinfo',
@@ -118,6 +118,9 @@ export class VehicleDetailPage implements OnInit {
       }
 
       const modelTerms = this.normalizedWords(vehicle.name).filter((word) => word.length > 1);
+      const requiredMatchingTerms = vehicle.main_category === 'Motorcycles'
+        ? 1
+        : modelTerms.length;
       const images = Object.values(query['pages'])
         .filter((page): page is WikimediaFilePage =>
           this.isRecord(page) && typeof page['title'] === 'string',
@@ -134,7 +137,7 @@ export class VehicleDetailPage implements OnInit {
           const matchingTerms = modelTerms.filter((term) => searchableText.includes(term)).length;
           const thumbnail = info?.thumburl;
           const filePage = info?.descriptionurl;
-          if (!thumbnail || !filePage || matchingTerms < modelTerms.length) return null;
+          if (!thumbnail || !filePage || matchingTerms < requiredMatchingTerms) return null;
 
           return {
             thumbnail,

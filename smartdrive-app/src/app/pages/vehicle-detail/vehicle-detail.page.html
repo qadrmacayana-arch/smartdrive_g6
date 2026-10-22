@@ -17,7 +17,19 @@
       <p>{{ errorMessage() }}</p>
     </div>
   } @else if (vehicle(); as v) {
-    <div class="hero-image" [style.background-image]="'url(' + v.image + ')'"></div>
+    <div
+      class="hero-image"
+      [style.background-image]="'url(' + (onlineImages()[0]?.thumbnail || v.image) + ')'">
+      @if (onlineImages()[0]; as heroPhoto) {
+        <a
+          class="hero-photo-credit"
+          [href]="heroPhoto.filePage"
+          target="_blank"
+          rel="noopener noreferrer">
+          Photo: {{ heroPhoto.artist }} · {{ heroPhoto.license }}
+        </a>
+      }
+    </div>
 
     <div class="detail-body">
       @if (onlineImages().length) {

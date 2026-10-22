@@ -199,7 +199,8 @@ export class BookingService {
   validateCustomerBookingRequirements(customer: BookingDraft['customer'] | undefined): string | null {
     if (!customer) return 'Booking details are incomplete.';
     if (
-      !Number.isInteger(customer.driverAge)
+      (customer.address?.length ?? 0) > 500
+      || !Number.isInteger(customer.driverAge)
       || customer.driverAge < 18
       || customer.driverAge > 100
       || !customer.conditionsAccepted
@@ -262,6 +263,29 @@ export class BookingService {
     if (await this.hasOngoingBooking(userId, draft.vehicle.id)) {
       throw new Error('You already have an ongoing booking for this vehicle. Complete or return your current rental before booking it again.');
     }
+    const { data: availability, error: availabilityError } = await this.supabase.client.rpc(
+      'get_vehicle_booking_signal',
+      {
+        p_vehicle_id: draft.vehicle.id,
+        p_pickup_date: draft.pickupDate,
+        p_return_date: draft.returnDate,
+      },
+    );
+    if (availabilityError) {
+      throw new Error(`Could not confirm vehicle availability: ${availabilityError.message}`);
+    }
+    const availabilityRow = Array.isArray(availability) ? availability[0] : availability;
+    if (
+      !availabilityRow
+      || typeof availabilityRow !== 'object'
+      || !('has_conflict' in availabilityRow)
+      || typeof availabilityRow.has_conflict !== 'boolean'
+    ) {
+      throw new Error('Vehicle availability returned an unexpected response. Please try again.');
+    }
+    if (availabilityRow.has_conflict) {
+      throw new Error('This vehicle is already reserved for some of your selected dates. Choose another date range.');
+    }
 
     const booking: Booking = {
       reference_number: this.generateReferenceNumber(),
@@ -269,6 +293,7 @@ export class BookingService {
       customer_email: customer.email,
       customer_name: customer.name,
       customer_phone: customer.phone,
+      customer_address: customer.address,
       vehicle_id: draft.vehicle.id,
       vehicle_name: draft.vehicle.name,
       pickup_date: draft.pickupDate,

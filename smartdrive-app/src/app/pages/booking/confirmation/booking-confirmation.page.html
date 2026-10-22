@@ -22,9 +22,19 @@
       <div class="verification-error-icon">
         <ion-icon name="alert-circle-outline"></ion-icon>
       </div>
-      <h1>{{ paymentReturn() ? 'Payment status needs another check' : 'Unable to load booking' }}</h1>
+      <h1>
+        {{ paymentCancelled()
+          ? 'Checkout cancelled'
+          : paymentReturn()
+            ? 'Payment status needs another check'
+            : 'Unable to load booking' }}
+      </h1>
       <p>{{ errorMessage() }}</p>
-      @if (paymentReturn()) {
+      @if (paymentCancelled()) {
+        <ion-button expand="block" class="sd-gradient-btn verification-action" (click)="retryCancelledCheckout()">
+          Return to payment
+        </ion-button>
+      } @else if (paymentReturn()) {
         <ion-button expand="block" class="sd-gradient-btn verification-action" (click)="retryPaymentCheck()">
           Check payment again
         </ion-button>
@@ -100,6 +110,36 @@
     </div>
 
     <div class="sd-card detail-card">
+      <h2>Customer details</h2>
+      <div class="detail-row">
+        <span class="sd-muted">Name</span>
+        <strong>{{ b.customer_name }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Email</span>
+        <strong>{{ b.customer_email }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Phone</span>
+        <strong>{{ b.customer_phone || 'Not provided' }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Address</span>
+        <strong>{{ customerAddress() }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Primary driver</span>
+        <strong>{{ b.driver_age ?? 'Not provided' }} years · {{ b.renter_type === 'foreign-tourist' ? 'Foreign tourist' : b.renter_type === 'local' ? 'Local renter' : 'Not provided' }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">License</span>
+        <strong>{{ b.driver_license_type || 'Not provided' }}{{ b.driver_license_country ? ' · ' + b.driver_license_country : '' }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Documents &amp; conditions</span>
+        <strong>{{ b.booking_documents_ready ? 'Documents confirmed' : 'Documents not confirmed' }} · {{ b.booking_conditions_accepted ? 'Conditions accepted' : 'Conditions not accepted' }}</strong>
+      </div>
+      <h2>Rental details</h2>
       <div class="detail-row">
         <span class="sd-muted">Vehicle</span>
         <strong>{{ b.vehicle_name }}</strong>
@@ -118,12 +158,30 @@
       </div>
       <div class="detail-row">
         <span class="sd-muted">Payment Method</span>
-        <strong class="capitalize">{{ b.payment_method }}</strong>
+        <strong>{{ paymentMethodLabel(b.payment_method) }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Payment processed via</span>
+        <strong>{{ paymentProviderLabel(b.payment_method) }}</strong>
       </div>
       <div class="detail-row">
         <span class="sd-muted">Payment Status</span>
-        <strong class="capitalize">{{ b.payment_status }}</strong>
+        <strong>{{ b.payment_status | titlecase }}</strong>
       </div>
+      <div class="detail-row">
+        <span class="sd-muted">Rental subtotal</span>
+        <strong>₱{{ b.subtotal | number:'1.2-2' }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Insurance</span>
+        <strong>₱{{ b.insurance | number:'1.2-2' }}</strong>
+      </div>
+      @if (b.discount > 0) {
+        <div class="detail-row">
+          <span class="sd-muted">Discount · {{ b.discount_label }}</span>
+          <strong>−₱{{ b.discount | number:'1.2-2' }}</strong>
+        </div>
+      }
       <div class="detail-row total">
         <span>{{ b.payment_status === 'completed' ? 'Total Paid' : 'Total Due' }}</span>
         <strong>₱{{ b.total_price | number }}</strong>

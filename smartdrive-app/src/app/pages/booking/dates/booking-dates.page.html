@@ -39,18 +39,34 @@
             <div class="calendar-title">
               <span class="calendar-eyebrow">RENTAL PERIOD</span>
               <h2 aria-live="polite">{{ displayedMonth() }}</h2>
+              <label class="calendar-month-picker">
+                <span>Jump to month and year</span>
+                <select
+                  aria-label="Choose calendar month and year"
+                  [value]="calendarMonthValue()"
+                  (change)="selectCalendarMonth($any($event.target).value)">
+                  @for (month of calendarMonthOptions(); track month.getTime()) {
+                    <option [value]="month | date:'yyyy-MM'">{{ month | date:'MMMM yyyy' }}</option>
+                  }
+                </select>
+              </label>
             </div>
             <div class="calendar-navigation">
               <ion-button
                 fill="clear"
                 class="month-button"
                 aria-label="Previous month"
-                [disabled]="calendarMonth().getMonth() === todayMonth && calendarMonth().getFullYear() === todayYear"
+                [disabled]="calendarMonthValue() === (calendarMonthOptions()[0] | date:'yyyy-MM')"
                 (click)="changeMonth(-1)"
               >
                 <ion-icon name="chevron-back"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" class="month-button" aria-label="Next month" (click)="changeMonth(1)">
+              <ion-button
+                fill="clear"
+                class="month-button"
+                aria-label="Next month"
+                [disabled]="calendarMonthValue() === (calendarMonthOptions().at(-1) | date:'yyyy-MM')"
+                (click)="changeMonth(1)">
                 <ion-icon name="chevron-forward"></ion-icon>
               </ion-button>
             </div>
@@ -149,18 +165,19 @@
                 @if (bookingEstimateLoading()) {
                   <strong>Checking these dates…</strong>
                 } @else if (bookingEstimateError()) {
-                  <strong>Estimate unavailable</strong>
-                  <p>{{ bookingEstimateError() }} Booking can continue; this estimate does not reserve the vehicle.</p>
+                  <strong>Availability could not be confirmed</strong>
+                  <p>{{ bookingEstimateError() }} Your booking cannot continue until these dates can be checked.</p>
+                  <button class="estimate-retry" type="button" (click)="refreshBookingEstimate()">Check availability again</button>
                 } @else if (bookingEstimate(); as estimate) {
                   @if (estimate.hasConflict) {
-                    <strong>These dates overlap a current reservation</strong>
-                    <p>Choose different dates. This availability check is a guide and does not hold the vehicle.</p>
+                    <strong>Booking conflict: this vehicle is already reserved</strong>
+                    <p>These dates overlap an existing reservation. Choose another pick-up or drop-off date to continue.</p>
                   } @else if (estimate.historicalSignalPercent !== null) {
                     <strong>{{ estimate.historicalSignalPercent }}% historical booking signal</strong>
-                    <p>Based on past bookings for this vehicle on similar weekdays. This is not a reservation probability or guarantee.</p>
+                    <p>Availability checked: no current reservation conflict was found. The percentage is based on past bookings for this vehicle on similar weekdays.</p>
                   } @else {
-                    <strong>Not enough history for an estimate</strong>
-                    <p>There are not yet enough similar past bookings to estimate demand for these dates.</p>
+                    <strong>No current reservation conflict found</strong>
+                    <p>There is not enough booking history to provide a demand estimate for these dates.</p>
                   }
                 }
               </div>
@@ -170,7 +187,7 @@
           <ion-button
             expand="block"
             class="sd-gradient-btn continue-btn"
-            [disabled]="!pickupDate() || !returnDate() || bookingEstimateLoading() || bookingEstimate()?.hasConflict"
+            [disabled]="!pickupDate() || !returnDate() || bookingEstimateLoading() || !!bookingEstimateError() || !bookingEstimate() || bookingEstimate()?.hasConflict"
             (click)="continue()"
           >
             Confirm &amp; Continue

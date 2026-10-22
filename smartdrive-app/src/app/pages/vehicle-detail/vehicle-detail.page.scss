@@ -19,10 +19,24 @@
 }
 
 .hero-image {
+  position: relative;
   height: clamp(270px, 43vw, 470px);
   background-color: var(--sd-muted);
   background-position: center;
   background-size: cover;
+}
+
+.hero-photo-credit {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.4rem;
+  background: rgba(0, 0, 0, 0.68);
+  color: #fff;
+  font-size: 0.68rem;
+  text-decoration: none;
 }
 
 .detail-body {

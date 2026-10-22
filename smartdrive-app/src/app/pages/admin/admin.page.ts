@@ -298,22 +298,68 @@ export class AdminPage implements OnDestroy, OnInit {
     if (transactions.error) throw new Error(transactions.error.message);
     if (bookings.error) throw new Error(bookings.error.message);
     const normalizeEmail = (email: unknown): string => String(email ?? '').trim().toLowerCase();
-    this.transactionSummaries.set(this.users()
-      .filter((user) => normalizeEmail(user.email) !== 'admin@smartrentals.com')
-      .map((user) => {
-        const email = normalizeEmail(user.email);
-        const balance = (balances.data ?? []).find((item) => item.user_id === user.id);
-        return {
-          user,
-          balance: Number(balance?.balance ?? 0),
-          transactions: (transactions.data ?? []).filter((item) =>
-            item.user_id ? item.user_id === user.id : normalizeEmail(item.email) === email,
-          ) as UserTransactionSummary['transactions'],
-          bookings: (bookings.data ?? []).filter((item) =>
-            item.user_id ? item.user_id === user.id : normalizeEmail(item.customer_email) === email,
-          ) as Booking[],
+    const summaries = new Map<string, UserTransactionSummary>();
+    const userKeys = new Map<string, string>();
+    const emailKeys = new Map<string, string>();
+    const ensureSummary = (
+      userId: unknown,
+      emailValue: unknown,
+      fullName?: string | null,
+      phone?: string | null,
+    ): UserTransactionSummary | null => {
+      const userIdValue = String(userId ?? '').trim();
+      const email = normalizeEmail(emailValue);
+      if (email === 'admin@smartrentals.com') return null;
+      const key = (userIdValue && userKeys.get(userIdValue))
+        || (email && emailKeys.get(email))
+        || (userIdValue ? `user:${userIdValue}` : email ? `email:${email}` : '');
+      if (!key) return null;
+
+      let summary = summaries.get(key);
+      if (!summary) {
+        summary = {
+          user: {
+            id: userIdValue || email,
+            email,
+            full_name: fullName || email.split('@')[0] || 'Customer',
+            phone: phone ?? null,
+          },
+          balance: 0,
+          transactions: [],
+          bookings: [],
         };
-      }));
+        summaries.set(key, summary);
+      } else {
+        if (
+          fullName
+          && (!summary.user.full_name || summary.user.full_name === summary.user.email.split('@')[0])
+        ) summary.user.full_name = fullName;
+        if (phone && !summary.user.phone) summary.user.phone = phone;
+        if (!summary.user.email && email) summary.user.email = email;
+        if (userIdValue) summary.user.id = userIdValue;
+      }
+      if (userIdValue) userKeys.set(userIdValue, key);
+      if (email) emailKeys.set(email, key);
+      return summary;
+    };
+
+    for (const user of this.users()) {
+      if (normalizeEmail(user.email) !== 'admin@smartrentals.com') {
+        ensureSummary(user.id, user.email, user.full_name, user.phone);
+      }
+    }
+    for (const balance of balances.data ?? []) {
+      const summary = ensureSummary(balance.user_id, balance.email);
+      if (summary) summary.balance = Number(balance.balance ?? 0);
+    }
+    for (const transaction of transactions.data ?? []) {
+      ensureSummary(transaction.user_id, transaction.email)?.transactions.push(transaction as UserTransactionSummary['transactions'][number]);
+    }
+    for (const booking of (bookings.data ?? []) as Booking[]) {
+      ensureSummary(booking.user_id, booking.customer_email, booking.customer_name, booking.customer_phone)
+        ?.bookings.push(booking);
+    }
+    this.transactionSummaries.set([...summaries.values()]);
   }
 
   private async loadFleet(): Promise<void> {
@@ -654,6 +700,30 @@ export class AdminPage implements OnDestroy, OnInit {
   filteredUsers(): AdminUser[] {
     const term = this.search().trim().toLowerCase();
     return this.users().filter((user) => !term || [user.full_name, user.email, user.phone].some((value) => String(value ?? '').toLowerCase().includes(term)));
+  }
+
+  filteredTransactionSummaries(): UserTransactionSummary[] {
+    const term = this.search().trim().toLowerCase();
+    return this.transactionSummaries().filter((summary) => !term || [
+      summary.user.full_name,
+      summary.user.email,
+      summary.user.phone,
+      ...summary.transactions.map((transaction) => `${transaction.type ?? ''} ${transaction.description}`),
+      ...summary.bookings.map((booking) => `${booking.reference_number} ${booking.vehicle_name}`),
+    ].some((value) => String(value ?? '').toLowerCase().includes(term)));
+  }
+
+  paymentProvider(method: string): string {
+    return method === 'srpoints' ? 'SmartDrive Wallet' : 'PayMongo';
+  }
+
+  paymentMethod(method: string): string {
+    return ({
+      'credit-card': 'Credit / Debit Card',
+      srpoints: 'SR Wallet',
+      gcash: 'GCash',
+      maya: 'Maya',
+    } as Record<string, string>)[method] ?? method;
   }
 
   filteredVehicles(): Vehicle[] {
