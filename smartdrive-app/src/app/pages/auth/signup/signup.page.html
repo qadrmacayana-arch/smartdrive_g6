@@ -34,7 +34,16 @@
             <label>Surname<ion-item class="field" lines="none"><ion-input placeholder="Dela Cruz" formControlName="surname" autocomplete="family-name"></ion-input></ion-item></label>
             <label>Suffix <small>(optional)</small><ion-item class="field" lines="none"><ion-select placeholder="No suffix" formControlName="suffix" interface="popover"><ion-select-option value="">No suffix</ion-select-option><ion-select-option value="Jr.">Jr.</ion-select-option><ion-select-option value="Sr.">Sr.</ion-select-option><ion-select-option value="II">II</ion-select-option><ion-select-option value="III">III</ion-select-option></ion-select></ion-item></label>
           </div>
-          <label>Birthday (MM/DD/YYYY)<ion-item class="field" lines="none"><ion-input type="text" placeholder="MM/DD/YYYY" inputmode="numeric" maxlength="10" autocomplete="bday" formControlName="birthday"></ion-input></ion-item></label>
+          <ion-item class="field birthday-field" lines="none">
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            <ion-label>Birthday</ion-label>
+            <ion-datetime-button datetime="signup-birthday" slot="end"></ion-datetime-button>
+          </ion-item>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime id="signup-birthday" presentation="date" formControlName="birthday" [max]="birthdayMax"></ion-datetime>
+            </ng-template>
+          </ion-modal>
           <label>Street / House No.<ion-item class="field" lines="none"><ion-input placeholder="House no., street, subdivision" formControlName="address" autocomplete="street-address"></ion-input></ion-item></label>
           <div class="field-grid">
             <label>Region<ion-item class="field" lines="none"><ion-select placeholder="Select region" formControlName="region" interface="popover" [disabled]="locationsLoading()" (ionChange)="updateRegion()">@for (region of regions(); track region.code) { <ion-select-option [value]="region.code">{{ region.islandGroup }} — {{ region.name }} ({{ region.regionName }})</ion-select-option> }</ion-select></ion-item></label>

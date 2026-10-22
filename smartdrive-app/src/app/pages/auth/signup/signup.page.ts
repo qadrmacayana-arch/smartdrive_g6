@@ -18,6 +18,9 @@ import {
   IonToolbar,
   IonTitle,
   IonButtons,
+  IonDatetime,
+  IonDatetimeButton,
+  IonLabel,
 } from '@ionic/angular';
 import { AuthService, type SignupPayload } from '../../../core/services/auth.service';
 import { LegalDocumentComponent } from '../../legal/legal-document.component';
@@ -35,28 +38,28 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   return password && confirmPassword && password !== confirmPassword ? { mismatch: true } : null;
 }
 
-function birthdayFormatValidator(control: AbstractControl): ValidationErrors | null {
+function localDateValue(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function birthdayDateValidator(control: AbstractControl): ValidationErrors | null {
   const value = String(control.value ?? '');
   if (!value) return null;
-  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
-  if (!match) return { birthdayFormat: true };
-  const month = Number(match[1]);
-  const day = Number(match[2]);
-  const year = Number(match[3]);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return { birthdayDate: true };
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
   const date = new Date(year, month - 1, day);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   return date.getFullYear() === year
     && date.getMonth() === month - 1
     && date.getDate() === day
-    && date <= today
+    && value <= localDateValue(new Date())
     ? null
-    : { birthdayFormat: true };
-}
-
-function toIsoDate(value: string): string {
-  const [month, day, year] = value.split('/');
-  return `${year}-${month}-${day}`;
+    : { birthdayDate: true };
 }
 
 @Component({
@@ -81,6 +84,9 @@ function toIsoDate(value: string): string {
     IonToolbar,
     IonTitle,
     IonButtons,
+    IonDatetime,
+    IonDatetimeButton,
+    IonLabel,
     LegalDocumentComponent,
   ],
   templateUrl: './signup.page.html',
@@ -88,6 +94,7 @@ function toIsoDate(value: string): string {
 })
 export class SignupPage implements OnInit, OnDestroy {
   readonly ncrRegionCode = '130000000';
+  readonly birthdayMax = localDateValue(new Date());
   readonly regions = signal<PhilippineRegion[]>([]);
   readonly provinces = signal<PhilippineProvince[]>([]);
   readonly cities = signal<PhilippineCityMunicipality[]>([]);
@@ -109,7 +116,7 @@ export class SignupPage implements OnInit, OnDestroy {
       middleName: [''],
       surname: ['', [Validators.required, Validators.minLength(2)]],
       suffix: [''],
-      birthday: ['', [Validators.required, birthdayFormatValidator]],
+      birthday: ['', [Validators.required, birthdayDateValidator]],
       address: ['', [Validators.required, Validators.minLength(3)]],
       region: ['', [Validators.required]],
       province: ['', [Validators.required]],
@@ -359,7 +366,7 @@ export class SignupPage implements OnInit, OnDestroy {
         const invalidFields: string[] = [];
         if (this.form.controls.firstName.invalid) invalidFields.push('First name');
         if (this.form.controls.surname.invalid) invalidFields.push('Surname');
-        if (this.form.controls.birthday.invalid) invalidFields.push('Birthday (MM/DD/YYYY)');
+        if (this.form.controls.birthday.invalid) invalidFields.push('Birthday');
         if (this.form.controls.address.invalid) invalidFields.push('Street / house number');
         if (this.form.controls.region.invalid) invalidFields.push('Region');
         if (this.form.controls.province.invalid) invalidFields.push('Province');
@@ -407,7 +414,7 @@ export class SignupPage implements OnInit, OnDestroy {
         suffix: value.suffix ?? '',
         email: (this.googleRegistration() ? this.googleEmail() : value.email)!.trim(),
         password: value.password ?? '',
-        birthday: toIsoDate(value.birthday!),
+        birthday: value.birthday!,
         address: value.address!.trim(),
         regionCode: selectedRegion.code,
         region: selectedRegion.name,
