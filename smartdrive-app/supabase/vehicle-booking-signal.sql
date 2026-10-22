@@ -42,7 +42,13 @@ begin
     from public.bookings b
     where b.vehicle_id = p_vehicle_id
       and b.booking_status in ('confirmed', 'ongoing')
-      and b.payment_status in ('pending', 'completed')
+      and (
+        b.payment_status = 'completed'
+        or (
+          b.payment_status = 'pending'
+          and b.created_at > now() - interval '10 minutes'
+        )
+      )
       and b.pickup_date < p_return_date
       and b.return_date > p_pickup_date
   ) into v_has_conflict;
@@ -52,7 +58,7 @@ begin
   from public.bookings b
   where b.vehicle_id = p_vehicle_id
     and b.booking_status in ('confirmed', 'ongoing', 'completed')
-    and b.payment_status in ('pending', 'completed')
+    and b.payment_status = 'completed'
     and b.pickup_date >= current_date - 365
     and b.pickup_date < current_date
     and extract(isodow from b.pickup_date) = extract(isodow from p_pickup_date);

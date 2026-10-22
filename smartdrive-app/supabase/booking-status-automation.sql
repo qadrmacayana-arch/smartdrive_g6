@@ -62,3 +62,28 @@ begin
   );
 end;
 $$;
+
+do $$
+declare
+  existing_job record;
+begin
+  for existing_job in
+    select jobid from cron.job where jobname = 'smartdrive-expire-unpaid-bookings'
+  loop
+    perform cron.unschedule(existing_job.jobid);
+  end loop;
+
+  perform cron.schedule(
+    'smartdrive-expire-unpaid-bookings',
+    '* * * * *',
+    $command$
+      update public.bookings
+      set booking_status = 'cancelled',
+          payment_status = 'failed'
+      where booking_status = 'confirmed'
+        and payment_status = 'pending'
+        and created_at <= now() - interval '10 minutes';
+    $command$
+  );
+end;
+$$;

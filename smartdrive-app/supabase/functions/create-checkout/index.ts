@@ -215,12 +215,13 @@ Deno.serve(async (request) => {
     return response({ error: 'This vehicle is not currently available.' }, 409);
   }
 
+  const pendingHoldCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
   const { data: conflicts, error: conflictError } = await admin
     .from('bookings')
     .select('id')
     .eq('vehicle_id', vehicle.id)
     .in('booking_status', ['confirmed', 'ongoing'])
-    .in('payment_status', ['pending', 'completed'])
+    .or(`payment_status.eq.completed,and(payment_status.eq.pending,created_at.gt.${pendingHoldCutoff})`)
     .lt('pickup_date', input.returnDate)
     .gt('return_date', input.pickupDate)
     .limit(1);
