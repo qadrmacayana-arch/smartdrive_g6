@@ -225,9 +225,13 @@
 
   @if (showCustomerNavigation() && !mainMenuOpen()) {
     <nav class="customer-bottom-nav" aria-label="Customer navigation">
+      <a class="customer-desktop-brand" routerLink="/tabs/home" aria-label="SmartDrive home">
+        <span>SmartDrive<sup>TM</sup></span>
+      </a>
       <button type="button" class="customer-nav-menu" aria-label="Open navigation menu" (click)="openMainMenu()">
         <ion-icon name="menu-outline" aria-hidden="true"></ion-icon>
-        <span>Menu</span>
+        <span class="mobile-menu-label">Menu</span>
+        <span class="desktop-menu-label">More</span>
       </button>
       <a routerLink="/tabs/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
         <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
@@ -242,11 +246,23 @@
           <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
           <span>Favorites</span>
         </a>
-        <a routerLink="/about" routerLinkActive="active" (click)="tapNavigation()">
-          <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
-          <span>About</span>
+        <a class="desktop-bookings-link" routerLink="/tabs/bookings" routerLinkActive="active" (click)="tapNavigation()">
+          <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+          <span>Bookings</span>
         </a>
       }
+      <a routerLink="/about" routerLinkActive="active" (click)="tapNavigation()">
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+        <span>About</span>
+      </a>
+      <span class="customer-desktop-actions">
+        @if (currentUser()) {
+          <a routerLink="/tabs/account" (click)="tapNavigation()">Account</a>
+        } @else {
+          <a routerLink="/login" (click)="tapNavigation()">Log in</a>
+          <a class="customer-desktop-sign-up" routerLink="/signup" (click)="tapNavigation()">Sign up</a>
+        }
+      </span>
     </nav>
   }
 </ion-app>

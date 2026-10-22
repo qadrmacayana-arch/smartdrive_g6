@@ -5,20 +5,52 @@
   <main class="home">
     <header class="sd-site-header">
       <a routerLink="/tabs/home" class="sd-site-brand"><span>SmartDrive<sup>TM</sup></span></a>
-      @if (!currentUser()) {
-        <nav class="sd-site-actions"><a routerLink="/login">Log in</a><a routerLink="/signup" class="sd-site-sign-up">Sign up</a></nav>
-      }
+      <nav class="sd-home-links" aria-label="Main navigation">
+        <a routerLink="/tabs/rent-a-car">Browse vehicles</a>
+        <a routerLink="/about">About</a>
+        @if (currentUser()) {
+          <a routerLink="/tabs/bookings">My bookings</a>
+          <a routerLink="/tabs/account">Account</a>
+        } @else {
+          <span class="sd-site-actions"><a routerLink="/login">Log in</a><a routerLink="/signup" class="sd-site-sign-up">Sign up</a></span>
+        }
+      </nav>
     </header>
 
     <section class="hero-card">
-      <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
-      <h1>Ride more.<br>Drive further.</h1>
-      <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
-      <div class="booking-bar">
-        <label class="booking-input location-input"><ion-icon name="location-outline"></ion-icon><input [(ngModel)]="pickupLocation" (ngModelChange)="savePickupPreferences()" aria-label="Pickup location" placeholder="Pickup location" maxlength="100"></label>
-        <label class="booking-input date-input"><ion-icon name="calendar-outline"></ion-icon><input [(ngModel)]="pickupDate" (ngModelChange)="savePickupPreferences()" aria-label="Pickup date" type="date" [min]="pickupDateMinimum"></label>
-        <button type="button" (click)="searchFleet()"><ion-icon name="search-outline"></ion-icon>Find a ride</button>
+      <div class="hero-copy">
+        <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
+        <h1>Ride more.<br>Drive further.</h1>
+        <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
+        <div class="booking-bar">
+          <label class="booking-input location-input"><ion-icon name="location-outline"></ion-icon><input [(ngModel)]="pickupLocation" (ngModelChange)="savePickupPreferences()" aria-label="Pickup location" placeholder="Pickup location" maxlength="100"></label>
+          <label class="booking-input date-input"><ion-icon name="calendar-outline"></ion-icon><input [(ngModel)]="pickupDate" (ngModelChange)="savePickupPreferences()" aria-label="Pickup date" type="date" [min]="pickupDateMinimum"></label>
+          <button type="button" (click)="searchFleet()"><ion-icon name="search-outline"></ion-icon>Find a ride</button>
+        </div>
       </div>
+      <aside class="hero-showcase" aria-label="Featured rental">
+        @if (heroVehicle(); as vehicle) {
+          <button class="hero-showcase-card" type="button" (click)="openVehicle(vehicle)" [attr.aria-label]="'Explore ' + vehicle.name">
+            @if (vehicle.image) {
+              <img [src]="vehicle.image" [alt]="vehicle.name" fetchpriority="high">
+            } @else {
+              <span class="hero-showcase-fallback"><ion-icon name="car-sport-outline"></ion-icon></span>
+            }
+            <span class="hero-showcase-badge"><ion-icon name="shield-checkmark-outline"></ion-icon> Ready for your next trip</span>
+            <span class="hero-showcase-caption">
+              <small>FEATURED RIDE</small>
+              <strong>{{ vehicle.name }}</strong>
+              <span>₱{{ vehicle.price | number }} <small>/ day</small><ion-icon name="arrow-forward-outline"></ion-icon></span>
+            </span>
+          </button>
+        } @else {
+          <div class="hero-showcase-empty">
+            <ion-icon name="car-sport-outline"></ion-icon>
+            <strong>Your next ride is waiting.</strong>
+            <span>Explore cars and motorcycles for every kind of trip.</span>
+          </div>
+        }
+      </aside>
     </section>
 
     <section class="home-promo" aria-label="SmartDrive promotions" aria-roledescription="carousel">
