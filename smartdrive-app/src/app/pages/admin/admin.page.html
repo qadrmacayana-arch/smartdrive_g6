@@ -382,7 +382,7 @@
             @for (item of vehicleAvailability(); track item.vehicle.id) {
               <article class="availability-vehicle">
                 <header>
-                  <div><h3>{{ item.vehicle.name }}</h3><p>{{ item.vehicle.vehicle_id }} · {{ item.vehicle.status | titlecase }}</p></div>
+                  <div><h3>{{ item.vehicle.name }}</h3><p>Plate: {{ item.vehicle.plate_number || 'Not added' }} · Vehicle ID: {{ item.vehicle.vehicle_id }} · {{ item.vehicle.status | titlecase }}</p></div>
                   <div class="availability-counts">
                     <span class="status-pill ongoing">{{ item.using.length }} using</span>
                     <span class="status-pill">{{ item.reserved.length }} reserved</span>
@@ -473,9 +473,10 @@
 
       @if (section() === 'fleet') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Each listing represents one physical vehicle. Add each car separately with its own vehicle ID or plate so bookings and availability are tracked per unit.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Each listing represents one physical vehicle. Assign a unique internal vehicle ID and license plate to every car.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
           <form class="vehicle-form" (submit)="$event.preventDefault(); saveVehicle()">
-            <label><span>Vehicle ID / plate</span><input placeholder="e.g. ABC-1234" [(ngModel)]="newVehicle.vehicle_id" name="vehicleId" maxlength="32" required></label>
+            <label><span>Internal vehicle ID</span><input placeholder="e.g. SD-001" [(ngModel)]="newVehicle.vehicle_id" name="vehicleId" maxlength="32" required></label>
+            <label><span>License plate number</span><input placeholder="e.g. ABC-1234" [(ngModel)]="newVehicle.plate_number" name="plateNumber" maxlength="32" required></label>
             <label><span>Vehicle name</span><input placeholder="e.g. Toyota Vios" [(ngModel)]="newVehicle.name" name="vehicleName" required></label>
             <label><span>Vehicle type</span><input placeholder="e.g. Sedan" [(ngModel)]="newVehicle.type" name="vehicleType" required></label>
             <label><span>Category</span><select [(ngModel)]="newVehicle.main_category" name="vehicleCategory" required><option value="Cars">Cars</option><option value="Motorcycles">Motorcycles</option><option value="Recreational">Recreational Vehicles</option></select></label>
@@ -483,10 +484,10 @@
             <label class="image-url-field"><span>Image URL</span><input type="url" placeholder="https://..." [(ngModel)]="newVehicle.image" name="vehicleImage"></label>
             <button class="primary-action" type="submit"><ion-icon name="add-outline"></ion-icon>Add vehicle</button>
           </form>
-          <div class="table-scroll"><table><thead><tr><th>Vehicle</th><th>Category</th><th>Daily rate</th><th>Availability</th><th>Actions</th></tr></thead><tbody>
+          <div class="table-scroll"><table><thead><tr><th>Vehicle</th><th>Vehicle ID</th><th>License plate</th><th>Category</th><th>Daily rate</th><th>Availability</th><th>Actions</th></tr></thead><tbody>
             @for (vehicle of filteredVehicles(); track vehicle.id) {
-              <tr [class.archived-row]="vehicle.status === 'archived'"><td><span class="vehicle-cell-icon"><ion-icon name="car-outline"></ion-icon></span><strong>{{ vehicle.name }}</strong></td><td>{{ vehicle.type }}</td><td class="amount-cell">₱{{ vehicle.price | number }}</td><td><span class="status-pill" [class.suspended]="vehicle.status === 'archived'">{{ vehicle.status | titlecase }}</span></td><td><button class="table-action" type="button" (click)="openVehicleEditor(vehicle)">Edit</button><button class="table-action" type="button" (click)="archiveVehicle(vehicle)">{{ vehicle.status === 'archived' ? 'Restore' : 'Archive' }}</button><button class="table-action danger" type="button" (click)="deleteVehicle(vehicle)">Delete</button></td></tr>
-            } @empty { <tr><td colspan="5" class="empty">No vehicles found. Add one using the form above.</td></tr> }
+              <tr [class.archived-row]="vehicle.status === 'archived'"><td><span class="vehicle-cell-icon"><ion-icon name="car-outline"></ion-icon></span><strong>{{ vehicle.name }}</strong></td><td>{{ vehicle.vehicle_id }}</td><td>{{ vehicle.plate_number || 'Not added' }}</td><td>{{ vehicle.type }}</td><td class="amount-cell">₱{{ vehicle.price | number }}</td><td><span class="status-pill" [class.suspended]="vehicle.status === 'archived'">{{ vehicle.status | titlecase }}</span></td><td><button class="table-action" type="button" (click)="openVehicleEditor(vehicle)">Edit</button><button class="table-action" type="button" (click)="archiveVehicle(vehicle)">{{ vehicle.status === 'archived' ? 'Restore' : 'Archive' }}</button><button class="table-action danger" type="button" (click)="deleteVehicle(vehicle)">Delete</button></td></tr>
+            } @empty { <tr><td colspan="7" class="empty">No vehicles found. Add one using the form above.</td></tr> }
           </tbody></table></div>
         </section>
       }
@@ -663,6 +664,7 @@
               <p>Update the details customers see when browsing your fleet.</p>
             </div>
             <div class="vehicle-edit-grid">
+              <label>License plate number<input [(ngModel)]="vehicle.plate_number" name="editVehiclePlateNumber" maxlength="32" placeholder="e.g. ABC-1234"></label>
               <label>Vehicle name<input [(ngModel)]="vehicle.name" name="editVehicleName" maxlength="100" required></label>
               <label>Vehicle type<input [(ngModel)]="vehicle.type" name="editVehicleType" maxlength="80" required></label>
               <label>Category

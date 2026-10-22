@@ -388,6 +388,7 @@ create index if not exists idx_user_locations_user_time on public.user_locations
 create table if not exists public.vehicles (
   id bigint generated always as identity primary key,
   vehicle_id text not null unique,
+  plate_number text,
   name text not null,
   type text not null,
   main_category text not null,
@@ -406,10 +407,16 @@ create table if not exists public.vehicles (
   updated_at timestamptz default now()
 );
 
+alter table public.vehicles
+  add column if not exists plate_number text;
+
 create index if not exists idx_vehicles_type on public.vehicles (type);
 create index if not exists idx_vehicles_status on public.vehicles (status);
 create index if not exists idx_vehicles_main_category on public.vehicles (main_category);
 create index if not exists idx_vehicles_featured on public.vehicles (is_featured);
+create unique index if not exists vehicles_plate_number_uidx
+  on public.vehicles (upper(btrim(plate_number)))
+  where plate_number is not null and btrim(plate_number) <> '';
 
 create trigger trg_vehicles_updated_at
 before update on public.vehicles

@@ -95,6 +95,7 @@ interface AdminPromo {
 }
 interface VehicleEditDraft {
   id: number;
+  plate_number: string;
   name: string;
   type: string;
   main_category: string;
@@ -343,6 +344,7 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly savingVehicleEdit = signal(false);
   readonly newVehicle = {
     vehicle_id: '',
+    plate_number: '',
     name: '',
     type: '',
     main_category: 'Cars',
@@ -918,7 +920,10 @@ export class AdminPage implements OnDestroy, OnInit {
 
   filteredVehicles(): Vehicle[] {
     const term = this.search().trim().toLowerCase();
-    return this.vehicles().filter((vehicle) => !term || [vehicle.name, vehicle.type, vehicle.vehicle_id].some((value) => String(value ?? '').toLowerCase().includes(term)));
+    return this.vehicles().filter((vehicle) =>
+      !term || [vehicle.name, vehicle.type, vehicle.vehicle_id, vehicle.plate_number]
+        .some((value) => String(value ?? '').toLowerCase().includes(term)),
+    );
   }
 
   async updateBookingStatus(booking: Booking, status: Booking['booking_status']): Promise<void> {
@@ -1025,25 +1030,27 @@ export class AdminPage implements OnDestroy, OnInit {
     const vehicle = {
       ...this.newVehicle,
       vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
+      plate_number: this.newVehicle.plate_number.trim().toUpperCase(),
       name: this.newVehicle.name.trim(),
       type: this.newVehicle.type.trim(),
       main_category: this.newVehicle.main_category.trim(),
     };
-    if (!vehicle.vehicle_id || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0) {
-      this.errorMessage.set('Enter a unique vehicle ID or plate, name, type, category, and a positive daily rate.');
+    if (!vehicle.vehicle_id || !vehicle.plate_number || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0) {
+      this.errorMessage.set('Enter a unique vehicle ID and plate number, name, type, category, and a positive daily rate.');
       return;
     }
     this.errorMessage.set(null);
     const { data, error } = await this.supabase.client.from('vehicles').insert([vehicle]).select().single();
     if (error) {
-      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key')
-        ? 'That vehicle ID or plate is already in the fleet. Enter a unique ID for each physical vehicle.'
+      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key') || error.message.includes('vehicles_plate_number_uidx')
+        ? 'That vehicle ID or plate number is already in the fleet. Each physical vehicle needs its own unique values.'
         : `Could not add this vehicle: ${error.message}`);
       return;
     }
     this.vehicles.update((items) => [data, ...items]);
     Object.assign(this.newVehicle, {
       vehicle_id: '',
+      plate_number: '',
       name: '',
       type: '',
       main_category: 'Cars',
@@ -1057,6 +1064,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.vehicleEditError.set(null);
     this.editingVehicle.set({
       id: vehicle.id,
+      plate_number: vehicle.plate_number ?? '',
       name: vehicle.name,
       type: vehicle.type,
       main_category: vehicle.main_category,
@@ -1082,6 +1090,7 @@ export class AdminPage implements OnDestroy, OnInit {
     if (!draft || this.savingVehicleEdit()) return;
 
     const name = draft.name.trim();
+    const plateNumber = draft.plate_number.trim().toUpperCase();
     const type = draft.type.trim();
     const mainCategory = draft.main_category.trim();
     const price = Number(draft.price);
@@ -1095,6 +1104,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.vehicleEditError.set(null);
     try {
       const updates = {
+        plate_number: plateNumber || null,
         name,
         type,
         main_category: mainCategory,
@@ -1113,7 +1123,11 @@ export class AdminPage implements OnDestroy, OnInit {
         .eq('id', draft.id)
         .select()
         .single();
-      if (error) throw new Error(error.message);
+      if (error) {
+        throw new Error(error.message.includes('vehicles_plate_number_uidx')
+          ? 'That plate number is already assigned to another vehicle.'
+          : error.message);
+      }
       if (!data) throw new Error('The updated vehicle was not returned by the database.');
       const savedVehicle = data as Vehicle;
       this.vehicles.update((items) => items.map((vehicle) => vehicle.id === savedVehicle.id ? savedVehicle : vehicle));

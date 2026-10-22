@@ -1,6 +1,7 @@
 export interface Vehicle {
   id: number;
   vehicle_id: string;
+  plate_number?: string | null;
   name: string;
   type: string;
   main_category: string;
