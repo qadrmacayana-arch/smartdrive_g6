@@ -24,12 +24,6 @@ ion-menu {
     font-size: 1.35rem;
   }
 
-  .customer-desktop-brand,
-  .customer-desktop-actions,
-  .desktop-menu-label {
-    display: none;
-  }
-
   &.active {
     background: var(--sd-primary-soft);
   }
@@ -149,119 +143,6 @@ ion-menu {
     gap: 0.15rem;
     padding-inline: 0.3rem;
   }
-}
-
-@media (min-width: 900px) and (hover: hover) {
-  ion-app:not(.android-native) .customer-bottom-nav {
-    top: 0;
-    right: 0;
-    bottom: auto;
-    left: 0;
-    width: 100%;
-    max-width: none;
-    height: 76px;
-    justify-content: flex-start;
-    gap: clamp(1rem, 2.3vw, 2.25rem);
-    padding: 0 max(2rem, calc((100vw - 1380px) / 2));
-    border-width: 0 0 1px;
-    border-radius: 0;
-    box-shadow: 0 8px 24px rgba(42, 27, 67, 0.07);
-  }
-
-  ion-app:not(.android-native) .customer-desktop-brand {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: flex-start;
-    margin-right: clamp(.5rem, 2vw, 2rem);
-    color: var(--sd-heading);
-    font: 800 1.12rem 'Sora', sans-serif;
-    letter-spacing: -.055em;
-    text-decoration: none;
-  }
-
-  .customer-desktop-brand sup {
-    margin-left: .12rem;
-    color: var(--sd-primary);
-    font: 800 .52rem 'Plus Jakarta Sans', sans-serif;
-  }
-
-  ion-app:not(.android-native) .customer-bottom-nav > a,
-  ion-app:not(.android-native) .customer-bottom-nav > .customer-nav-menu {
-    display: inline-flex;
-    flex: 0 0 auto;
-    max-width: none;
-    min-width: 0;
-    flex-direction: row;
-    gap: .42rem;
-    padding: .6rem .15rem;
-    border-radius: 0;
-    font-size: .76rem;
-  }
-
-  ion-app:not(.android-native) .customer-bottom-nav > a ion-icon,
-  ion-app:not(.android-native) .customer-bottom-nav > .customer-nav-menu ion-icon {
-    width: 1rem;
-    height: 1rem;
-    min-width: 1rem;
-    min-height: 1rem;
-    font-size: 1rem;
-  }
-
-  ion-app:not(.android-native) .customer-bottom-nav > a.active {
-    background: transparent;
-    color: var(--sd-primary);
-    box-shadow: inset 0 -2px var(--sd-primary);
-  }
-
-  ion-app:not(.android-native) .mobile-menu-label {
-    display: none;
-  }
-
-  ion-app:not(.android-native) .desktop-menu-label {
-    display: inline-flex;
-  }
-
-  ion-app:not(.android-native) .customer-desktop-actions {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-left: auto;
-    margin-right: 3.2rem;
-  }
-
-  ion-app:not(.android-native) .customer-desktop-actions a {
-    display: inline-flex;
-    min-height: 2.35rem;
-    align-items: center;
-    justify-content: center;
-    padding: 0 .85rem;
-    border: 1px solid var(--sd-border);
-    border-radius: .7rem;
-    color: var(--sd-heading);
-    font-size: .72rem;
-    font-weight: 750;
-    text-decoration: none;
-  }
-
-  ion-app:not(.android-native) .customer-desktop-actions .customer-desktop-sign-up {
-    border-color: transparent;
-    background: var(--sd-gradient-primary);
-    color: #fff;
-  }
-
-  ion-app:not(.android-native) .notification-corner-button {
-    top: 1.15rem;
-    right: max(2rem, calc((100vw - 1380px) / 2));
-    width: 2.35rem;
-    height: 2.35rem;
-    box-shadow: none;
-  }
-
-  ion-app:not(.android-native) ion-router-outlet {
-    height: calc(100% - 76px);
-    margin-top: 76px !important;
-  }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
