@@ -17,34 +17,9 @@
       <p>{{ errorMessage() }}</p>
     </div>
   } @else if (vehicle(); as v) {
-    <div
-      class="hero-image"
-      [style.background-image]="'url(' + (onlineImages()[0]?.thumbnail || v.image) + ')'">
-      @if (onlineImages()[0]; as heroPhoto) {
-        <span
-          class="hero-photo-credit"
-          [title]="heroPhoto.artist + ' · ' + heroPhoto.license">
-          Photo: {{ heroPhoto.artist }} · {{ heroPhoto.license }}
-        </span>
-      }
-    </div>
+    <div class="hero-image" [style.background-image]="v.image ? 'url(' + v.image + ')' : null"></div>
 
     <div class="detail-body">
-      @if (onlineImages().length) {
-        <section class="online-gallery" aria-label="Online vehicle photos">
-          <div class="online-image-list">
-            @for (image of onlineImages(); track image.filePage) {
-              <figure
-                class="online-image-card"
-                [title]="image.artist + ' · ' + image.license">
-                <img [src]="image.thumbnail" [alt]="image.fileName" loading="lazy" draggable="false">
-                <figcaption>{{ image.artist }} · {{ image.license }}</figcaption>
-              </figure>
-            }
-          </div>
-        </section>
-      }
-
       <div class="vehicle-heading">
         <div>
           <span class="type-label">{{ v.type }}</span>
