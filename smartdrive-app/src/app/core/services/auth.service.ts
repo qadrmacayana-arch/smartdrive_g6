@@ -95,12 +95,6 @@ export class AuthService {
       barangayName?: string;
       gender?: string;
       phone?: string;
-      renterType?: 'local' | 'foreign-tourist' | null;
-      driverLicenseType?: string | null;
-      driverLicenseNumber?: string | null;
-      driverLicenseCountry?: string | null;
-      driverLicenseExpiry?: string | null;
-      licenseVerificationStatus?: 'not_provided' | 'pending' | 'verified' | 'rejected';
       registrationDate?: string;
       passwordHash?: string;
     }): void {
@@ -255,12 +249,6 @@ export class AuthService {
           barangayName: localUser['barangayName'] || localUser['barangay'] || null,
           gender: localUser['gender'] || null,
           phone: localUser['phone'] || null,
-          renterType: (localUser['renterType'] as AppUser['renterType']) || null,
-          driverLicenseType: localUser['driverLicenseType'] || null,
-          driverLicenseNumber: localUser['driverLicenseNumber'] || null,
-          driverLicenseCountry: localUser['driverLicenseCountry'] || null,
-          driverLicenseExpiry: localUser['driverLicenseExpiry'] || null,
-          licenseVerificationStatus: (localUser['licenseVerificationStatus'] as AppUser['licenseVerificationStatus']) || 'not_provided',
         };
         this.currentUser.set(appUser);
         sessionStorage.setItem('user', JSON.stringify(appUser));
@@ -544,24 +532,6 @@ export class AuthService {
   async updateProfile(updates: Partial<Profile>): Promise<void> {
     const user = this.currentUser();
     if (!user) throw new Error('You must be signed in.');
-    const licenseDetailsChanged = (
-      updates.renter_type !== undefined && updates.renter_type !== user.renterType
-    ) || (
-      updates.driver_license_type !== undefined && updates.driver_license_type !== user.driverLicenseType
-    ) || (
-      updates.driver_license_number !== undefined && updates.driver_license_number !== user.driverLicenseNumber
-    ) || (
-      updates.driver_license_country !== undefined && updates.driver_license_country !== user.driverLicenseCountry
-    ) || (
-      updates.driver_license_expiry !== undefined && updates.driver_license_expiry !== user.driverLicenseExpiry
-    );
-    const licenseDetailsProvided = Boolean(
-      updates.driver_license_type || updates.driver_license_number
-      || updates.driver_license_country || updates.driver_license_expiry,
-    );
-    const licenseVerificationStatus = licenseDetailsChanged
-      ? licenseDetailsProvided ? 'pending' : 'not_provided'
-      : user.licenseVerificationStatus ?? 'not_provided';
 
     if (user.id.startsWith('local-')) {
       this.saveLegacyUser({
@@ -584,12 +554,6 @@ export class AuthService {
         barangayName: updates.barangay_name ?? user.barangayName ?? '',
         gender: updates.gender ?? user.gender ?? '',
         phone: updates.phone ?? user.phone ?? '',
-        renterType: updates.renter_type !== undefined ? updates.renter_type : user.renterType ?? null,
-        driverLicenseType: updates.driver_license_type !== undefined ? updates.driver_license_type : user.driverLicenseType ?? null,
-        driverLicenseNumber: updates.driver_license_number !== undefined ? updates.driver_license_number : user.driverLicenseNumber ?? null,
-        driverLicenseCountry: updates.driver_license_country !== undefined ? updates.driver_license_country : user.driverLicenseCountry ?? null,
-        driverLicenseExpiry: updates.driver_license_expiry !== undefined ? updates.driver_license_expiry : user.driverLicenseExpiry ?? null,
-        licenseVerificationStatus,
       });
     } else {
       const { error: authError } = await this.supabase.client.auth.updateUser({
@@ -640,12 +604,6 @@ export class AuthService {
       barangayName: updates.barangay_name ?? user.barangayName,
       phone: updates.phone ?? user.phone,
       gender: updates.gender ?? user.gender,
-      renterType: updates.renter_type !== undefined ? updates.renter_type : user.renterType,
-      driverLicenseType: updates.driver_license_type !== undefined ? updates.driver_license_type : user.driverLicenseType,
-      driverLicenseNumber: updates.driver_license_number !== undefined ? updates.driver_license_number : user.driverLicenseNumber,
-      driverLicenseCountry: updates.driver_license_country !== undefined ? updates.driver_license_country : user.driverLicenseCountry,
-      driverLicenseExpiry: updates.driver_license_expiry !== undefined ? updates.driver_license_expiry : user.driverLicenseExpiry,
-      licenseVerificationStatus,
     };
     this.currentUser.set(updatedUser);
     sessionStorage.setItem('user', JSON.stringify(updatedUser));

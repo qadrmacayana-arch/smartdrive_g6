@@ -106,7 +106,7 @@
     <div class="sd-card ref-card">
       <span class="sd-muted">Reference Number</span>
       <h2>{{ b.reference_number }}</h2>
-      <p class="sd-muted">Bring your original driver’s license and required identity documents to pickup. SmartDrive will manually verify driver eligibility and confirm any applicable deposit or extra charges before handover.</p>
+      <p class="sd-muted">Bring any required original documents to pickup. SmartDrive will verify driver eligibility and confirm any applicable deposit or extra charges before handover.</p>
     </div>
 
     <div class="sd-card detail-card">
@@ -128,16 +128,18 @@
         <strong>{{ customerAddress() }}</strong>
       </div>
       <div class="detail-row">
-        <span class="sd-muted">Primary driver</span>
-        <strong>{{ b.driver_age ?? 'Not provided' }} years · {{ b.renter_type === 'foreign-tourist' ? 'Foreign tourist' : b.renter_type === 'local' ? 'Local renter' : 'Not provided' }}</strong>
+        <span class="sd-muted">Primary driver age</span>
+        <strong>{{ b.driver_age ?? 'Not provided' }} years</strong>
       </div>
+      @if (b.is_pwd_discount) {
+        <div class="detail-row">
+          <span class="sd-muted">PWD discount</span>
+          <strong>Claimed · present valid PWD ID at pickup</strong>
+        </div>
+      }
       <div class="detail-row">
-        <span class="sd-muted">License</span>
-        <strong>{{ b.driver_license_type || 'Not provided' }}{{ b.driver_license_country ? ' · ' + b.driver_license_country : '' }}</strong>
-      </div>
-      <div class="detail-row">
-        <span class="sd-muted">Documents &amp; conditions</span>
-        <strong>{{ b.booking_documents_ready ? 'Documents confirmed' : 'Documents not confirmed' }} · {{ b.booking_conditions_accepted ? 'Conditions accepted' : 'Conditions not accepted' }}</strong>
+        <span class="sd-muted">Booking conditions</span>
+        <strong>{{ b.booking_conditions_accepted ? 'Accepted' : 'Not accepted' }}</strong>
       </div>
       <h2>Rental details</h2>
       <div class="detail-row">

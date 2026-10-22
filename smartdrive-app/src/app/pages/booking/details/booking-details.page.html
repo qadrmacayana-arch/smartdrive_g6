@@ -56,7 +56,7 @@
           <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
           <div>
             <h2 id="conditions-title">Booking conditions</h2>
-            <p>Provide driver details for manual review and read the local rental guidance.</p>
+            <p>Confirm the driver’s age and review the rental guidance.</p>
           </div>
         </div>
 
@@ -100,69 +100,10 @@
             Your date of birth is used to calculate eligibility and is not saved with the booking.
           </p>
 
-          <label class="booking-select">
-            <span>Renter type</span>
-            <select formControlName="renterType" (change)="onRenterTypeChange()">
-              <option value="" disabled>Select renter type</option>
-              <option value="local">Local renter</option>
-              <option value="foreign-tourist">Foreign tourist</option>
-            </select>
-          </label>
-
-          @if (form.controls.renterType.value === 'local') {
-            <label class="booking-select">
-              <span>Philippine driver’s license</span>
-              <select formControlName="driverLicenseType" (change)="onDriverLicenseTypeChange()">
-                <option value="" disabled>Select license type</option>
-                <option value="local-non-professional">Non-Professional</option>
-                <option value="local-professional">Professional</option>
-              </select>
-            </label>
-          } @else if (form.controls.renterType.value === 'foreign-tourist') {
-            <label class="booking-select">
-              <span>Foreign driver’s license</span>
-              <select formControlName="driverLicenseType" (change)="onDriverLicenseTypeChange()">
-                <option value="" disabled>Select license language</option>
-                <option value="foreign-english">Written in English</option>
-                <option value="foreign-other">Uses a non-Roman alphabet</option>
-              </select>
-            </label>
-            <ion-item class="auth-item" lines="none">
-              <ion-icon slot="start" name="globe-outline"></ion-icon>
-              <ion-input label="License issuing country" labelPlacement="floating" formControlName="driverLicenseCountry"></ion-input>
-            </ion-item>
-            <ion-item class="auth-item" lines="none">
-              <ion-input type="date" label="Philippine arrival date" labelPlacement="floating" formControlName="philippinesArrivalDate"></ion-input>
-            </ion-item>
-            @if (form.controls.driverLicenseType.value === 'foreign-other') {
-              <label class="booking-select">
-                <span>Document accompanying the license</span>
-                <select formControlName="foreignLicenseSupport">
-                  <option value="" disabled>Select document</option>
-                  <option value="idp">International Driving Permit (IDP)</option>
-                  <option value="embassy-translation">Official embassy translation</option>
-                </select>
-              </label>
-            }
-          }
-
-          @if (profileLicenseStatus() !== 'not_provided') {
-            <p class="conditions-privacy" role="status">
-              Saved license profile: {{ profileLicenseStatus() === 'verified' ? 'verified by staff' : profileLicenseStatus() === 'rejected' ? 'needs correction' : 'pending staff review' }}.
-              Bring your original license for inspection at pickup.
-            </p>
-          }
-
-          <ion-checkbox formControlName="licenseConfirmed">
-            I confirm the primary driver holds a current, valid license for the vehicle.
-          </ion-checkbox>
-          <ion-checkbox formControlName="documentsReady">
-            I will present the required original license and identity documents at pickup.
-          </ion-checkbox>
           <ion-checkbox formControlName="conditionsAccepted">
-            I have read the booking conditions, provided accurate driver details, and understand SmartDrive will manually verify eligibility and confirm any applicable charges before handover.
+            I have read the booking conditions and understand SmartDrive will verify driver eligibility and confirm any applicable charges before handover.
           </ion-checkbox>
-          <p class="conditions-privacy">Do not enter a license number or upload identity documents here. SmartDrive will inspect required documents in person.</p>
+          <p class="conditions-privacy">Required documents are checked in person at pickup; no identity documents are collected in this booking form.</p>
         </div>
       </section>
 
@@ -170,11 +111,11 @@
         <div class="pwd-header">
           <ion-icon name="accessibility-outline"></ion-icon>
           <div>
-            <h4>PWD / Senior Citizen Discount</h4>
-            <p class="sd-muted">Get 20% off your rental. Present your ID upon vehicle pick-up.</p>
+            <h4>PWD Discount</h4>
+            <p class="sd-muted">Registered PWDs may receive 20% off the rental subtotal. Present a valid PWD ID at pickup for verification. Senior discounts are not offered through this booking.</p>
           </div>
         </div>
-        <ion-segment [value]="isPwdSenior() ? 'yes' : 'no'" (ionChange)="onPwdSeniorChange($any($event.detail.value))">
+        <ion-segment [value]="isPwd() ? 'yes' : 'no'" (ionChange)="onPwdChange($any($event.detail.value))">
           <ion-segment-button value="no">
             <ion-label>No</ion-label>
           </ion-segment-button>
@@ -182,14 +123,10 @@
             <ion-label>Yes</ion-label>
           </ion-segment-button>
         </ion-segment>
-        @if (isPwdSenior()) {
-          <label class="pwd-upload">
-            <span>Upload PWD/Senior ID</span>
-            <input type="file" accept="image/*,.pdf" (change)="onPwdFileChange($event)" />
-            @if (pwdFileName()) {
-              <small>{{ pwdFileName() }}</small>
-            }
-          </label>
+        @if (isPwd()) {
+          <ion-checkbox [checked]="pwdIdConfirmed()" (ionChange)="onPwdIdConfirmChange($event)">
+            I am a registered PWD and will present my valid PWD ID at pickup.
+          </ion-checkbox>
         }
       </div>
 
@@ -208,7 +145,7 @@
         </div>
         @if (discount() > 0) {
           <div class="summary-row discount">
-            <span>PWD/Senior Discount</span>
+            <span>PWD Discount</span>
             <strong>-₱{{ discount() | number }}</strong>
           </div>
         }

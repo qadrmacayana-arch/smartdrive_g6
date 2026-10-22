@@ -445,6 +445,7 @@ create table if not exists public.bookings (
   booking_status text default 'confirmed'
     check (booking_status in ('confirmed', 'ongoing', 'completed', 'cancelled')),
   is_pwd_senior boolean default false,
+  is_pwd_discount boolean not null default false,
   driver_age smallint check (driver_age between 18 and 100),
   renter_type text check (renter_type in ('local', 'foreign-tourist')),
   driver_license_type text check (
@@ -469,6 +470,9 @@ create table if not exists public.bookings (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.bookings
+  add column if not exists is_pwd_discount boolean not null default false;
 
 create index if not exists idx_bookings_reference_number on public.bookings (reference_number);
 create index if not exists idx_bookings_customer_email on public.bookings (customer_email);

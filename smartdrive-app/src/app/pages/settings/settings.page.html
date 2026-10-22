@@ -156,51 +156,9 @@
             </ion-modal>
           </div>
 
-          <div class="settings-form-section">
-            <div class="settings-form-heading"><span>03</span><div><h3>Driver license</h3><p>Save your license details here so they can be used on future bookings. Staff will review the information before it is marked verified.</p></div></div>
-            <div class="settings-field-grid">
-              <ion-item class="auth-item" lines="none">
-                <ion-select label="Renter type" labelPlacement="floating" formControlName="renterType" interface="popover" (ionChange)="onLicenseRenterTypeChange()">
-                  <ion-select-option value="local">Local renter</ion-select-option>
-                  <ion-select-option value="foreign-tourist">Foreign tourist</ion-select-option>
-                </ion-select>
-              </ion-item>
-              @if (profileForm.controls.renterType.value === 'local') {
-                <ion-item class="auth-item" lines="none">
-                  <ion-select label="Philippine license type" labelPlacement="floating" formControlName="driverLicenseType" interface="popover">
-                    <ion-select-option value="local-non-professional">Non-Professional</ion-select-option>
-                    <ion-select-option value="local-professional">Professional</ion-select-option>
-                  </ion-select>
-                </ion-item>
-              } @else if (profileForm.controls.renterType.value === 'foreign-tourist') {
-                <ion-item class="auth-item" lines="none">
-                  <ion-select label="Foreign license language" labelPlacement="floating" formControlName="driverLicenseType" interface="popover">
-                    <ion-select-option value="foreign-english">Written in English</ion-select-option>
-                    <ion-select-option value="foreign-other">Uses a non-Roman alphabet</ion-select-option>
-                  </ion-select>
-                </ion-item>
-                <ion-item class="auth-item" lines="none">
-                  <ion-input label="License issuing country" labelPlacement="floating" formControlName="driverLicenseCountry" autocomplete="country-name"></ion-input>
-                </ion-item>
-              }
-              @if (profileForm.controls.renterType.value) {
-                <ion-item class="auth-item" lines="none">
-                  <ion-input label="License number" labelPlacement="floating" formControlName="driverLicenseNumber" autocomplete="off"></ion-input>
-                </ion-item>
-                <ion-item class="auth-item" lines="none">
-                  <ion-input type="date" label="License expiry date" labelPlacement="floating" formControlName="driverLicenseExpiry"></ion-input>
-                </ion-item>
-              }
-            </div>
-            <p class="license-review-status" role="status">
-              License review:
-              <strong>{{ licenseVerificationStatus() === 'verified' ? 'Verified by staff' : licenseVerificationStatus() === 'rejected' ? 'Needs correction' : licenseVerificationStatus() === 'pending' ? 'Pending staff review' : 'Not provided' }}</strong>
-            </p>
-          </div>
-
           <div class="settings-save-row">
             <p><ion-icon name="shield-checkmark-outline"></ion-icon>Your information is saved securely to your profile.</p>
-            <ion-button type="submit" class="sd-gradient-btn save-profile-btn" [disabled]="savingProfile() || locationsLoading() || licenseProfileLoading()">
+            <ion-button type="submit" class="sd-gradient-btn save-profile-btn" [disabled]="savingProfile() || locationsLoading()">
               @if (savingProfile()) { <ion-spinner name="dots"></ion-spinner> } @else { Save profile changes }
             </ion-button>
           </div>

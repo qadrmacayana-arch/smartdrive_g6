@@ -347,31 +347,6 @@
   --border-radius: 0.9rem;
   margin-bottom: 1rem;
 }
-.pwd-upload {
-  display: grid;
-  gap: 0.45rem;
-  margin-top: 0.85rem;
-  color: var(--sd-foreground);
-  font-size: 0.75rem;
-  font-weight: 700;
-
-  input {
-    width: 100%;
-    padding: 0.65rem;
-    border: 1px dashed var(--sd-primary);
-    border-radius: 0.65rem;
-    background: var(--sd-background);
-    color: var(--sd-muted-foreground);
-    font: inherit;
-    font-weight: 500;
-  }
-
-  small {
-    color: var(--sd-primary);
-    font-weight: 600;
-  }
-}
-
 .form-error {
   margin: 0.75rem 0;
   color: var(--sd-destructive);

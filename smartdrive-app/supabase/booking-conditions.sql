@@ -3,6 +3,7 @@ begin;
 
 alter table public.bookings
   add column if not exists driver_age smallint check (driver_age between 18 and 100),
+  add column if not exists is_pwd_discount boolean not null default false,
   add column if not exists renter_type text check (renter_type in ('local', 'foreign-tourist')),
   add column if not exists driver_license_type text check (
     driver_license_type in (
@@ -61,6 +62,7 @@ begin
     or new.total_price is distinct from old.total_price
     or new.payment_method is distinct from old.payment_method
     or new.is_pwd_senior is distinct from old.is_pwd_senior
+    or new.is_pwd_discount is distinct from old.is_pwd_discount
     or new.driver_age is distinct from old.driver_age
     or new.renter_type is distinct from old.renter_type
     or new.driver_license_type is distinct from old.driver_license_type

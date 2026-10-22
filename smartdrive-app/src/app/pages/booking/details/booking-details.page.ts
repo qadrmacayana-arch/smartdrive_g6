@@ -21,7 +21,6 @@ import {
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingDraft } from '../../../core/models/booking.model';
 import { BookingService } from '../../../core/services/booking.service';
-import { SupabaseService } from '../../../core/services/supabase.service';
 import { calculateAgeOnDate } from '../../../core/utils/age';
 
 @Component({
@@ -52,14 +51,12 @@ export class BookingDetailsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly bookingService = inject(BookingService);
-  private readonly supabase = inject(SupabaseService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly draft = this.bookingService.draft;
-  readonly isPwdSenior = signal(false);
-  readonly pwdFileName = signal<string | null>(null);
+  readonly isPwd = signal(false);
+  readonly pwdIdConfirmed = signal(false);
   readonly errorMessage = signal<string | null>(null);
-  readonly profileLicenseStatus = signal<'not_provided' | 'pending' | 'verified' | 'rejected'>('not_provided');
   readonly maxBirthDate = this.getTodayDate();
 
   readonly form = this.fb.group({
@@ -68,19 +65,12 @@ export class BookingDetailsPage implements OnInit {
     phone: ['', [Validators.required]],
     address: ['', [Validators.maxLength(500)]],
     driverBirthDate: ['', [Validators.required]],
-    renterType: ['', [Validators.required]],
-    driverLicenseType: ['', [Validators.required]],
-    driverLicenseCountry: [''],
-    foreignLicenseSupport: [''],
-    philippinesArrivalDate: [''],
-    licenseConfirmed: [false, [Validators.requiredTrue]],
-    documentsReady: [false, [Validators.requiredTrue]],
     conditionsAccepted: [false, [Validators.requiredTrue]],
   });
 
   readonly subtotal = computed(() => (this.draft()?.vehicle.price ?? 0) * (this.draft()?.rentalDays ?? 0));
   readonly insurance = 500;
-  readonly discount = computed(() => (this.isPwdSenior() ? this.subtotal() * 0.2 : 0));
+  readonly discount = computed(() => (this.isPwd() ? this.subtotal() * 0.2 : 0));
   readonly total = computed(() => this.subtotal() + this.insurance - this.discount());
 
   ngOnInit(): void {
@@ -105,40 +95,12 @@ export class BookingDetailsPage implements OnInit {
       this.form.patchValue({
         driverBirthDate: customer.driverBirthDate ?? user?.birthday ?? '',
         address: customer.address ?? user?.address ?? '',
-        renterType: customer.renterType,
-        driverLicenseType: customer.driverLicenseType,
-        driverLicenseCountry: customer.driverLicenseCountry ?? '',
-        foreignLicenseSupport: customer.foreignLicenseSupport ?? '',
-        philippinesArrivalDate: customer.philippinesArrivalDate ?? '',
-        licenseConfirmed: true,
-        documentsReady: customer.documentsReady,
         conditionsAccepted: customer.conditionsAccepted,
       });
+      const savedPwdClaim = Boolean(customer.isPwd);
+      this.isPwd.set(savedPwdClaim);
+      this.pwdIdConfirmed.set(savedPwdClaim);
     }
-    if (user && !user.id.startsWith('local-')) void this.loadDriverLicenseProfile(user.id);
-  }
-
-  private async loadDriverLicenseProfile(userId: string): Promise<void> {
-    const { data, error } = await this.supabase.client
-      .from('profiles')
-      .select('renter_type,driver_license_type,driver_license_country,license_verification_status')
-      .eq('id', userId)
-      .maybeSingle();
-    if (error) {
-      console.error('Unable to load saved driver license details.', error);
-      this.errorMessage.set(`Saved driver license details could not be loaded: ${error.message}`);
-      return;
-    }
-    if (!data) return;
-    const currentRenterType = this.form.controls.renterType.value;
-    const savedRenterType = data.renter_type ?? '';
-    const useSavedLicenseDetails = !currentRenterType || currentRenterType === savedRenterType;
-    this.form.patchValue({
-      renterType: currentRenterType || savedRenterType,
-      driverLicenseType: this.form.controls.driverLicenseType.value || (useSavedLicenseDetails ? data.driver_license_type : '') || '',
-      driverLicenseCountry: this.form.controls.driverLicenseCountry.value || (useSavedLicenseDetails ? data.driver_license_country : '') || '',
-    });
-    this.profileLicenseStatus.set(data.license_verification_status ?? 'not_provided');
   }
 
   continue(): void {
@@ -146,12 +108,12 @@ export class BookingDetailsPage implements OnInit {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.errorMessage.set(
-        'Complete the required details, confirm your valid driver’s license and documents, and accept the booking conditions.',
+        'Complete the required contact and driver age details, and accept the booking conditions.',
       );
       return;
     }
-    if (this.isPwdSenior() && !this.pwdFileName()) {
-      this.errorMessage.set('Please upload your PWD/Senior ID to proceed with the discount.');
+    if (this.isPwd() && !this.pwdIdConfirmed()) {
+      this.errorMessage.set('Confirm that you are a registered PWD and will present your valid PWD ID at pickup.');
       return;
     }
 
@@ -163,25 +125,14 @@ export class BookingDetailsPage implements OnInit {
       this.errorMessage.set('The primary driver must be between 18 and 100 years old on the pickup date. Enter a valid date of birth.');
       return;
     }
-    const isForeignTourist = value.renterType === 'foreign-tourist';
     const customer: BookingDraft['customer'] = {
       name: value.name!.trim(),
       email: value.email!.trim(),
       phone: value.phone!.trim(),
       address: value.address?.trim() || null,
-      isPwdSenior: this.isPwdSenior(),
+      isPwd: this.isPwd(),
       driverAge,
       driverBirthDate,
-      renterType: value.renterType as 'local' | 'foreign-tourist',
-      driverLicenseType: value.driverLicenseType!,
-      driverLicenseCountry: isForeignTourist ? value.driverLicenseCountry?.trim() || null : null,
-      foreignLicenseSupport: isForeignTourist
-        ? value.driverLicenseType === 'foreign-other'
-          ? (value.foreignLicenseSupport as 'idp' | 'embassy-translation')
-          : 'not-required'
-        : null,
-      philippinesArrivalDate: isForeignTourist ? value.philippinesArrivalDate! : null,
-      documentsReady: value.documentsReady!,
       conditionsAccepted: value.conditionsAccepted!,
     };
 
@@ -197,32 +148,14 @@ export class BookingDetailsPage implements OnInit {
     this.router.navigate(['/booking', vehicleId, 'payment']);
   }
 
-  onPwdSeniorChange(value: string): void {
+  onPwdChange(value: string): void {
     const selected = value === 'yes';
-    this.isPwdSenior.set(selected);
-    if (!selected) this.pwdFileName.set(null);
+    this.isPwd.set(selected);
+    if (!selected) this.pwdIdConfirmed.set(false);
   }
 
-  onPwdFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.pwdFileName.set(input.files?.[0]?.name ?? null);
-  }
-
-  onRenterTypeChange(): void {
-    this.form.patchValue({
-      driverLicenseType: '',
-      driverLicenseCountry: '',
-      foreignLicenseSupport: '',
-      philippinesArrivalDate: '',
-    });
-  }
-
-  onDriverLicenseTypeChange(): void {
-    const support = this.form.controls.renterType.value === 'foreign-tourist'
-      && this.form.controls.driverLicenseType.value === 'foreign-english'
-      ? 'not-required'
-      : '';
-    this.form.controls.foreignLicenseSupport.setValue(support);
+  onPwdIdConfirmChange(event: CustomEvent<{ checked: boolean }>): void {
+    this.pwdIdConfirmed.set(event.detail.checked);
   }
 
   driverAgeOnPickup(): number | null {

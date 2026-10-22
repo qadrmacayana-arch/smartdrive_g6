@@ -94,7 +94,7 @@ function makeBooking(
     payment_method: 'card',
     payment_status: 'completed',
     booking_status: 'completed',
-    is_pwd_senior: false,
+    is_pwd_discount: false,
     ...overrides,
   };
 }

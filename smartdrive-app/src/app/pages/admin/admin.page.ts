@@ -15,7 +15,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { Booking } from '../../core/models/booking.model';
+import { BOOKING_SELECT_FIELDS, Booking } from '../../core/models/booking.model';
 import { Vehicle } from '../../core/models/vehicle.model';
 import { DemoTrackingService } from '../../core/services/demo-tracking.service';
 import { FleetForecast, PredictiveInsightsService } from '../../core/services/predictive-insights.service';
@@ -47,13 +47,8 @@ interface AdminUser {
   phone?: string | null;
   is_active?: boolean;
   created_at?: string;
-  renter_type?: 'local' | 'foreign-tourist' | null;
-  driver_license_type?: string | null;
-  driver_license_number?: string | null;
-  driver_license_country?: string | null;
-  driver_license_expiry?: string | null;
-  license_verification_status?: 'not_provided' | 'pending' | 'verified' | 'rejected';
-  license_reviewed_at?: string | null;
+  gender?: string | null;
+  member_type?: string | null;
 }
 interface AdminReview { id?: string; customer_name?: string; customer_email?: string; rating: number; comment?: string; created_at?: string; }
 interface AdminLocation {
@@ -359,59 +354,21 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   private async loadBookings(): Promise<void> {
-    const [bookings, profiles] = await Promise.all([
-      this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
-      this.supabase.client.from('profiles').select('id,renter_type,driver_license_type,driver_license_number,driver_license_country,driver_license_expiry,license_verification_status'),
-    ]);
+    const bookings = await this.supabase.client
+      .from('bookings')
+      .select(BOOKING_SELECT_FIELDS)
+      .order('created_at', { ascending: false });
     if (bookings.error) throw new Error(bookings.error.message);
-    if (profiles.error) throw new Error(profiles.error.message);
-    const licenses = new Map((profiles.data ?? []).map((profile) => [profile.id, profile]));
-    this.bookings.set(((bookings.data ?? []) as Booking[]).map((booking) => {
-      const license = booking.user_id ? licenses.get(booking.user_id) : undefined;
-      if (!license) return booking;
-      return {
-        ...booking,
-        renter_type: booking.renter_type ?? license.renter_type,
-        driver_license_type: booking.driver_license_type ?? license.driver_license_type,
-        driver_license_number: license.driver_license_number,
-        driver_license_country: booking.driver_license_country ?? license.driver_license_country,
-        driver_license_expiry: license.driver_license_expiry,
-        license_verification_status: license.license_verification_status,
-      };
-    }));
+    this.bookings.set((bookings.data ?? []) as Booking[]);
   }
 
   private async loadUsers(): Promise<void> {
-    const { data, error } = await this.supabase.client.from('profiles').select('*').order('created_at', { ascending: false });
+    const { data, error } = await this.supabase.client
+      .from('profiles')
+      .select('id,full_name,email,phone,is_active,created_at,gender,member_type')
+      .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     this.users.set((data ?? []) as AdminUser[]);
-  }
-
-  async updateLicenseReview(
-    user: AdminUser,
-    status: NonNullable<AdminUser['license_verification_status']>,
-  ): Promise<void> {
-    if (!user.id || status === 'not_provided' || !user.driver_license_number) return;
-    if (status === 'verified' && user.driver_license_expiry && user.driver_license_expiry < new Date().toISOString().slice(0, 10)) {
-      this.errorMessage.set('This driver license has expired and cannot be marked verified.');
-      return;
-    }
-    this.errorMessage.set(null);
-    try {
-      const { error } = await this.supabase.client
-        .from('profiles')
-        .update({ license_verification_status: status })
-        .eq('id', user.id);
-      if (error) throw new Error(error.message);
-      this.users.update((items) => items.map((item) => item.id === user.id
-        ? { ...item, license_verification_status: status, license_reviewed_at: status === 'pending' ? null : new Date().toISOString() }
-        : item));
-      this.bookings.update((items) => items.map((booking) => booking.user_id === user.id
-        ? { ...booking, license_verification_status: status }
-        : booking));
-    } catch (error) {
-      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update driver license review status.');
-    }
   }
 
   private async loadTransactions(): Promise<void> {
@@ -419,7 +376,7 @@ export class AdminPage implements OnDestroy, OnInit {
     const [balances, transactions, bookings] = await Promise.all([
       this.supabase.client.from('wallet_balances').select('*'),
       this.supabase.client.from('wallet_transactions').select('*').order('created_at', { ascending: false }),
-      this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
+      this.supabase.client.from('bookings').select(BOOKING_SELECT_FIELDS).order('created_at', { ascending: false }),
     ]);
     if (balances.error) throw new Error(balances.error.message);
     if (transactions.error) throw new Error(transactions.error.message);
@@ -536,7 +493,7 @@ export class AdminPage implements OnDestroy, OnInit {
 
   private async loadReports(): Promise<void> {
     const [bookings, users, promos] = await Promise.all([
-      this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
+      this.supabase.client.from('bookings').select(BOOKING_SELECT_FIELDS).order('created_at', { ascending: false }),
       this.supabase.client.from('profiles').select('id, email').order('created_at', { ascending: false }),
       this.supabase.client.from('discount_codes').select('*').eq('is_active', true),
     ]);
@@ -864,10 +821,6 @@ export class AdminPage implements OnDestroy, OnInit {
       user.full_name,
       user.email,
       user.phone,
-      user.driver_license_type,
-      user.driver_license_number,
-      user.driver_license_country,
-      user.license_verification_status,
     ].some((value) => String(value ?? '').toLowerCase().includes(term)));
   }
 
@@ -1112,7 +1065,7 @@ export class AdminPage implements OnDestroy, OnInit {
 
     try {
       const [bookingsResult, usersResult, vehiclesResult] = await Promise.all([
-        this.supabase.client.from('bookings').select('*').order('created_at', { ascending: false }),
+        this.supabase.client.from('bookings').select(BOOKING_SELECT_FIELDS).order('created_at', { ascending: false }),
         this.supabase.client.from('profiles').select('id, full_name, email, gender, created_at, registration_date'),
         this.supabase.client.from('vehicles').select('id, name, type, price, status').neq('status', 'archived'),
       ]);

@@ -309,11 +309,8 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     addRow('Return', booking.return_date);
     addRow('Pick-up location', booking.pickup_location || 'Not provided');
     addRow('Primary driver age', String(booking.driver_age ?? 'Not provided'));
-    addRow('Renter type', booking.renter_type || 'Not provided');
-    addRow('License', `${booking.driver_license_type || 'Not provided'} · ${booking.driver_license_country || 'Not applicable'}`);
-    addRow('License confirmed', booking.driver_license_confirmed ? 'Yes' : 'No');
-    addRow('Documents ready', booking.booking_documents_ready ? 'Yes' : 'No');
-    addRow('Conditions accepted', booking.booking_conditions_accepted ? 'Yes' : 'No');
+    if (booking.is_pwd_discount) addRow('PWD discount claim', 'Present a valid PWD ID at pickup for verification');
+    addRow('Booking conditions accepted', booking.booking_conditions_accepted ? 'Yes' : 'No');
 
     addSection('PAYMENT');
     addRow('Payment method', this.paymentMethodLabel(booking.payment_method));
@@ -326,7 +323,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
     pdf.setFontSize(8);
     pdf.setTextColor(120, 130, 126);
-    pdf.text('Keep this receipt for your records. Contact SmartDrive if any booking details need correction.', margin, Math.min(y + 7, 285));
+    pdf.text('Keep this receipt for your records. Bring required documents to pickup; PWD discount claims require a valid PWD ID for verification.', margin, Math.min(y + 7, 285));
     return pdf;
   }
 

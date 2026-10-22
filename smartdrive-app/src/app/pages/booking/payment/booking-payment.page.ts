@@ -94,7 +94,7 @@ export class BookingPaymentPage implements OnInit {
 
     const isNewMember = await this.bookingService.isNewMember(draft.customer.email);
     const pricing = this.bookingService.computePricing(draft.vehicle.price, draft.rentalDays, {
-      isPwdSenior: draft.customer.isPwdSenior,
+      isPwd: draft.customer.isPwd,
       isNewMember,
       promoCode: draft.promoCode,
     });
@@ -180,15 +180,8 @@ export class BookingPaymentPage implements OnInit {
             customerPhone: customer.phone,
             customerAddress: customer.address,
             driverAge: customer.driverAge,
-            renterType: customer.renterType,
-            driverLicenseType: customer.driverLicenseType,
-            driverLicenseCountry: customer.driverLicenseCountry,
-            foreignLicenseSupport: customer.foreignLicenseSupport,
-            philippinesArrivalDate: customer.philippinesArrivalDate,
-            driverLicenseConfirmed: true,
-            bookingDocumentsReady: customer.documentsReady,
             bookingConditionsAccepted: customer.conditionsAccepted,
-            isPwdSenior: customer.isPwdSenior,
+            isPwd: customer.isPwd,
             paymentMethod: this.paymentMethod(),
             promoCode: draft.promoCode?.code ?? null,
             returnToApp: Capacitor.getPlatform() === 'android',

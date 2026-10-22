@@ -1,10 +1,10 @@
 import { Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { Booking, BookingDraft } from '../models/booking.model';
+import { BOOKING_SELECT_FIELDS, Booking, BookingDraft } from '../models/booking.model';
 import { DemoTrackingService } from './demo-tracking.service';
 
 const INSURANCE_FEE = 500;
-const PWD_SENIOR_DISCOUNT_RATE = 0.2;
+const PWD_DISCOUNT_RATE = 0.2;
 const NEW_MEMBER_DISCOUNT_RATE = 0.15;
 
 export interface PricingBreakdown {
@@ -123,7 +123,7 @@ export class BookingService {
   computePricing(
     dailyRate: number,
     rentalDays: number,
-    options: { isPwdSenior: boolean; isNewMember: boolean; promoCode?: { code: string; discountPercent: number; description: string } | null },
+    options: { isPwd: boolean; isNewMember: boolean; promoCode?: { code: string; discountPercent: number; description: string } | null },
   ): PricingBreakdown {
     const subtotal = dailyRate * rentalDays;
     const insurance = INSURANCE_FEE;
@@ -139,11 +139,11 @@ export class BookingService {
       }
     }
 
-    if (options.isPwdSenior) {
-      const pwdDiscount = subtotal * PWD_SENIOR_DISCOUNT_RATE;
+    if (options.isPwd) {
+      const pwdDiscount = subtotal * PWD_DISCOUNT_RATE;
       if (pwdDiscount > bestDiscount) {
         bestDiscount = pwdDiscount;
-        discountLabel = 'PWD/Senior Discount (20%)';
+        discountLabel = 'PWD Discount (20%)';
       }
     }
 
@@ -204,40 +204,8 @@ export class BookingService {
       || customer.driverAge < 18
       || customer.driverAge > 100
       || !customer.conditionsAccepted
-      || !customer.documentsReady
     ) {
-      return 'Complete the driver and booking conditions section before confirming this booking.';
-    }
-
-    if (
-      customer.renterType === 'local'
-      && (
-        !['local-non-professional', 'local-professional'].includes(customer.driverLicenseType)
-        || customer.driverLicenseCountry !== null
-        || customer.philippinesArrivalDate !== null
-        || customer.foreignLicenseSupport !== null
-      )
-    ) {
-      return 'Local renters must provide a valid local driver’s license type and cannot include foreign-license fields.';
-    }
-
-    if (
-      customer.renterType === 'foreign-tourist'
-      && (
-        !customer.driverLicenseCountry
-        || !customer.philippinesArrivalDate
-        || !['foreign-english', 'foreign-other'].includes(customer.driverLicenseType)
-        || (
-          customer.driverLicenseType === 'foreign-other'
-          && !['idp', 'embassy-translation'].includes(customer.foreignLicenseSupport ?? '')
-        )
-        || (
-          customer.driverLicenseType === 'foreign-english'
-          && customer.foreignLicenseSupport !== 'not-required'
-        )
-      )
-    ) {
-      return 'Foreign tourists must provide their license country, Philippine arrival date, and valid driving document details.';
+      return 'Complete the driver age and booking conditions section before confirming this booking.';
     }
 
     return null;
@@ -310,20 +278,17 @@ export class BookingService {
       payment_method: paymentMethod,
       payment_status: paymentStatus,
       booking_status: 'confirmed',
-      is_pwd_senior: customer.isPwdSenior,
+      is_pwd_discount: customer.isPwd,
       driver_age: customer.driverAge,
-      renter_type: customer.renterType,
-      driver_license_type: customer.driverLicenseType,
-      driver_license_country: customer.driverLicenseCountry,
-      foreign_license_support: customer.foreignLicenseSupport,
-      philippines_arrival_date: customer.philippinesArrivalDate,
-      driver_license_confirmed: true,
-      booking_documents_ready: customer.documentsReady,
       booking_conditions_accepted: customer.conditionsAccepted,
       booking_conditions_accepted_at: new Date().toISOString(),
     };
 
-    const { data, error } = await this.supabase.client.from('bookings').insert([booking]).select().single();
+    const { data, error } = await this.supabase.client
+      .from('bookings')
+      .insert([booking])
+      .select(BOOKING_SELECT_FIELDS)
+      .single();
     if (error) throw new Error(error.message);
     this.demoTracking.recordTransaction(userId, `Booking ${booking.reference_number}`);
     return data as Booking;
@@ -332,7 +297,7 @@ export class BookingService {
   async listMyBookings(email: string): Promise<Booking[]> {
     const { data, error } = await this.supabase.client
       .from('bookings')
-      .select('*')
+      .select(BOOKING_SELECT_FIELDS)
       .eq('customer_email', email)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
@@ -342,7 +307,7 @@ export class BookingService {
   async listMyBookingsForUser(userId: string): Promise<Booking[]> {
     const { data, error } = await this.supabase.client
       .from('bookings')
-      .select('*')
+      .select(BOOKING_SELECT_FIELDS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
@@ -352,7 +317,7 @@ export class BookingService {
   async getByReference(reference: string): Promise<Booking | null> {
     const { data, error } = await this.supabase.client
       .from('bookings')
-      .select('*')
+      .select(BOOKING_SELECT_FIELDS)
       .eq('reference_number', reference)
       .maybeSingle();
     if (error) throw new Error(error.message);

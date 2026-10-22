@@ -257,8 +257,6 @@ begin
     or expected_days < 1
     or expected_days > 365
     or target_booking.booking_conditions_accepted is distinct from true
-    or target_booking.booking_documents_ready is distinct from true
-    or target_booking.driver_license_confirmed is distinct from true
   then
     raise exception 'The booking dates or required booking details are invalid.';
   end if;
@@ -294,7 +292,7 @@ begin
     raise exception 'This vehicle is no longer available for the selected dates.';
   end if;
 
-  if target_booking.is_pwd_senior then
+  if target_booking.is_pwd_discount then
     best_discount := round(expected_subtotal * 0.20, 2);
   end if;
 

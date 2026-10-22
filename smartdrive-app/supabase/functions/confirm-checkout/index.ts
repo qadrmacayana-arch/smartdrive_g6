@@ -10,6 +10,40 @@ const response = (body: Record<string, unknown>, status = 200) =>
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   });
+const bookingFields = [
+  'id',
+  'reference_number',
+  'user_id',
+  'customer_email',
+  'customer_name',
+  'customer_phone',
+  'customer_address',
+  'vehicle_id',
+  'vehicle_name',
+  'pickup_date',
+  'return_date',
+  'pickup_location',
+  'daily_rate',
+  'rental_days',
+  'subtotal',
+  'insurance',
+  'discount',
+  'discount_label',
+  'promo_code',
+  'total_price',
+  'payment_method',
+  'payment_status',
+  'paymongo_checkout_session_id',
+  'test_auto_confirmed',
+  'booking_status',
+  'is_pwd_discount',
+  'driver_age',
+  'booking_conditions_accepted',
+  'booking_conditions_accepted_at',
+  'rating',
+  'notes',
+  'created_at',
+].join(',');
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
@@ -57,7 +91,7 @@ Deno.serve(async (request) => {
   if (attempt.status === 'paid') {
     const { data: booking, error: bookingError } = await admin
       .from('bookings')
-      .select('*')
+      .select(bookingFields)
       .eq('reference_number', reference)
       .maybeSingle();
     if (bookingError || !booking) {
@@ -173,7 +207,7 @@ Deno.serve(async (request) => {
   }
   const { data: booking, error: bookingError } = await admin
     .from('bookings')
-    .select('*')
+    .select(bookingFields)
     .eq('reference_number', reference)
     .maybeSingle();
   if (bookingError || !booking) {

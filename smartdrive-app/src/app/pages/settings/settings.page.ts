@@ -104,7 +104,6 @@ export class SettingsPage implements OnInit, OnDestroy {
   readonly avatarError = signal(false);
   private selectedAvatar: File | null = null;
   private avatarPreviewObjectUrl: string | null = null;
-  private savedLicenseDetails: string[] | null = null;
   readonly profileForm = this.fb.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     middleName: [''],
@@ -118,11 +117,6 @@ export class SettingsPage implements OnInit, OnDestroy {
     barangay: ['', [Validators.required]],
     gender: ['prefer_not_to_say' as Profile['gender']],
     phone: ['', [Validators.required, Validators.pattern(/^(?:\+63|0)\d{10}$/)]],
-    renterType: [''],
-    driverLicenseType: [''],
-    driverLicenseNumber: [''],
-    driverLicenseCountry: [''],
-    driverLicenseExpiry: [''],
   });
 
   readonly passwordForm = this.fb.group(
@@ -139,9 +133,6 @@ export class SettingsPage implements OnInit, OnDestroy {
   readonly isError = signal(false);
   readonly notificationsEnabled = signal(false);
   readonly notificationStatus = signal<string | null>(null);
-  readonly licenseVerificationStatus = signal<Profile['license_verification_status']>('not_provided');
-  readonly licenseProfileLoading = signal(true);
-
   ngOnInit(): void {
     const user = this.auth.currentUser();
     if (!user) return;
@@ -160,54 +151,7 @@ export class SettingsPage implements OnInit, OnDestroy {
       gender: profileGender(user.gender),
       phone: user.phone ?? '',
     });
-    void this.loadLicenseProfile(user.id);
     void this.loadLocations();
-  }
-
-  private async loadLicenseProfile(userId: string): Promise<void> {
-    if (userId.startsWith('local-')) {
-      const user = this.currentUser();
-      if (!user) return;
-      this.profileForm.patchValue({
-        renterType: user.renterType ?? '',
-        driverLicenseType: user.driverLicenseType ?? '',
-        driverLicenseNumber: user.driverLicenseNumber ?? '',
-        driverLicenseCountry: user.driverLicenseCountry ?? '',
-        driverLicenseExpiry: user.driverLicenseExpiry ?? '',
-      });
-      this.licenseVerificationStatus.set(user.licenseVerificationStatus ?? 'not_provided');
-      this.savedLicenseDetails = this.currentLicenseDetails();
-      this.licenseProfileLoading.set(false);
-      return;
-    }
-    const { data, error } = await this.supabase.client
-      .from('profiles')
-      .select('renter_type,driver_license_type,driver_license_number,driver_license_country,driver_license_expiry,license_verification_status')
-      .eq('id', userId)
-      .maybeSingle();
-    if (error) {
-      console.error('Unable to load driver license profile.', error);
-      this.savedLicenseDetails = this.currentLicenseDetails();
-      this.licenseProfileLoading.set(false);
-      this.isError.set(true);
-      this.message.set(`Driver license details could not be loaded: ${error.message}`);
-      return;
-    }
-    if (!data) {
-      this.savedLicenseDetails = this.currentLicenseDetails();
-      this.licenseProfileLoading.set(false);
-      return;
-    }
-    this.profileForm.patchValue({
-      renterType: data.renter_type ?? '',
-      driverLicenseType: data.driver_license_type ?? '',
-      driverLicenseNumber: data.driver_license_number ?? '',
-      driverLicenseCountry: data.driver_license_country ?? '',
-      driverLicenseExpiry: data.driver_license_expiry ?? '',
-    });
-    this.licenseVerificationStatus.set(data.license_verification_status ?? 'not_provided');
-    this.savedLicenseDetails = this.currentLicenseDetails();
-    this.licenseProfileLoading.set(false);
   }
 
   private async refreshNotificationPermission(userId: string): Promise<void> {
@@ -458,11 +402,6 @@ export class SettingsPage implements OnInit, OnDestroy {
   }
 
   async saveProfile(): Promise<void> {
-    if (this.licenseProfileLoading()) {
-      this.isError.set(true);
-      this.message.set('Wait for your saved driver license details to finish loading before saving changes.');
-      return;
-    }
     if (this.profileForm.invalid) {
       this.profileForm.markAllAsTouched();
       this.isError.set(true);
@@ -471,23 +410,6 @@ export class SettingsPage implements OnInit, OnDestroy {
     }
 
     const value = this.profileForm.getRawValue();
-    const nextLicenseDetails = this.currentLicenseDetails();
-    const licenseDetailsChanged = this.savedLicenseDetails !== null
-      && JSON.stringify(nextLicenseDetails) !== JSON.stringify(this.savedLicenseDetails);
-    const previousLicenseStatus = this.licenseVerificationStatus();
-    const hasLicenseDetails = Boolean(
-      value.renterType || value.driverLicenseType || value.driverLicenseNumber
-      || value.driverLicenseCountry || value.driverLicenseExpiry,
-    );
-    if (hasLicenseDetails && (
-      !value.renterType || !value.driverLicenseType || !value.driverLicenseNumber?.trim()
-      || !value.driverLicenseExpiry
-      || (value.renterType === 'foreign-tourist' && !value.driverLicenseCountry?.trim())
-    )) {
-      this.isError.set(true);
-      this.message.set('Complete the license type, number, and expiry date. Foreign licenses also need the issuing country.');
-      return;
-    }
     const region = this.regions().find((item) => item.code === value.region);
     const province = this.provinces().find((item) => item.code === value.province);
     const city = this.cities().find((item) => item.code === value.city);
@@ -523,20 +445,7 @@ export class SettingsPage implements OnInit, OnDestroy {
         gender: value.gender ?? 'prefer_not_to_say',
         phone: value.phone!.trim(),
       };
-      if (licenseDetailsChanged) {
-        profileUpdates.renter_type = value.renterType === 'local' || value.renterType === 'foreign-tourist' ? value.renterType : null;
-        profileUpdates.driver_license_type = value.driverLicenseType || null;
-        profileUpdates.driver_license_number = value.driverLicenseNumber?.trim() || null;
-        profileUpdates.driver_license_country = value.driverLicenseCountry?.trim() || null;
-        profileUpdates.driver_license_expiry = value.driverLicenseExpiry || null;
-      }
       await this.auth.updateProfile(profileUpdates);
-      if (licenseDetailsChanged) {
-        this.licenseVerificationStatus.set(hasLicenseDetails ? 'pending' : 'not_provided');
-      } else {
-        this.licenseVerificationStatus.set(previousLicenseStatus);
-      }
-      this.savedLicenseDetails = nextLicenseDetails;
       this.profileForm.markAsPristine();
       this.isError.set(false);
       this.message.set('Profile updated successfully.');
@@ -546,27 +455,6 @@ export class SettingsPage implements OnInit, OnDestroy {
     } finally {
       this.savingProfile.set(false);
     }
-  }
-
-  onLicenseRenterTypeChange(): void {
-    this.profileForm.patchValue({
-      driverLicenseType: '',
-      driverLicenseNumber: '',
-      driverLicenseCountry: '',
-      driverLicenseExpiry: '',
-    });
-    this.licenseVerificationStatus.set('not_provided');
-  }
-
-  private currentLicenseDetails(): string[] {
-    const value = this.profileForm.getRawValue();
-    return [
-      value.renterType || '',
-      value.driverLicenseType || '',
-      value.driverLicenseNumber?.trim() || '',
-      value.driverLicenseCountry?.trim() || '',
-      value.driverLicenseExpiry || '',
-    ];
   }
 
   async savePassword(): Promise<void> {

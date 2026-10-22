@@ -17,15 +17,8 @@ type CheckoutInput = {
   customerPhone: string;
   customerAddress?: string | null;
   driverAge: number;
-  renterType: 'local' | 'foreign-tourist';
-  driverLicenseType: 'local-non-professional' | 'local-professional' | 'foreign-english' | 'foreign-other';
-  driverLicenseCountry: string | null;
-  foreignLicenseSupport: 'not-required' | 'idp' | 'embassy-translation' | null;
-  philippinesArrivalDate: string | null;
-  driverLicenseConfirmed: boolean;
-  bookingDocumentsReady: boolean;
   bookingConditionsAccepted: boolean;
-  isPwdSenior: boolean;
+  isPwd: boolean;
   paymentMethod: 'credit-card' | 'gcash' | 'maya';
   promoCode: string | null;
   returnToApp?: boolean;
@@ -86,7 +79,7 @@ Deno.serve(async (request) => {
     !input
     || !Number.isSafeInteger(input?.vehicleId)
     || !['credit-card', 'gcash', 'maya'].includes(input?.paymentMethod)
-    || typeof input.isPwdSenior !== 'boolean'
+    || typeof input.isPwd !== 'boolean'
     || typeof input.pickupDate !== 'string'
     || typeof input.returnDate !== 'string'
     || typeof input.pickupLocation !== 'string'
@@ -97,16 +90,6 @@ Deno.serve(async (request) => {
     || !Number.isInteger(input.driverAge)
     || input.driverAge < 18
     || input.driverAge > 100
-    || !['local', 'foreign-tourist'].includes(input.renterType)
-    || !['local-non-professional', 'local-professional', 'foreign-english', 'foreign-other'].includes(input.driverLicenseType)
-    || (input.driverLicenseCountry !== null && typeof input.driverLicenseCountry !== 'string')
-    || (
-      input.foreignLicenseSupport !== null
-      && !['not-required', 'idp', 'embassy-translation'].includes(input.foreignLicenseSupport)
-    )
-    || (input.philippinesArrivalDate !== null && typeof input.philippinesArrivalDate !== 'string')
-    || input.driverLicenseConfirmed !== true
-    || input.bookingDocumentsReady !== true
     || input.bookingConditionsAccepted !== true
     || (input.promoCode !== null && typeof input.promoCode !== 'string')
     || (input.returnToApp !== undefined && typeof input.returnToApp !== 'boolean')
@@ -123,18 +106,6 @@ Deno.serve(async (request) => {
   const phone = input.customerPhone?.trim();
   const customerAddress = input.customerAddress?.trim() ?? '';
   const location = input.pickupLocation?.trim();
-  const licenseCountry = input.driverLicenseCountry?.trim() ?? null;
-  const isLocalRenter = input.renterType === 'local';
-  const isLocalLicense = input.driverLicenseType.startsWith('local-');
-  const isForeignLicense = input.driverLicenseType.startsWith('foreign-');
-  const arrivalDate = input.philippinesArrivalDate;
-  const validArrivalDate = arrivalDate === null
-    || (
-      /^\d{4}-\d{2}-\d{2}$/.test(arrivalDate)
-      && Number.isFinite(Date.parse(`${arrivalDate}T00:00:00Z`))
-      && new Date(`${arrivalDate}T00:00:00Z`).toISOString().slice(0, 10) === arrivalDate
-      && arrivalDate <= today
-    );
   if (
     !days || input.pickupDate < today || input.pickupDate > latestPickupDate || days > 365
     || !name || name.length > 160
@@ -142,19 +113,6 @@ Deno.serve(async (request) => {
     || !phone || phone.length > 40
     || customerAddress.length > 500
     || !location || location.length > 160
-    || !validArrivalDate
-    || (isLocalRenter && (!isLocalLicense || licenseCountry || arrivalDate || input.foreignLicenseSupport))
-    || (!isLocalRenter && (
-      !isForeignLicense
-      || !licenseCountry
-      || licenseCountry.length > 100
-      || !arrivalDate
-      || (input.driverLicenseType === 'foreign-english' && input.foreignLicenseSupport !== 'not-required')
-      || (
-        input.driverLicenseType === 'foreign-other'
-        && !['idp', 'embassy-translation'].includes(input.foreignLicenseSupport ?? '')
-      )
-    ))
   ) {
     return response({ error: 'Booking details are invalid or do not match your account.' }, 400);
   }
@@ -235,8 +193,8 @@ Deno.serve(async (request) => {
   const options: Array<{ amount: number; label: string; priority: number }> = [
     { amount: 0, label: 'N/A', priority: 0 },
   ];
-  if (input.isPwdSenior) {
-    options.push({ amount: money(subtotal * 0.2), label: 'PWD/Senior Discount (20%)', priority: 2 });
+  if (input.isPwd) {
+    options.push({ amount: money(subtotal * 0.2), label: 'PWD Discount (20%)', priority: 2 });
   }
   const { count, error: memberError } = await admin
     .from('bookings')
@@ -344,15 +302,8 @@ Deno.serve(async (request) => {
     payment_status: 'completed',
     test_auto_confirmed: false,
     booking_status: 'confirmed',
-    is_pwd_senior: input.isPwdSenior,
+    is_pwd_discount: input.isPwd,
     driver_age: input.driverAge,
-    renter_type: input.renterType,
-    driver_license_type: input.driverLicenseType,
-    driver_license_country: licenseCountry,
-    foreign_license_support: input.foreignLicenseSupport,
-    philippines_arrival_date: arrivalDate,
-    driver_license_confirmed: input.driverLicenseConfirmed,
-    booking_documents_ready: input.bookingDocumentsReady,
     booking_conditions_accepted: input.bookingConditionsAccepted,
     booking_conditions_accepted_at: new Date().toISOString(),
   };
