@@ -244,6 +244,7 @@ tbody tr:hover { background: #fafcfb; }
 .transaction-metrics { display: flex; gap: 1rem; padding: .65rem 1rem; border-top: 1px solid #edf0ef; border-bottom: 1px solid #edf0ef; color: var(--admin-muted); font-size: .67rem; }
 .transaction-metrics strong { color: #3c5152; }
 .transaction-card .table-scroll { padding: 0 .3rem; }
+.transaction-bookings-title { margin: 1rem 1rem .55rem; color: var(--admin-ink); font-size: .75rem; }
 .transaction-empty { margin: 0; }
 .review-rating { display: inline-flex; align-items: center; gap: .45rem; color: #77878a; font-size: .67rem; font-weight: 700; }
 .review-rating > span { color: #e9a844; font-size: .87rem; letter-spacing: .04em; }
