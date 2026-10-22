@@ -33,7 +33,8 @@
         <a class="nav-item" [class.active]="section() === 'bookings'" [attr.aria-current]="section() === 'bookings' ? 'page' : null" (click)="openSection('bookings')">
           <ion-icon name="calendar-outline"></ion-icon><span>Bookings</span>
         </a>
-        <a class="nav-item nav-sub-item" [class.active]="section() === 'availability'" [attr.aria-current]="section() === 'availability' ? 'page' : null" (click)="openSection('availability')">
+        <span class="nav-group-label">FLEET MANAGEMENT</span>
+        <a class="nav-item" [class.active]="section() === 'availability'" [attr.aria-current]="section() === 'availability' ? 'page' : null" (click)="openSection('availability')">
           <ion-icon name="car-outline"></ion-icon><span>Availability</span>
         </a>
         <a class="nav-item" [class.active]="section() === 'fleet'" [attr.aria-current]="section() === 'fleet' ? 'page' : null" (click)="openSection('fleet')">

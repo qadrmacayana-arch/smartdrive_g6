@@ -32,8 +32,6 @@
 .sidebar-nav { display: grid; gap: .24rem; }
 .nav-group-label { margin: 1.1rem .8rem .35rem; font-size: .58rem; }
 .nav-item { position: relative; display: flex; min-height: 43px; align-items: center; gap: .75rem; padding: 0 .8rem; border-radius: .7rem; color: #69797d; font-size: .79rem; font-weight: 650; text-decoration: none; cursor: pointer; transition: background .18s ease, color .18s ease; }
-.nav-sub-item { min-height: 36px; margin-left: .85rem; padding-left: .7rem; font-size: .72rem; }
-.nav-sub-item ion-icon { font-size: .92rem; }
 .nav-item ion-icon { color: #869496; font-size: 1.08rem; }
 .nav-report-icon { width: 1.08rem; height: 1.08rem; flex: 0 0 auto; fill: none; stroke: #869496; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .nav-item:hover { background: #edf3f0; color: var(--admin-ink); }
