@@ -136,9 +136,11 @@ Deno.serve(async (request) => {
   const attributes = session?.attributes;
   const items = Array.isArray(attributes?.line_items) ? attributes.line_items : [];
   const payments = Array.isArray(attributes?.payments) ? attributes.payments : [];
-  const hasPaidPayment = payments.some(
+  const paidPayment = payments.find(
     (payment: { attributes?: { status?: string } }) => payment.attributes?.status === 'paid',
   );
+  const hasPaidPayment = Boolean(paidPayment);
+  const paymentId = typeof paidPayment?.id === 'string' ? paidPayment.id : null;
   const itemTotal = items.reduce(
     (total: number, item: { amount?: number; quantity?: number; currency?: string }) =>
       item.currency === 'PHP' ? total + Number(item.amount) * Number(item.quantity) : Number.NaN,
@@ -176,6 +178,7 @@ Deno.serve(async (request) => {
       const booking = {
         ...attempt.booking_payload,
         paymongo_checkout_session_id: sessionId,
+        paymongo_payment_id: paymentId,
       };
       const { error: insertError } = await admin.from('bookings').insert(booking);
       if (insertError) {
@@ -188,6 +191,7 @@ Deno.serve(async (request) => {
         .update({
           ...attempt.booking_payload,
           paymongo_checkout_session_id: sessionId,
+          paymongo_payment_id: paymentId,
         })
         .eq('id', existingBooking.id)
         .eq('user_id', attempt.user_id);

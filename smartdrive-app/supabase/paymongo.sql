@@ -1,5 +1,6 @@
 alter table public.bookings
-  add column if not exists paymongo_checkout_session_id text;
+  add column if not exists paymongo_checkout_session_id text,
+  add column if not exists paymongo_payment_id text;
 
 alter table public.bookings
   add column if not exists customer_address text;
@@ -32,6 +33,10 @@ alter table public.bookings
 create unique index if not exists idx_bookings_paymongo_checkout_session
   on public.bookings (paymongo_checkout_session_id)
   where paymongo_checkout_session_id is not null;
+
+create unique index if not exists idx_bookings_paymongo_payment_id
+  on public.bookings (paymongo_payment_id)
+  where paymongo_payment_id is not null;
 
 create table if not exists public.paymongo_checkout_attempts (
   id uuid primary key,
@@ -82,6 +87,7 @@ begin
   if not is_trusted_role and (
     new.payment_status is distinct from old.payment_status
     or new.paymongo_checkout_session_id is distinct from old.paymongo_checkout_session_id
+    or new.paymongo_payment_id is distinct from old.paymongo_payment_id
   ) then
     raise exception 'Payment status and checkout references can only be changed by the payment service.';
   end if;

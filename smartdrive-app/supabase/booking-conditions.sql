@@ -21,7 +21,8 @@ alter table public.bookings
   add column if not exists driver_license_confirmed boolean not null default false,
   add column if not exists booking_documents_ready boolean not null default false,
   add column if not exists booking_conditions_accepted boolean not null default false,
-  add column if not exists booking_conditions_accepted_at timestamptz;
+  add column if not exists booking_conditions_accepted_at timestamptz,
+  add column if not exists paymongo_payment_id text;
 
 alter table public.bookings
   alter column booking_conditions_accepted_at set default now();
@@ -38,6 +39,7 @@ begin
   if not is_trusted_role and (
     new.payment_status is distinct from old.payment_status
     or new.paymongo_checkout_session_id is distinct from old.paymongo_checkout_session_id
+    or new.paymongo_payment_id is distinct from old.paymongo_payment_id
   ) then
     raise exception 'Payment status and checkout references can only be changed by the payment service.';
   end if;

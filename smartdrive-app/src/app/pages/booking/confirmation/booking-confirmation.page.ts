@@ -316,6 +316,9 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     addRow('Payment method', this.paymentMethodLabel(booking.payment_method));
     addRow('Processed via', this.paymentProviderLabel(booking.payment_method));
     addRow('Payment status', booking.payment_status);
+    if (booking.payment_status === 'completed' && booking.paymongo_payment_id) {
+      addRow('PayMongo payment ID', booking.paymongo_payment_id);
+    }
     addRow('Rental subtotal', `PHP ${Number(booking.subtotal).toLocaleString()}`);
     addRow('Insurance', `PHP ${Number(booking.insurance).toLocaleString()}`);
     addRow('Discount', `${booking.discount_label || 'N/A'} · PHP ${Number(booking.discount).toLocaleString()}`);

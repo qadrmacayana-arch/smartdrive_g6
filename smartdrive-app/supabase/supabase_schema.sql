@@ -456,6 +456,8 @@ create table if not exists public.bookings (
   payment_method text not null,
   payment_status text default 'pending'
     check (payment_status in ('pending', 'completed', 'failed', 'refunded')),
+  paymongo_checkout_session_id text,
+  paymongo_payment_id text,
   booking_status text default 'confirmed'
     check (booking_status in ('confirmed', 'ongoing', 'completed', 'cancelled')),
   is_pwd_senior boolean default false,
@@ -486,9 +488,14 @@ create table if not exists public.bookings (
 );
 
 alter table public.bookings
-  add column if not exists is_pwd_discount boolean not null default false;
+  add column if not exists is_pwd_discount boolean not null default false,
+  add column if not exists paymongo_checkout_session_id text,
+  add column if not exists paymongo_payment_id text;
 
 create index if not exists idx_bookings_reference_number on public.bookings (reference_number);
+create unique index if not exists idx_bookings_paymongo_payment_id
+  on public.bookings (paymongo_payment_id)
+  where paymongo_payment_id is not null;
 create index if not exists idx_bookings_customer_email on public.bookings (customer_email);
 create index if not exists idx_bookings_status on public.bookings (booking_status);
 create index if not exists idx_bookings_payment_status on public.bookings (payment_status);

@@ -436,7 +436,23 @@
                 <td>{{ booking.pickup_date | date:'MMM d, y' }} <span class="date-separator">→</span> {{ booking.return_date | date:'MMM d, y' }}</td>
                 <td>{{ paymentProvider(booking.payment_method) }}<small class="cell-subtitle">{{ paymentMethod(booking.payment_method) }} · {{ booking.payment_status | titlecase }}</small></td>
                 <td class="amount-cell">₱{{ booking.total_price | number }}@if (booking.discount > 0) {<small class="cell-subtitle">{{ booking.discount_label }}: −₱{{ booking.discount | number }}</small>}<small class="cell-subtitle">Subtotal ₱{{ booking.subtotal | number }} · Insurance ₱{{ booking.insurance | number }}</small></td>
-                <td><span class="status-pill" [class]="'status-pill ' + booking.booking_status">{{ booking.booking_status === 'ongoing' ? 'In Progress' : booking.booking_status === 'cancelled' ? 'Cancelled' : booking.booking_status | titlecase }}</span>@if (booking.booking_status === 'confirmed') {<small class="cell-subtitle">Starts automatically on pickup date</small>} @else if (booking.booking_status === 'ongoing') {<button class="table-action" type="button" (click)="updateBookingStatus(booking, 'completed')">Confirm vehicle returned</button>} @else if (booking.booking_status === 'completed') {<small class="cell-subtitle">Vehicle return confirmed</small>} @else {<small class="cell-subtitle">Customer-controlled cancellation</small>}</td>
+                <td>
+                  <div class="booking-status-cell">
+                    <span class="status-pill" [class]="'status-pill ' + booking.booking_status">{{ booking.booking_status === 'ongoing' ? 'In Progress' : booking.booking_status === 'cancelled' ? 'Cancelled' : booking.booking_status | titlecase }}</span>
+                    @if (booking.booking_status === 'confirmed') {
+                      <small class="cell-subtitle">Starts automatically on pickup date</small>
+                    } @else if (booking.booking_status === 'ongoing') {
+                      <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
+                        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+                        Confirm vehicle returned
+                      </button>
+                    } @else if (booking.booking_status === 'completed') {
+                      <small class="cell-subtitle">Vehicle return confirmed</small>
+                    } @else {
+                      <small class="cell-subtitle">Customer-controlled cancellation</small>
+                    }
+                  </div>
+                </td>
               </tr>
             } @empty { <tr><td colspan="7" class="empty">No bookings found. Try changing your search.</td></tr> }
           </tbody></table></div>

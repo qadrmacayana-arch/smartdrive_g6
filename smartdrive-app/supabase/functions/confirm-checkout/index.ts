@@ -34,6 +34,7 @@ const bookingFields = [
   'payment_method',
   'payment_status',
   'paymongo_checkout_session_id',
+  'paymongo_payment_id',
   'test_auto_confirmed',
   'booking_status',
   'is_pwd_discount',
@@ -126,9 +127,13 @@ Deno.serve(async (request) => {
     const attributes = session?.attributes;
     const items = Array.isArray(attributes?.line_items) ? attributes.line_items : [];
     const payments = Array.isArray(attributes?.payments) ? attributes.payments : [];
-    hasPaidPayment = payments.some(
+    const paidPayment = payments.find(
       (payment: { attributes?: { status?: string } }) => payment.attributes?.status === 'paid',
     );
+    hasPaidPayment = Boolean(paidPayment);
+    if (paidPayment && typeof paidPayment.id === 'string') {
+      attempt.paymongo_payment_id = paidPayment.id;
+    }
     const itemTotal = items.reduce(
       (total: number, item: { amount?: number; quantity?: number; currency?: string }) =>
         item.currency === 'PHP' ? total + Number(item.amount) * Number(item.quantity) : Number.NaN,
@@ -169,6 +174,7 @@ Deno.serve(async (request) => {
     const { error: insertError } = await admin.from('bookings').insert({
       ...attempt.booking_payload,
       paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
+      paymongo_payment_id: attempt.paymongo_payment_id ?? null,
       test_auto_confirmed: testAutoConfirm,
     });
     if (insertError) {
@@ -181,6 +187,7 @@ Deno.serve(async (request) => {
       .update({
         ...attempt.booking_payload,
         paymongo_checkout_session_id: attempt.paymongo_checkout_session_id,
+        paymongo_payment_id: attempt.paymongo_payment_id ?? null,
         test_auto_confirmed: testAutoConfirm,
       })
       .eq('id', existingBooking.id)

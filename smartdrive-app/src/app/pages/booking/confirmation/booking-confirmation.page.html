@@ -170,6 +170,12 @@
         <span class="sd-muted">Payment Status</span>
         <strong>{{ b.payment_status | titlecase }}</strong>
       </div>
+      @if (b.payment_status === 'completed' && b.paymongo_payment_id) {
+        <div class="detail-row">
+          <span class="sd-muted">PayMongo Payment ID</span>
+          <strong>{{ b.paymongo_payment_id }}</strong>
+        </div>
+      }
       <div class="detail-row">
         <span class="sd-muted">Rental subtotal</span>
         <strong>₱{{ b.subtotal | number:'1.2-2' }}</strong>
