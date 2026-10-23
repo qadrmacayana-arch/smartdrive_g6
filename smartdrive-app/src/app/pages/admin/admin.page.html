@@ -419,7 +419,7 @@
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
           <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
-          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th></tr></thead><tbody>
+          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
             @for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {
               <tr>
                 <td><strong>{{ booking.reference_number }}</strong></td>
@@ -441,20 +441,25 @@
                     <span class="status-pill" [class]="'status-pill ' + booking.booking_status">{{ booking.booking_status === 'ongoing' ? 'In Progress' : booking.booking_status === 'cancelled' ? 'Cancelled' : booking.booking_status | titlecase }}</span>
                     @if (booking.booking_status === 'confirmed') {
                       <small class="cell-subtitle">Starts automatically on pickup date</small>
-                    } @else if (booking.booking_status === 'ongoing') {
-                      <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
-                        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
-                        Mark returned
-                      </button>
                     } @else if (booking.booking_status === 'completed') {
                       <small class="cell-subtitle">Vehicle return confirmed</small>
-                    } @else {
+                    } @else if (booking.booking_status === 'cancelled') {
                       <small class="cell-subtitle">Customer-controlled cancellation</small>
                     }
                   </div>
                 </td>
+                <td class="booking-actions-cell">
+                  @if (booking.booking_status === 'ongoing') {
+                    <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
+                      <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+                      Mark returned
+                    </button>
+                  } @else {
+                    <span class="booking-action-empty" aria-label="No action required">—</span>
+                  }
+                </td>
               </tr>
-            } @empty { <tr><td colspan="7" class="empty">No bookings found. Try changing your search.</td></tr> }
+            } @empty { <tr><td colspan="8" class="empty">No bookings found. Try changing your search.</td></tr> }
           </tbody></table></div>
         </section>
       }
