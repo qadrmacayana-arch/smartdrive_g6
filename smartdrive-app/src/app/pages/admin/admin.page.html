@@ -420,7 +420,7 @@
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
           <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><label class="filter-select"><span>Booking status</span><select aria-label="Filter bookings by status" [ngModel]="bookingStatusFilter()" (ngModelChange)="bookingStatusFilter.set($event)"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="ongoing">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label class="filter-select"><span>Payment</span><select aria-label="Filter bookings by payment status" [ngModel]="paymentStatusFilter()" (ngModelChange)="paymentStatusFilter.set($event)"><option value="all">All payments</option><option value="pending">Pending</option><option value="completed">Paid</option><option value="failed">Failed</option></select></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
-          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Pickup documents</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
             @for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {
               <tr>
                 <td><strong>{{ booking.reference_number }}</strong></td>
@@ -436,6 +436,20 @@
                     <small class="cell-subtitle">Legacy PWD discount claim</small>
                   }
                   <small class="cell-subtitle">Conditions: {{ booking.booking_conditions_accepted ? 'Accepted' : 'Not recorded' }}</small>
+                </td>
+                <td>
+                  @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
+                    <div class="pickup-document-checklist">
+                      <label><input type="checkbox" [checked]="booking.pickup_license_verified ?? false" [disabled]="savingPickupDocuments().has(booking.id ?? -1)" (change)="updatePickupDocument(booking, 'pickup_license_verified', $event)"> Valid driver's license</label>
+                      <label><input type="checkbox" [checked]="booking.pickup_government_ids_verified ?? false" [disabled]="savingPickupDocuments().has(booking.id ?? -1)" (change)="updatePickupDocument(booking, 'pickup_government_ids_verified', $event)"> Two government IDs</label>
+                      <label><input type="checkbox" [checked]="booking.pickup_proof_of_billing_verified ?? false" [disabled]="savingPickupDocuments().has(booking.id ?? -1)" (change)="updatePickupDocument(booking, 'pickup_proof_of_billing_verified', $event)"> Proof of billing</label>
+                      @if (booking.is_pwd_senior) {
+                        <label><input type="checkbox" [checked]="booking.pickup_pwd_senior_id_verified ?? false" [disabled]="savingPickupDocuments().has(booking.id ?? -1)" (change)="updatePickupDocument(booking, 'pickup_pwd_senior_id_verified', $event)"> PWD/Senior ID</label>
+                      }
+                    </div>
+                  } @else {
+                    <small class="cell-subtitle">{{ booking.booking_status === 'completed' ? 'Pickup document checks closed' : 'Available after paid pickup begins' }}</small>
+                  }
                 </td>
                 <td>{{ booking.vehicle_name }}</td>
                 <td>{{ booking.pickup_date | date:'MMM d, y' }} <span class="date-separator">→</span> {{ booking.return_date | date:'MMM d, y' }}</td>
@@ -456,10 +470,13 @@
                 <td class="booking-actions-cell">
                   @if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
                     @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
-                      <button class="table-action booking-return-action" type="button" (click)="reviewPwdSeniorCashback(booking, true)">
+                      <button class="table-action booking-return-action" type="button" [disabled]="!pickupDocumentsComplete(booking)" (click)="reviewPwdSeniorCashback(booking, true)">
                         <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
                         Verify ID & credit
                       </button>
+                      @if (!pickupDocumentsComplete(booking)) {
+                        <small class="cell-subtitle">Check all required documents first</small>
+                      }
                       <button class="table-action danger" type="button" (click)="reviewPwdSeniorCashback(booking, false)">Decline claim</button>
                     } @else {
                       <small class="cell-subtitle">Verify ID at pickup</small>
@@ -477,7 +494,7 @@
                   }
                 </td>
               </tr>
-            } @empty { <tr><td colspan="8" class="empty">No bookings match the current search and filters.</td></tr> }
+            } @empty { <tr><td colspan="9" class="empty">No bookings match the current search and filters.</td></tr> }
           </tbody></table></div>
         </section>
       }

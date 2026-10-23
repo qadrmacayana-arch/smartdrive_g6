@@ -111,6 +111,12 @@ interface VehicleEditDraft {
   is_featured: boolean;
 }
 
+type PickupDocumentField =
+  | 'pickup_license_verified'
+  | 'pickup_government_ids_verified'
+  | 'pickup_proof_of_billing_verified'
+  | 'pickup_pwd_senior_id_verified';
+
 @Component({
   selector: 'app-admin',
   standalone: true,
@@ -159,6 +165,7 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly vehiclePerformance = signal<VehiclePerformance[]>([]);
   readonly fleetForecast = signal<FleetForecast | null>(null);
   readonly loading = signal(true);
+  readonly savingPickupDocuments = signal<Set<number>>(new Set());
   readonly errorMessage = signal<string | null>(null);
   readonly section = signal<AdminSection>('overview');
   readonly bookings = signal<Booking[]>([]);
@@ -1056,6 +1063,10 @@ export class AdminPage implements OnDestroy, OnInit {
       this.errorMessage.set('Cashback can be reviewed only after payment and vehicle pickup.');
       return;
     }
+    if (approve && !this.pickupDocumentsComplete(booking)) {
+      this.errorMessage.set('Confirm each required pickup document in the checklist before crediting cashback.');
+      return;
+    }
     const action = approve ? 'verify the original PWD/Senior ID and credit cashback' : 'decline this cashback claim';
     if (!window.confirm(`Confirm you have reviewed the original ID at pickup and want to ${action} for booking ${booking.reference_number}?`)) {
       return;
@@ -1090,6 +1101,51 @@ export class AdminPage implements OnDestroy, OnInit {
       this.recentBookings.update((items) => items.map((item) => item.id === booking.id ? updated : item));
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to review the cashback claim.');
+    }
+  }
+
+  pickupDocumentsComplete(booking: Booking): boolean {
+    return Boolean(
+      booking.pickup_license_verified
+      && booking.pickup_government_ids_verified
+      && booking.pickup_proof_of_billing_verified
+      && (!booking.is_pwd_senior || booking.pickup_pwd_senior_id_verified),
+    );
+  }
+
+  async updatePickupDocument(
+    booking: Booking,
+    field: PickupDocumentField,
+    event: Event,
+  ): Promise<void> {
+    if (!booking.id) return;
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return;
+    const verified = target.checked;
+    const bookingId = booking.id;
+    this.errorMessage.set(null);
+    this.savingPickupDocuments.update((current) => new Set(current).add(bookingId));
+
+    try {
+      const updates: Partial<Pick<Booking, PickupDocumentField>> = { [field]: verified };
+      const { error } = await this.supabase.client
+        .from('bookings')
+        .update(updates)
+        .eq('id', bookingId);
+      if (error) throw new Error(error.message);
+
+      const updatedBooking = { ...booking, ...updates };
+      this.bookings.update((items) => items.map((item) => item.id === bookingId ? updatedBooking : item));
+      this.recentBookings.update((items) => items.map((item) => item.id === bookingId ? updatedBooking : item));
+    } catch (error) {
+      target.checked = Boolean(booking[field]);
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to save the pickup document check.');
+    } finally {
+      this.savingPickupDocuments.update((current) => {
+        const next = new Set(current);
+        next.delete(bookingId);
+        return next;
+      });
     }
   }
 

@@ -29,6 +29,10 @@ export interface Booking {
   is_pwd_senior?: boolean;
   pwd_senior_cashback_status?: 'not_applicable' | 'pending_verification' | 'credited' | 'declined';
   pwd_senior_cashback_amount?: number;
+  pickup_license_verified?: boolean;
+  pickup_government_ids_verified?: boolean;
+  pickup_proof_of_billing_verified?: boolean;
+  pickup_pwd_senior_id_verified?: boolean;
   driver_age?: number | null;
   booking_conditions_accepted?: boolean;
   booking_conditions_accepted_at?: string | null;
@@ -38,7 +42,7 @@ export interface Booking {
 }
 
 export const BOOKING_SELECT_FIELDS =
-  'id,reference_number,user_id,customer_email,customer_name,customer_phone,customer_address,vehicle_id,vehicle_name,pickup_date,return_date,pickup_location,daily_rate,rental_days,subtotal,insurance,discount,discount_label,promo_code,total_price,payment_method,payment_status,paymongo_checkout_session_id,paymongo_payment_id,test_auto_confirmed,booking_status,is_pwd_discount,is_pwd_senior,pwd_senior_cashback_status,pwd_senior_cashback_amount,driver_age,booking_conditions_accepted,booking_conditions_accepted_at,rating,notes,created_at';
+  'id,reference_number,user_id,customer_email,customer_name,customer_phone,customer_address,vehicle_id,vehicle_name,pickup_date,return_date,pickup_location,daily_rate,rental_days,subtotal,insurance,discount,discount_label,promo_code,total_price,payment_method,payment_status,paymongo_checkout_session_id,paymongo_payment_id,test_auto_confirmed,booking_status,is_pwd_discount,is_pwd_senior,pwd_senior_cashback_status,pwd_senior_cashback_amount,pickup_license_verified,pickup_government_ids_verified,pickup_proof_of_billing_verified,pickup_pwd_senior_id_verified,driver_age,booking_conditions_accepted,booking_conditions_accepted_at,rating,notes,created_at';
 
 /** In-progress booking state carried across the multi-step booking flow. */
 export interface BookingDraft {
