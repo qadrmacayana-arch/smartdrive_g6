@@ -444,7 +444,7 @@
                     } @else if (booking.booking_status === 'ongoing') {
                       <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
                         <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
-                        Confirm vehicle returned
+                        Mark returned
                       </button>
                     } @else if (booking.booking_status === 'completed') {
                       <small class="cell-subtitle">Vehicle return confirmed</small>
