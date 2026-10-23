@@ -307,16 +307,21 @@
 }
 
 .wallet-empty {
-  padding: 1.7rem 0.8rem;
+  padding: 1.25rem 0.8rem;
   color: var(--sd-muted-foreground);
 
   ion-icon {
     color: var(--sd-primary);
     font-size: 1.8rem;
+    margin-bottom: 0.45rem;
+  }
+
+  p {
+    margin: 0 0 0.65rem;
   }
 
   span {
-    margin-top: -0.4rem;
+    margin-top: 0;
     color: var(--sd-muted-foreground);
     font-size: 0.72rem;
   }
