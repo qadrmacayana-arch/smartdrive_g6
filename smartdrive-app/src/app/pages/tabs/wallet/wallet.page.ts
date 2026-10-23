@@ -2,9 +2,6 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import {
   IonContent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonRefresher,
   IonRefresherContent,
   IonIcon,
@@ -20,9 +17,6 @@ import { WalletBalance, WalletTransaction } from '../../../core/models/wallet.mo
     CommonModule,
     DatePipe,
     IonContent,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonRefresher,
     IonRefresherContent,
     IonIcon,

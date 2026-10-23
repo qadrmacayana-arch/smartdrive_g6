@@ -10,7 +10,23 @@
   width: min(1240px, 100%);
   min-height: 100%;
   margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) 3rem;
+  padding: 0.75rem clamp(1rem, 3vw, 2rem) 3rem;
+}
+
+.wallet-page-brand {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  color: var(--sd-heading);
+  font: 800 1.05rem 'Sora', sans-serif;
+  letter-spacing: -0.05em;
+
+  sup {
+    margin-left: 0.1rem;
+    color: var(--sd-primary);
+    font: 800 0.5rem 'Plus Jakarta Sans', sans-serif;
+  }
 }
 
 .wallet-overview {
@@ -33,7 +49,7 @@
 }
 
 .dashboard-page-heading {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 
   h1 {
     margin: 0.3rem 0 0.35rem;
@@ -374,7 +390,12 @@
 
 @media (max-width: 520px) {
   .dashboard-page-shell {
-    padding: 0.85rem 0.75rem 2rem;
+    padding: 0.4rem 0.75rem 2rem;
+  }
+
+  .wallet-page-brand {
+    min-height: 2.5rem;
+    margin-bottom: 0.85rem;
   }
 
   .wallet-history {
