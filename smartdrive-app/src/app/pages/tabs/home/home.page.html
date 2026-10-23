@@ -14,11 +14,7 @@
       <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
       <h1>Ride more.<br>Drive further.</h1>
       <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
-      <div class="booking-bar">
-        <label class="booking-input location-input"><ion-icon name="location-outline"></ion-icon><input [(ngModel)]="pickupLocation" (ngModelChange)="savePickupPreferences()" aria-label="Pickup location" placeholder="Pickup location" maxlength="100"></label>
-        <label class="booking-input date-input"><ion-icon name="calendar-outline"></ion-icon><input [(ngModel)]="pickupDate" (ngModelChange)="savePickupPreferences()" aria-label="Pickup date" type="date" [min]="pickupDateMinimum"></label>
-        <button type="button" (click)="searchFleet()"><ion-icon name="search-outline"></ion-icon>Find a ride</button>
-      </div>
+      <a class="hero-fleet-link" routerLink="/tabs/rent-a-car">Browse vehicles <ion-icon name="arrow-forward-outline"></ion-icon></a>
     </section>
 
     <section class="home-promo" aria-label="SmartDrive promotions" aria-roledescription="carousel">

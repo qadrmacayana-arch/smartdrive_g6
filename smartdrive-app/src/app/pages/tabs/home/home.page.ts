@@ -12,7 +12,6 @@ import { VehicleService } from '../../../core/services/vehicle.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingService } from '../../../core/services/booking.service';
 import { MobileFeedbackService } from '../../../core/services/mobile-feedback.service';
-import { PickupPreferencesService } from '../../../core/services/pickup-preferences.service';
 import { PredictiveInsightsService } from '../../../core/services/predictive-insights.service';
 import { Vehicle } from '../../../core/models/vehicle.model';
 
@@ -59,7 +58,6 @@ export class HomePage implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly mobileFeedback = inject(MobileFeedbackService);
-  private readonly pickupPreferences = inject(PickupPreferencesService);
   readonly categories = CATEGORIES;
   readonly promotions = [
     {
@@ -103,9 +101,6 @@ export class HomePage implements OnInit {
   readonly searchQuery = signal('');
   readonly mainCategory = signal('All');
   readonly subFilter = signal('All');
-  readonly pickupDateMinimum = this.getToday();
-  pickupLocation = '';
-  pickupDate = '';
 
   readonly currentUser = this.auth.currentUser;
 
@@ -138,9 +133,6 @@ export class HomePage implements OnInit {
   }
 
   ngOnInit(): void {
-    const savedPickup = this.pickupPreferences.get();
-    this.pickupLocation = savedPickup.location;
-    this.pickupDate = savedPickup.date;
     this.loadVehicles();
   }
 
@@ -248,20 +240,4 @@ export class HomePage implements OnInit {
     this.router.navigate(['/vehicle', vehicle.id]);
   }
 
-  searchFleet(): void {
-    this.mobileFeedback.mediumImpact();
-    this.savePickupPreferences();
-    this.router.navigate(['/tabs/rent-a-car'], {
-      queryParams: { location: this.pickupLocation || null, date: this.pickupDate || null },
-    });
-  }
-
-  savePickupPreferences(): void {
-    this.pickupPreferences.save(this.pickupLocation, this.pickupDate);
-  }
-
-  private getToday(): string {
-    const now = new Date();
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
-  }
 }
