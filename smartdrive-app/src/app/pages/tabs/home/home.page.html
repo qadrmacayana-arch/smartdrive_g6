@@ -11,49 +11,14 @@
     </header>
 
     <section class="hero-card">
-      <div class="hero-copy">
-        <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
-        <h1>Ride more.<br>Drive further.</h1>
-        <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
-        <div class="booking-bar">
-          <label class="booking-input location-input"><ion-icon name="location-outline"></ion-icon><input [(ngModel)]="pickupLocation" (ngModelChange)="savePickupPreferences()" aria-label="Pickup location" placeholder="Pickup location" maxlength="100"></label>
-          <label class="booking-input date-input"><ion-icon name="calendar-outline"></ion-icon><input [(ngModel)]="pickupDate" (ngModelChange)="savePickupPreferences()" aria-label="Pickup date" type="date" [min]="pickupDateMinimum"></label>
-          <button type="button" (click)="searchFleet()"><ion-icon name="search-outline"></ion-icon>Find a ride</button>
-        </div>
+      <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
+      <h1>Ride more.<br>Drive further.</h1>
+      <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
+      <div class="booking-bar">
+        <label class="booking-input location-input"><ion-icon name="location-outline"></ion-icon><input [(ngModel)]="pickupLocation" (ngModelChange)="savePickupPreferences()" aria-label="Pickup location" placeholder="Pickup location" maxlength="100"></label>
+        <label class="booking-input date-input"><ion-icon name="calendar-outline"></ion-icon><input [(ngModel)]="pickupDate" (ngModelChange)="savePickupPreferences()" aria-label="Pickup date" type="date" [min]="pickupDateMinimum"></label>
+        <button type="button" (click)="searchFleet()"><ion-icon name="search-outline"></ion-icon>Find a ride</button>
       </div>
-      @if (heroVehicle(); as vehicle) {
-        <button class="hero-vehicle-card" type="button" (click)="openVehicle(vehicle)" [attr.aria-label]="'View ' + vehicle.name">
-          <span class="hero-vehicle-photo">
-            @if (vehicle.image) {
-              <img [src]="vehicle.image" [alt]="vehicle.name" fetchpriority="high">
-            } @else {
-              <span class="hero-vehicle-placeholder">
-                <ion-icon [name]="vehicle.main_category === 'Motorcycles' ? 'bicycle-outline' : 'car-sport-outline'"></ion-icon>
-              </span>
-            }
-            <span class="hero-vehicle-tag"><ion-icon name="sparkles-outline"></ion-icon>{{ vehicle.is_featured ? 'FEATURED RIDE' : 'READY FOR YOUR NEXT TRIP' }}</span>
-          </span>
-          <span class="hero-vehicle-details">
-            <span class="hero-vehicle-description">
-              <small>{{ vehicle.type }}</small>
-              <strong>{{ vehicle.name }}</strong>
-            </span>
-            <span class="hero-vehicle-price"><strong>₱{{ vehicle.price | number }}</strong><small>/ day</small></span>
-          </span>
-          <span class="hero-vehicle-link">View ride <ion-icon name="arrow-forward-outline"></ion-icon></span>
-        </button>
-      } @else {
-        <a class="hero-discovery-card" routerLink="/tabs/rent-a-car">
-          <span class="hero-discovery-icons" aria-hidden="true">
-            <ion-icon name="car-sport-outline"></ion-icon>
-            <ion-icon name="bicycle-outline"></ion-icon>
-            <ion-icon name="boat-outline"></ion-icon>
-          </span>
-          <strong>Find the right ride for your next trip</strong>
-          <span>Explore cars, motorcycles, and more.</span>
-          <span class="hero-vehicle-link">Browse the fleet <ion-icon name="arrow-forward-outline"></ion-icon></span>
-        </a>
-      }
     </section>
 
     <section class="home-promo" aria-label="SmartDrive promotions" aria-roledescription="carousel">
