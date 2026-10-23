@@ -283,13 +283,13 @@
 
         <div class="tables-grid">
           <section class="data-card overview-table-card">
-            <div class="section-heading"><div><span class="section-kicker">LATEST ACTIVITY</span><h2>Recent bookings</h2></div><button class="text-action" type="button" (click)="openSection('bookings')">View all <ion-icon name="arrow-forward-outline"></ion-icon></button></div>
+            <div class="section-heading"><div><span class="section-kicker">LATEST ACTIVITY</span><h2>Recent bookings</h2></div><label class="filter-select"><span>Booking status</span><select aria-label="Filter recent bookings by status" [ngModel]="overviewBookingStatusFilter()" (ngModelChange)="overviewBookingStatusFilter.set($event)"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="ongoing">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><button class="text-action" type="button" (click)="openSection('bookings')">View all <ion-icon name="arrow-forward-outline"></ion-icon></button></div>
             <div class="table-scroll"><table>
               <thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Total</th><th>Status</th></tr></thead>
               <tbody>
-                @for (booking of recentBookings(); track booking.id ?? booking.reference_number) {
+                @for (booking of filteredRecentBookings(); track booking.id ?? booking.reference_number) {
                   <tr><td><strong>{{ booking.reference_number }}</strong></td><td>{{ booking.customer_name }}</td><td>{{ booking.vehicle_name }}</td><td class="amount-cell">₱{{ booking.total_price | number }}</td><td><span class="status-pill" [class]="'status-pill ' + (booking.booking_status || 'pending').toLowerCase()">{{ booking.booking_status | titlecase }}</span></td></tr>
-                } @empty { <tr><td colspan="5" class="empty">No bookings have been made yet.</td></tr> }
+                } @empty { <tr><td colspan="5" class="empty">{{ recentBookings().length ? 'No recent bookings match this status.' : 'No bookings have been made yet.' }}</td></tr> }
               </tbody>
             </table></div>
           </section>
@@ -369,6 +369,7 @@
               <span>Schedule date</span>
               <input type="date" [value]="availabilityDate()" (change)="setAvailabilityDate($any($event.target).value)">
             </label>
+            <label class="filter-select"><span>Filter vehicles</span><select aria-label="Filter vehicles by availability" [ngModel]="availabilityFilter()" (ngModelChange)="availabilityFilter.set($event)"><option value="all">All vehicles</option><option value="available">Available units</option><option value="using">Currently in use</option><option value="reserved">Reserved</option><option value="pending">Pending holds</option><option value="idle">No active bookings</option></select></label>
             <button class="secondary-action" type="button" (click)="loadSection('availability')">
               <ion-icon name="refresh-outline"></ion-icon>Refresh
             </button>
@@ -380,7 +381,7 @@
             <article><span>Total active bookings</span><strong>{{ availabilitySummary().total }}</strong></article>
           </div>
           <div class="availability-fleet">
-            @for (item of vehicleAvailability(); track item.vehicle.id) {
+            @for (item of filteredAvailability(); track item.vehicle.id) {
               <article class="availability-vehicle">
                 <header>
                   <div><h3>{{ item.vehicle.name }}</h3><p>Plate: {{ item.vehicle.plate_number || 'Not added' }} · Vehicle ID: {{ item.vehicle.vehicle_id }} · {{ item.availableUnits }} of {{ item.vehicle.fleet_quantity }} units free · {{ item.vehicle.status | titlecase }}</p></div>
@@ -410,7 +411,7 @@
                 }
               </article>
             } @empty {
-              <p class="empty">No vehicles are available to schedule.</p>
+              <p class="empty">No vehicles match this availability filter and schedule date.</p>
             }
           </div>
         </section>
@@ -418,7 +419,7 @@
 
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><label class="filter-select"><span>Booking status</span><select aria-label="Filter bookings by status" [ngModel]="bookingStatusFilter()" (ngModelChange)="bookingStatusFilter.set($event)"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="ongoing">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label class="filter-select"><span>Payment</span><select aria-label="Filter bookings by payment status" [ngModel]="paymentStatusFilter()" (ngModelChange)="paymentStatusFilter.set($event)"><option value="all">All payments</option><option value="pending">Pending</option><option value="completed">Paid</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select></label><button class="secondary-action" type="button" (click)="printBookingReport()"><ion-icon name="print-outline"></ion-icon>Print report</button></div>
           <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
             @for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {
               <tr>
@@ -459,14 +460,14 @@
                   }
                 </td>
               </tr>
-            } @empty { <tr><td colspan="8" class="empty">No bookings found. Try changing your search.</td></tr> }
+            } @empty { <tr><td colspan="8" class="empty">No bookings match the current search and filters.</td></tr> }
           </tbody></table></div>
         </section>
       }
 
       @if (section() === 'users' || section() === 'transactions') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">{{ section() === 'users' ? 'CUSTOMER DIRECTORY' : 'ACCOUNT ACTIVITY' }}</span><h2>{{ section() === 'users' ? 'Customer accounts' : 'User transaction summary' }} <span class="count-pill">{{ section() === 'users' ? filteredUsers().length : filteredTransactionSummaries().length }}</span></h2><p>{{ section() === 'users' ? 'Manage account details and access.' : 'Wallet and booking activity by customer.' }}</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search users" placeholder="Search by name, email, phone, or booking..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">{{ section() === 'users' ? 'CUSTOMER DIRECTORY' : 'ACCOUNT ACTIVITY' }}</span><h2>{{ section() === 'users' ? 'Customer accounts' : 'User transaction summary' }} <span class="count-pill">{{ section() === 'users' ? filteredUsers().length : filteredTransactionSummaries().length }}</span></h2><p>{{ section() === 'users' ? 'Manage account details and access.' : 'Wallet and booking activity by customer.' }}</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search users" placeholder="Search by name, email, phone, or booking..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label>@if (section() === 'users') {<label class="filter-select"><span>Account status</span><select aria-label="Filter users by account status" [ngModel]="userStatusFilter()" (ngModelChange)="userStatusFilter.set($event)"><option value="all">All accounts</option><option value="active">Active</option><option value="suspended">Suspended</option></select></label>} @else {<label class="filter-select"><span>Activity</span><select aria-label="Filter customers by transaction activity" [ngModel]="transactionFilter()" (ngModelChange)="transactionFilter.set($event)"><option value="all">All customers</option><option value="wallet">Wallet activity</option><option value="bookings">Booking payments</option><option value="balance">Positive balance</option></select></label>}</div>
           @if (section() === 'users') {
             <div class="table-scroll"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Member since</th><th>Account</th><th>Actions</th></tr></thead><tbody>
               @for (user of filteredUsers(); track user.id) {
@@ -495,7 +496,7 @@
 
       @if (section() === 'fleet') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Set the number of equivalent units customers can book under each vehicle listing.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">VEHICLE INVENTORY</span><h2>Manage your fleet <span class="count-pill">{{ filteredVehicles().length }}</span></h2><p>Set the number of equivalent units customers can book under each vehicle listing.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search vehicles" placeholder="Search name, type, plate..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><label class="filter-select"><span>Fleet filter</span><select aria-label="Filter fleet by category or status" [ngModel]="fleetFilter()" (ngModelChange)="fleetFilter.set($event)"><option value="all">All vehicles</option><option value="cars">Cars</option><option value="motorcycles">Motorcycles</option><option value="recreational">Recreational</option><option value="available">Available</option><option value="archived">Archived</option></select></label></div>
           <form class="vehicle-form" (submit)="$event.preventDefault(); saveVehicle()">
             <label><span>Internal vehicle ID</span><input placeholder="e.g. SD-001" [(ngModel)]="newVehicle.vehicle_id" name="vehicleId" maxlength="32" required></label>
             <label><span>License plate number</span><input placeholder="e.g. ABC-1234" [(ngModel)]="newVehicle.plate_number" name="plateNumber" maxlength="32" required></label>
@@ -517,11 +518,11 @@
 
       @if (section() === 'reviews') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">CUSTOMER FEEDBACK</span><h2>Reviews & ratings <span class="count-pill">{{ reviews().length }}</span></h2><p>Recent feedback submitted by your customers.</p></div><button class="secondary-action" type="button" (click)="loadSection('reviews')"><ion-icon name="refresh-outline"></ion-icon>Refresh</button></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">CUSTOMER FEEDBACK</span><h2>Reviews & ratings <span class="count-pill">{{ filteredReviews().length }}</span></h2><p>Recent feedback submitted by your customers.</p></div><label class="filter-select"><span>Rating</span><select aria-label="Filter reviews by rating" [ngModel]="reviewRatingFilter()" (ngModelChange)="reviewRatingFilter.set($event)"><option value="all">All ratings</option><option value="5">5 stars</option><option value="4">4 stars</option><option value="3">3 stars</option><option value="2">2 stars</option><option value="1">1 star</option></select></label><button class="secondary-action" type="button" (click)="loadSection('reviews')"><ion-icon name="refresh-outline"></ion-icon>Refresh</button></div>
           <div class="table-scroll"><table><thead><tr><th>Customer</th><th>Rating</th><th>Review</th><th>Submitted</th><th>Actions</th></tr></thead><tbody>
-            @for (review of reviews(); track review.id ?? review.created_at) {
+            @for (review of filteredReviews(); track review.id ?? review.created_at) {
               <tr><td><strong>{{ review.customer_name || 'Anonymous' }}</strong><small class="cell-subtitle">{{ review.customer_email }}</small></td><td><span class="review-rating"><span>{{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating) }}</span>{{ review.rating }}/5</span></td><td class="review-comment">{{ review.comment || 'No comment provided.' }}</td><td>{{ review.created_at | date:'MMM d, y' }}</td><td><button class="table-action danger" type="button" (click)="deleteReview(review)">Delete</button></td></tr>
-            } @empty { <tr><td colspan="5" class="empty">No reviews have been submitted yet.</td></tr> }
+            } @empty { <tr><td colspan="5" class="empty">{{ reviews().length ? 'No reviews match this rating.' : 'No reviews have been submitted yet.' }}</td></tr> }
           </tbody></table></div>
         </section>
       }
@@ -535,11 +536,11 @@
             }
           </section>
           <section class="data-card tracking-users-card">
-            <div class="section-heading tracking-heading"><div><span class="section-kicker">LOCATION FEED</span><h2>Tracked users <span class="count-pill">{{ locations().length }}</span></h2></div>@if (trackingDemoMode()) {<span class="demo-status">DEMO</span>} @else {<span class="live-status">API</span>}</div>
+            <div class="section-heading tracking-heading"><div><span class="section-kicker">LOCATION FEED</span><h2>Tracked users <span class="count-pill">{{ filteredLocations().length }}</span></h2></div><label class="filter-select"><span>Location source</span><select aria-label="Filter locations by source" [ngModel]="trackingSourceFilter()" (ngModelChange)="trackingSourceFilter.set($event)"><option value="all">All locations</option><option value="live">Live</option><option value="demo">Demo</option></select></label>@if (trackingDemoMode()) {<span class="demo-status">DEMO</span>} @else {<span class="live-status">API</span>}</div>
             @if (hasTransactionDemos()) { <span class="demo-status transaction-demo-tag">TRANSACTION DEMOS</span> }
             <p class="tracking-notice">Demo coordinates are fixed sample points. Device GPS is never requested; transaction demos are stored in this browser.</p>
             <div class="location-list">
-              @for (location of locations(); track location.key) {
+              @for (location of filteredLocations(); track location.key) {
                 <button type="button" class="location-row" [class.selected]="selectedLocation().key === location.key" [attr.aria-pressed]="selectedLocation().key === location.key" (click)="selectTrackingLocation(location)">
                   <span class="location-color" [style.--user-color]="locationColor(location)" aria-hidden="true"></span>
                   <span class="location-person"><strong>{{ location.name }}</strong><small>{{ location.area || (location.latitude | number:'1.4-4') + ', ' + (location.longitude | number:'1.4-4') }}</small></span>
@@ -555,14 +556,14 @@
       @if (section() === 'support') {
         <section class="support-admin-layout">
           <section class="data-card admin-module">
-            <div class="section-heading"><div><span class="section-kicker">SAVED SESSIONS</span><h2>Conversations <span class="count-pill">{{ supportConversations().length }}</span></h2></div></div>
+            <div class="section-heading"><div><span class="section-kicker">SAVED SESSIONS</span><h2>Conversations <span class="count-pill">{{ filteredConversations().length }}</span></h2></div><label class="filter-select"><span>Session status</span><select aria-label="Filter support conversations by status" [ngModel]="conversationStatusFilter()" (ngModelChange)="conversationStatusFilter.set($event)"><option value="all">All sessions</option><option value="open">Open</option><option value="ended">Ended</option><option value="expired">Expired</option></select></label></div>
             <div class="support-conversation-list">
-              @for (conversation of supportConversations(); track conversation.id) {
+              @for (conversation of filteredConversations(); track conversation.id) {
                 <button type="button" class="support-conversation-row" [class.selected]="selectedSupportConversation()?.id === conversation.id" (click)="selectSupportConversation(conversation)">
                   <span class="support-conversation-copy"><strong>{{ conversation.conversation_number }}</strong><small>User {{ conversation.user_id }} · {{ conversation.created_at | date:'medium' }}</small></span>
                   <span class="support-status" [class.open]="conversation.status === 'open'">{{ conversation.status | titlecase }}</span>
                 </button>
-              } @empty { <p class="empty">No saved conversations yet.</p> }
+              } @empty { <p class="empty">{{ supportConversations().length ? 'No sessions match this status.' : 'No saved conversations yet.' }}</p> }
             </div>
           </section>
 
@@ -594,14 +595,14 @@
           </section>
 
           <section class="data-card admin-module support-ticket-card">
-            <div class="section-heading"><div><span class="section-kicker">CUSTOMER REPORTS</span><h2>Reported problems <span class="count-pill">{{ supportTickets().length }}</span></h2></div></div>
+            <div class="section-heading"><div><span class="section-kicker">CUSTOMER REPORTS</span><h2>Reported problems <span class="count-pill">{{ filteredTickets().length }}</span></h2></div><label class="filter-select"><span>Ticket status</span><select aria-label="Filter support tickets by status" [ngModel]="ticketStatusFilter()" (ngModelChange)="ticketStatusFilter.set($event)"><option value="all">All tickets</option><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></label></div>
             <div class="support-ticket-list">
-              @for (ticket of supportTickets(); track ticket.id) {
+              @for (ticket of filteredTickets(); track ticket.id) {
                 <article class="support-ticket">
                   <div class="support-ticket-heading"><div><h3>{{ ticket.subject }}</h3><p>{{ ticket.description }}</p></div><select aria-label="Ticket status" [ngModel]="ticket.status" (ngModelChange)="updateTicketStatusFromSelect(ticket, $event)"><option value="open">Open</option><option value="in_progress">In progress</option><option value="resolved">Resolved</option></select></div>
                   <small>Session {{ conversationNumber(ticket.conversation_id) }} · User {{ ticket.user_id }} · {{ ticket.created_at | date:'medium' }}</small>
                 </article>
-              } @empty { <p class="empty">No customer reports yet.</p> }
+              } @empty { <p class="empty">{{ supportTickets().length ? 'No reports match this status.' : 'No customer reports yet.' }}</p> }
             </div>
           </section>
         </section>
@@ -612,12 +613,13 @@
           <div class="section-heading">
             <div>
               <span class="section-kicker">SMARTDRIVETEAM&#64;SMARTDRIVE.COM</span>
-              <h2>Customer messages <span class="count-pill">{{ contactMessages().length }}</span></h2>
+              <h2>Customer messages <span class="count-pill">{{ filteredContactMessages().length }}</span></h2>
               <p>Messages submitted from About → Contacts.</p>
             </div>
+            <label class="filter-select"><span>Read status</span><select aria-label="Filter email concerns by read status" [ngModel]="contactReadFilter()" (ngModelChange)="contactReadFilter.set($event)"><option value="all">All messages</option><option value="unread">Unread</option><option value="read">Read</option></select></label>
           </div>
           <div class="support-ticket-list">
-            @for (message of contactMessages(); track message.id) {
+            @for (message of filteredContactMessages(); track message.id) {
               <article class="support-ticket" [class.contact-message-unread]="!message.is_read">
                 <div class="support-ticket-heading">
                   <div>
@@ -635,7 +637,7 @@
                 </small>
               </article>
             } @empty {
-              <p class="empty">No email concerns have been submitted yet.</p>
+              <p class="empty">{{ contactMessages().length ? 'No messages match this read status.' : 'No email concerns have been submitted yet.' }}</p>
             }
           </div>
         </section>
@@ -657,11 +659,11 @@
           @if (promoFeedback()) { <p class="promo-feedback" [class.error]="!promoFeedback()?.startsWith('Promo code created')" role="status">{{ promoFeedback() }}</p> }
         </section>
         <section class="data-card admin-module">
-          <div class="section-heading"><div><span class="section-kicker">CHECKOUT OFFERS</span><h2>Promo codes <span class="count-pill">{{ promoCodes().length }}</span></h2></div></div>
+          <div class="section-heading"><div><span class="section-kicker">CHECKOUT OFFERS</span><h2>Promo codes <span class="count-pill">{{ filteredPromoCodes().length }}</span></h2></div><label class="filter-select"><span>Promo status</span><select aria-label="Filter promo codes by status" [ngModel]="promoStatusFilter()" (ngModelChange)="promoStatusFilter.set($event)"><option value="all">All promo codes</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label></div>
           <div class="table-scroll"><table><thead><tr><th>Code</th><th>Discount</th><th>Usage</th><th>Valid dates</th><th>Status</th><th>Action</th></tr></thead><tbody>
-            @for (promo of promoCodes(); track promo.id) {
+            @for (promo of filteredPromoCodes(); track promo.id) {
               <tr><td><strong>{{ promo.code }}</strong><small class="cell-subtitle">{{ promo.description || 'No description' }}</small></td><td>{{ promo.discount_percent }}% <small class="cell-subtitle">Min. ₱{{ promo.min_spend | number:'1.0-2' }}</small></td><td>{{ promo.current_uses }} / {{ promo.max_uses ?? '∞' }}</td><td>{{ promo.valid_from ? (promo.valid_from | date:'mediumDate') : 'Anytime' }} – {{ promo.valid_until ? (promo.valid_until | date:'mediumDate') : 'No end' }}</td><td><span class="status-pill" [class.suspended]="!promo.is_active">{{ promo.is_active ? 'Active' : 'Inactive' }}</span></td><td><button class="table-action" type="button" (click)="togglePromo(promo)">{{ promo.is_active ? 'Deactivate' : 'Activate' }}</button></td></tr>
-            } @empty { <tr><td colspan="6" class="empty">No promo codes yet.</td></tr> }
+            } @empty { <tr><td colspan="6" class="empty">{{ promoCodes().length ? 'No promo codes match this status.' : 'No promo codes yet.' }}</td></tr> }
           </tbody></table></div>
         </section>
       }

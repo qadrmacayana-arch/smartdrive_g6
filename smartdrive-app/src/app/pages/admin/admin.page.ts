@@ -164,6 +164,18 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly bookings = signal<Booking[]>([]);
   readonly availabilityDate = signal(this.todayDate());
   readonly availabilityClock = signal(Date.now());
+  readonly availabilityFilter = signal('all');
+  readonly overviewBookingStatusFilter = signal('all');
+  readonly bookingStatusFilter = signal('all');
+  readonly paymentStatusFilter = signal('all');
+  readonly userStatusFilter = signal('all');
+  readonly transactionFilter = signal('all');
+  readonly fleetFilter = signal('all');
+  readonly reviewRatingFilter = signal('all');
+  readonly conversationStatusFilter = signal('all');
+  readonly ticketStatusFilter = signal('all');
+  readonly contactReadFilter = signal('all');
+  readonly promoStatusFilter = signal('all');
   readonly vehicleAvailability = computed<VehicleAvailability[]>(() => {
     const date = this.availabilityDate();
     const now = this.availabilityClock();
@@ -311,6 +323,7 @@ export class AdminPage implements OnDestroy, OnInit {
     validUntil: '',
   };
   readonly locations = signal<AdminLocation[]>([]);
+  readonly trackingSourceFilter = signal('all');
   readonly trackingColorsByKey = computed(() => {
     const keys = [...new Set(this.locations().map((location) => location.key))].sort();
     const assigned = new Map<string, string>();
@@ -330,8 +343,16 @@ export class AdminPage implements OnDestroy, OnInit {
     return assigned;
   });
   readonly selectedLocationKey = signal<string | null>(null);
+  readonly filteredLocations = computed(() => {
+    const filter = this.trackingSourceFilter();
+    return this.locations().filter((location) =>
+      filter === 'all'
+      || (filter === 'demo' && location.is_demo)
+      || (filter === 'live' && !location.is_demo),
+    );
+  });
   readonly selectedLocation = computed(
-    () => this.locations().find((location) => location.key === this.selectedLocationKey()) ?? this.locations()[0] ?? null,
+    () => this.filteredLocations().find((location) => location.key === this.selectedLocationKey()) ?? this.filteredLocations()[0] ?? null,
   );
   readonly trackingMapUrl = computed<SafeResourceUrl>(() => {
     const location = this.selectedLocation();
@@ -891,7 +912,18 @@ export class AdminPage implements OnDestroy, OnInit {
 
   filteredBookings(): Booking[] {
     const term = this.search().trim().toLowerCase();
-    return this.bookings().filter((booking) => !term || [booking.reference_number, booking.customer_name, booking.customer_email, booking.vehicle_name].some((value) => String(value ?? '').toLowerCase().includes(term)));
+    const bookingStatus = this.bookingStatusFilter();
+    const paymentStatus = this.paymentStatusFilter();
+    return this.bookings().filter((booking) =>
+      (bookingStatus === 'all' || booking.booking_status === bookingStatus)
+      && (paymentStatus === 'all' || booking.payment_status === paymentStatus)
+      && (!term || [booking.reference_number, booking.customer_name, booking.customer_email, booking.vehicle_name].some((value) => String(value ?? '').toLowerCase().includes(term))),
+    );
+  }
+
+  filteredRecentBookings(): Booking[] {
+    const filter = this.overviewBookingStatusFilter();
+    return this.recentBookings().filter((booking) => filter === 'all' || booking.booking_status === filter);
   }
 
   filteredUsers(): AdminUser[] {
@@ -900,18 +932,28 @@ export class AdminPage implements OnDestroy, OnInit {
       user.full_name,
       user.email,
       user.phone,
-    ].some((value) => String(value ?? '').toLowerCase().includes(term)));
+    ].some((value) => String(value ?? '').toLowerCase().includes(term)))
+      .filter((user) => this.userStatusFilter() === 'all'
+        || (this.userStatusFilter() === 'active' && user.is_active !== false)
+        || (this.userStatusFilter() === 'suspended' && user.is_active === false));
   }
 
   filteredTransactionSummaries(): UserTransactionSummary[] {
     const term = this.search().trim().toLowerCase();
-    return this.transactionSummaries().filter((summary) => !term || [
+    const filter = this.transactionFilter();
+    return this.transactionSummaries().filter((summary) =>
+      (filter === 'all'
+        || (filter === 'wallet' && summary.transactions.length > 0)
+        || (filter === 'bookings' && summary.bookings.length > 0)
+        || (filter === 'balance' && summary.balance > 0))
+      && (!term || [
       summary.user.full_name,
       summary.user.email,
       summary.user.phone,
       ...summary.transactions.map((transaction) => `${transaction.type ?? ''} ${transaction.description}`),
       ...summary.bookings.map((booking) => `${booking.reference_number} ${booking.vehicle_name}`),
-    ].some((value) => String(value ?? '').toLowerCase().includes(term)));
+      ].some((value) => String(value ?? '').toLowerCase().includes(term))),
+    );
   }
 
   paymentProvider(method: string): string {
@@ -929,9 +971,55 @@ export class AdminPage implements OnDestroy, OnInit {
 
   filteredVehicles(): Vehicle[] {
     const term = this.search().trim().toLowerCase();
+    const filter = this.fleetFilter();
     return this.vehicles().filter((vehicle) =>
-      !term || [vehicle.name, vehicle.type, vehicle.vehicle_id, vehicle.plate_number]
-        .some((value) => String(value ?? '').toLowerCase().includes(term)),
+      (filter === 'all'
+        || vehicle.main_category.toLowerCase() === filter
+        || (filter === 'available' && vehicle.status === 'available')
+        || (filter === 'archived' && vehicle.status === 'archived'))
+      && (!term || [vehicle.name, vehicle.type, vehicle.vehicle_id, vehicle.plate_number]
+        .some((value) => String(value ?? '').toLowerCase().includes(term))),
+    );
+  }
+
+  filteredAvailability(): VehicleAvailability[] {
+    const filter = this.availabilityFilter();
+    return this.vehicleAvailability().filter((item) =>
+      filter === 'all'
+      || (filter === 'available' && item.availableUnits > 0)
+      || (filter === 'using' && item.using.length > 0)
+      || (filter === 'reserved' && item.reserved.length > 0)
+      || (filter === 'pending' && item.pending.length > 0)
+      || (filter === 'idle' && item.using.length + item.reserved.length + item.pending.length === 0),
+    );
+  }
+
+  filteredReviews(): AdminReview[] {
+    const filter = this.reviewRatingFilter();
+    return this.reviews().filter((review) => filter === 'all' || review.rating === Number(filter));
+  }
+
+  filteredConversations(): SupportConversation[] {
+    const filter = this.conversationStatusFilter();
+    return this.supportConversations().filter((conversation) => filter === 'all' || conversation.status === filter);
+  }
+
+  filteredTickets(): SupportTicket[] {
+    const filter = this.ticketStatusFilter();
+    return this.supportTickets().filter((ticket) => filter === 'all' || ticket.status === filter);
+  }
+
+  filteredContactMessages(): ContactMessage[] {
+    const filter = this.contactReadFilter();
+    return this.contactMessages().filter((message) =>
+      filter === 'all' || (filter === 'read' && message.is_read) || (filter === 'unread' && !message.is_read),
+    );
+  }
+
+  filteredPromoCodes(): AdminPromo[] {
+    const filter = this.promoStatusFilter();
+    return this.promoCodes().filter((promo) =>
+      filter === 'all' || (filter === 'active' && promo.is_active) || (filter === 'inactive' && !promo.is_active),
     );
   }
 
