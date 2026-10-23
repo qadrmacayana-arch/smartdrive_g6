@@ -45,7 +45,6 @@ export class BookingDatesPage implements OnInit {
 
   readonly pickupDate = signal('');
   readonly returnDate = signal('');
-  readonly pickupLocation = signal('Manila');
   readonly selectingDate = signal<'pickup' | 'return'>('pickup');
   readonly calendarMonth = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   readonly calendarMonthOptions = computed(() => {
@@ -124,7 +123,6 @@ export class BookingDatesPage implements OnInit {
     const vehicleId = Number(this.route.snapshot.paramMap.get('vehicleId'));
     const queryParams = this.route.snapshot.queryParamMap;
     const requestedDate = queryParams.get('date');
-    const requestedLocation = queryParams.get('location');
     if (requestedDate) {
       const date = new Date(`${requestedDate}T00:00:00`);
       const today = new Date();
@@ -136,8 +134,6 @@ export class BookingDatesPage implements OnInit {
         this.calendarMonth.set(new Date(date.getFullYear(), date.getMonth(), 1));
       }
     }
-    if (requestedLocation) this.pickupLocation.set(requestedLocation);
-
     try {
       const vehicle = await this.vehicleService.getById(vehicleId);
       if (!vehicle) {
@@ -311,7 +307,7 @@ export class BookingDatesPage implements OnInit {
       { id: vehicle.id, name: vehicle.name, price: vehicle.price, srPoints: vehicle.sr_points, image: vehicle.image },
       pickup,
       returnDate,
-      this.pickupLocation(),
+      '',
     );
 
     this.router.navigate(['/booking', vehicle.id, 'details']);

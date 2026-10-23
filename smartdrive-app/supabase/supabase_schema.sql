@@ -462,6 +462,10 @@ create table if not exists public.bookings (
     check (booking_status in ('confirmed', 'ongoing', 'completed', 'cancelled')),
   is_pwd_senior boolean default false,
   is_pwd_discount boolean not null default false,
+  pwd_senior_cashback_status text not null default 'not_applicable'
+    check (pwd_senior_cashback_status in ('not_applicable', 'pending_verification', 'credited', 'declined')),
+  pwd_senior_cashback_amount numeric(12,2) not null default 0
+    check (pwd_senior_cashback_amount >= 0),
   driver_age smallint check (driver_age between 18 and 100),
   renter_type text check (renter_type in ('local', 'foreign-tourist')),
   driver_license_type text check (

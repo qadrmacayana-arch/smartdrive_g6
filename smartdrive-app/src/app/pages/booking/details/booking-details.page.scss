@@ -343,6 +343,21 @@
   }
 }
 
+.pwd-id-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: .55rem;
+  padding: .7rem;
+  margin-top: .75rem;
+  border: 1px solid color-mix(in srgb, var(--sd-primary) 20%, var(--sd-border));
+  border-radius: .75rem;
+  background: var(--sd-primary-soft);
+  color: var(--sd-foreground);
+
+  ion-icon { flex: 0 0 auto; margin-top: .05rem; color: var(--sd-primary); font-size: 1.1rem; }
+  p { margin: 0; font-size: .74rem; line-height: 1.45; }
+}
+
 .summary-card {
   padding: 1rem;
   margin: 0;

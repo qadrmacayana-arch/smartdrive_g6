@@ -32,6 +32,22 @@
       </div>
     </div>
 
+    <section class="pickup-outlet-card sd-card">
+      <label for="pickup-outlet">Choose a pick-up outlet</label>
+      <select id="pickup-outlet" required [value]="d.pickupLocation" (change)="onPickupOutletChange($any($event.target).value)">
+        <option value="" disabled>Select a demo outlet</option>
+        @for (outlet of pickupOutlets; track outlet) {
+          <option [value]="outlet">{{ outlet }}</option>
+        }
+      </select>
+      <p>These are sample SmartDrive locations for this project, not confirmed real branches. The actual handover details must be confirmed with SmartDrive.</p>
+    </section>
+
+    <div class="demo-notice documents-notice" role="note">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <p>Philippine renters: bring your original valid Professional or Non-Professional Driver’s License, two government-issued photo IDs, and proof of billing. Foreign renters: bring your passport and valid driver’s license, plus any required IDP or translation. We do not collect document uploads here. If you selected PWD/Senior cashback, bring your original valid Philippine PWD or Senior Citizen ID for in-person verification.</p>
+    </div>
+
     <div class="promo-row">
       <ion-item class="auth-item promo-input" lines="none">
         <ion-icon slot="start" name="ticket-outline"></ion-icon>
@@ -148,6 +164,12 @@
             <strong>-₱{{ p.discount | number }}</strong>
           </div>
         }
+        @if (cashbackAmount() > 0) {
+          <div class="summary-row discount cashback-summary">
+            <span>Potential PWD/Senior cashback after pickup ID verification</span>
+            <strong>₱{{ cashbackAmount() | number }}</strong>
+          </div>
+        }
         <div class="summary-row total">
           <span>Total Due</span>
           <strong>₱{{ p.total | number }}</strong>
@@ -162,7 +184,7 @@
     <ion-button
       expand="block"
       class="sd-gradient-btn continue-btn"
-      [disabled]="submitting() || insufficientPoints"
+      [disabled]="submitting() || insufficientPoints || !hasPickupOutlet()"
       (click)="confirmPayment()"
     >
       @if (submitting()) {

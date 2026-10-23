@@ -430,7 +430,11 @@
                   <small class="cell-subtitle">{{ booking.customer_phone || 'Phone not provided' }}</small>
                   <small class="cell-subtitle">{{ booking.customer_address || 'Address not provided' }}</small>
                   <small class="cell-subtitle">Primary driver age: {{ booking.driver_age ?? 'Not provided' }}</small>
-                  @if (booking.is_pwd_discount) { <small class="cell-subtitle">PWD discount claimed · Verify valid PWD ID at pickup</small> }
+                  @if (booking.is_pwd_senior) {
+                    <small class="cell-subtitle">PWD/Senior cashback · ₱{{ booking.pwd_senior_cashback_amount ?? 0 | number }} · {{ booking.pwd_senior_cashback_status === 'pending_verification' ? 'Pending verification' : booking.pwd_senior_cashback_status | titlecase }}</small>
+                  } @else if (booking.is_pwd_discount) {
+                    <small class="cell-subtitle">Legacy PWD discount claim</small>
+                  }
                   <small class="cell-subtitle">Conditions: {{ booking.booking_conditions_accepted ? 'Accepted' : 'Not recorded' }}</small>
                 </td>
                 <td>{{ booking.vehicle_name }}</td>
@@ -450,6 +454,19 @@
                   </div>
                 </td>
                 <td class="booking-actions-cell">
+                  @if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
+                    @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
+                      <button class="table-action booking-return-action" type="button" (click)="reviewPwdSeniorCashback(booking, true)">
+                        <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+                        Verify ID & credit
+                      </button>
+                      <button class="table-action danger" type="button" (click)="reviewPwdSeniorCashback(booking, false)">Decline claim</button>
+                    } @else {
+                      <small class="cell-subtitle">Verify ID at pickup</small>
+                    }
+                  } @else if (booking.pwd_senior_cashback_status === 'credited') {
+                    <small class="cell-subtitle">Cashback credited to SR Wallet</small>
+                  }
                   @if (booking.booking_status === 'ongoing') {
                     <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
                       <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>

@@ -309,7 +309,18 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     addRow('Return', booking.return_date);
     addRow('Pick-up location', booking.pickup_location || 'Not provided');
     addRow('Primary driver age', String(booking.driver_age ?? 'Not provided'));
-    if (booking.is_pwd_discount) addRow('PWD discount claim', 'Present a valid PWD ID at pickup for verification');
+    if (booking.is_pwd_senior) {
+      addRow(
+        'PWD/Senior cashback',
+        booking.pwd_senior_cashback_status === 'credited'
+          ? `PHP ${Number(booking.pwd_senior_cashback_amount ?? 0).toLocaleString()} credited to SR Wallet`
+          : booking.pwd_senior_cashback_status === 'declined'
+            ? 'Not approved after pickup verification'
+            : `Up to PHP ${Number(booking.pwd_senior_cashback_amount ?? 0).toLocaleString()} after valid ID verification at pickup`,
+      );
+    } else if (booking.is_pwd_discount) {
+      addRow('Legacy PWD discount claim', 'Claim recorded on this booking');
+    }
     addRow('Booking conditions accepted', booking.booking_conditions_accepted ? 'Yes' : 'No');
 
     addSection('PAYMENT');
@@ -326,7 +337,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
 
     pdf.setFontSize(8);
     pdf.setTextColor(120, 130, 126);
-    pdf.text('Keep this receipt for your records. Bring required documents to pickup; PWD discount claims require a valid PWD ID for verification.', margin, Math.min(y + 7, 285));
+    pdf.text('Keep this receipt for your records. Bring the original driver license and supporting documents listed in the booking conditions. Bring a valid Philippine PWD or Senior Citizen ID for cashback verification if claimed.', margin, Math.min(y + 7, 285));
     return pdf;
   }
 

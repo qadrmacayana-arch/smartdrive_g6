@@ -131,10 +131,23 @@
         <span class="sd-muted">Primary driver age</span>
         <strong>{{ b.driver_age ?? 'Not provided' }} years</strong>
       </div>
-      @if (b.is_pwd_discount) {
+      @if (b.is_pwd_senior) {
         <div class="detail-row">
-          <span class="sd-muted">PWD discount</span>
-          <strong>Claimed · present valid PWD ID at pickup</strong>
+          <span class="sd-muted">PWD / Senior cashback</span>
+          <strong>
+            @if (b.pwd_senior_cashback_status === 'credited') {
+              ₱{{ b.pwd_senior_cashback_amount | number }} credited to SR Wallet
+            } @else if (b.pwd_senior_cashback_status === 'declined') {
+              Not approved after pickup verification
+            } @else {
+              Up to ₱{{ b.pwd_senior_cashback_amount | number }} after valid ID verification at pickup
+            }
+          </strong>
+        </div>
+      } @else if (b.is_pwd_discount) {
+        <div class="detail-row">
+          <span class="sd-muted">Legacy PWD discount</span>
+          <strong>Claim recorded on this booking</strong>
         </div>
       }
       <div class="detail-row">
@@ -157,6 +170,10 @@
       <div class="detail-row">
         <span class="sd-muted">Location</span>
         <strong>{{ b.pickup_location }}</strong>
+      </div>
+      <div class="detail-row">
+        <span class="sd-muted">Bring to pickup</span>
+        <strong>Bring the original license and supporting documents listed in the booking conditions. No documents are uploaded here.</strong>
       </div>
       <div class="detail-row">
         <span class="sd-muted">Payment Method</span>

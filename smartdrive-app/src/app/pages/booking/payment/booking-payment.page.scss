@@ -106,6 +106,21 @@
   }
 }
 
+.pickup-outlet-card {
+  display: grid;
+  gap: .5rem;
+  padding: 1rem;
+  margin-bottom: .85rem;
+  border-radius: .85rem;
+
+  label { color: var(--sd-heading); font-size: .78rem; font-weight: 750; }
+  select { width: 100%; min-height: 2.8rem; padding: .65rem .75rem; border: 1px solid var(--sd-border); border-radius: .6rem; background: var(--sd-card); color: var(--sd-foreground); font: 600 .77rem 'Plus Jakarta Sans',sans-serif; }
+  p { margin: 0; color: var(--sd-muted-foreground); font-size: .68rem; line-height: 1.45; }
+}
+
+.documents-notice { margin: 0 0 1.1rem; }
+.cashback-summary { color: var(--sd-success); }
+
 .thumb {
   display: grid;
   width: 56px;

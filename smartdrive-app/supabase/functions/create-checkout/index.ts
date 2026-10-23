@@ -6,6 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const INSURANCE_FEE = 500;
+const PWD_SENIOR_CASHBACK_RATE = 0.2;
+const SMARTDRIVE_PICKUP_OUTLETS = [
+  'Demo SmartDrive Outlet - Makati, Metro Manila',
+  'Demo SmartDrive Outlet - Cebu City, Cebu',
+  'Demo SmartDrive Outlet - Davao City, Davao del Sur',
+];
 
 type CheckoutInput = {
   vehicleId: number;
@@ -18,7 +24,7 @@ type CheckoutInput = {
   customerAddress?: string | null;
   driverAge: number;
   bookingConditionsAccepted: boolean;
-  isPwd: boolean;
+  isPwdSenior: boolean;
   paymentMethod: 'credit-card' | 'gcash' | 'maya';
   promoCode: string | null;
   returnToApp?: boolean;
@@ -78,7 +84,7 @@ Deno.serve(async (request) => {
   const invalidFields = [
     !input || !Number.isSafeInteger(input?.vehicleId) ? 'vehicleId' : null,
     !input || !['credit-card', 'gcash', 'maya'].includes(input?.paymentMethod) ? 'paymentMethod' : null,
-    !input || typeof input.isPwd !== 'boolean' ? 'isPwd' : null,
+    !input || typeof input.isPwdSenior !== 'boolean' ? 'isPwdSenior' : null,
     !input || typeof input.pickupDate !== 'string' ? 'pickupDate' : null,
     !input || typeof input.returnDate !== 'string' ? 'returnDate' : null,
     !input || typeof input.pickupLocation !== 'string' ? 'pickupLocation' : null,
@@ -117,6 +123,7 @@ Deno.serve(async (request) => {
     || !phone || phone.length > 40
     || customerAddress.length > 500
     || !location || location.length > 160
+    || !SMARTDRIVE_PICKUP_OUTLETS.includes(location)
   ) {
     return response({ error: 'Booking details are invalid or do not match your account.' }, 400);
   }
@@ -216,9 +223,6 @@ Deno.serve(async (request) => {
   const options: Array<{ amount: number; label: string; priority: number }> = [
     { amount: 0, label: 'N/A', priority: 0 },
   ];
-  if (input.isPwd) {
-    options.push({ amount: money(subtotal * 0.2), label: 'PWD Discount (20%)', priority: 2 });
-  }
   const { count, error: memberError } = await admin
     .from('bookings')
     .select('id', { count: 'exact', head: true })
@@ -325,7 +329,12 @@ Deno.serve(async (request) => {
     payment_status: 'completed',
     test_auto_confirmed: false,
     booking_status: 'confirmed',
-    is_pwd_discount: input.isPwd,
+    is_pwd_discount: false,
+    is_pwd_senior: input.isPwdSenior,
+    pwd_senior_cashback_status: input.isPwdSenior ? 'pending_verification' : 'not_applicable',
+    pwd_senior_cashback_amount: input.isPwdSenior
+      ? money(subtotal * PWD_SENIOR_CASHBACK_RATE)
+      : 0,
     driver_age: input.driverAge,
     booking_conditions_accepted: input.bookingConditionsAccepted,
     booking_conditions_accepted_at: new Date().toISOString(),

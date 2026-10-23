@@ -1033,6 +1033,10 @@ export class AdminPage implements OnDestroy, OnInit {
       this.errorMessage.set('Bookings become in progress automatically on the pickup date. Admins can mark an in-progress booking completed only after confirming the vehicle was returned.');
       return;
     }
+    if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
+      this.errorMessage.set('Verify or decline the PWD/Senior cashback claim at pickup before marking this booking returned.');
+      return;
+    }
     if (!window.confirm(`Confirm the vehicle for booking ${booking.reference_number} has been returned? This will mark the booking completed.`)) {
       return;
     }
@@ -1043,6 +1047,49 @@ export class AdminPage implements OnDestroy, OnInit {
       this.bookings.update((items) => items.map((item) => item.id === booking.id ? { ...item, booking_status: status } : item));
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update booking progress.');
+    }
+  }
+
+  async reviewPwdSeniorCashback(booking: Booking, approve: boolean): Promise<void> {
+    if (!booking.id || !booking.is_pwd_senior || booking.pwd_senior_cashback_status !== 'pending_verification') return;
+    if (booking.booking_status !== 'ongoing' || booking.payment_status !== 'completed') {
+      this.errorMessage.set('Cashback can be reviewed only after payment and vehicle pickup.');
+      return;
+    }
+    const action = approve ? 'verify the original PWD/Senior ID and credit cashback' : 'decline this cashback claim';
+    if (!window.confirm(`Confirm you have reviewed the original ID at pickup and want to ${action} for booking ${booking.reference_number}?`)) {
+      return;
+    }
+
+    this.errorMessage.set(null);
+    try {
+      const { data, error } = await this.supabase.client.rpc('review_pwd_senior_cashback', {
+        target_booking_id: booking.id,
+        approve,
+      });
+      if (error) throw new Error(error.message);
+      if (!data || typeof data !== 'object' || !('status' in data) || !('amount' in data)) {
+        throw new Error('Cashback review returned an unexpected result.');
+      }
+
+      const result = data as { status: unknown; amount: unknown };
+      const cashbackStatus = result.status;
+      const cashbackAmount = result.amount;
+      if (cashbackStatus !== 'credited' && cashbackStatus !== 'declined') {
+        throw new Error('Cashback review returned an invalid status.');
+      }
+      if (typeof cashbackAmount !== 'number' || !Number.isFinite(cashbackAmount)) {
+        throw new Error('Cashback review returned an invalid result.');
+      }
+      const updated: Booking = {
+        ...booking,
+        pwd_senior_cashback_status: cashbackStatus,
+        pwd_senior_cashback_amount: cashbackAmount,
+      };
+      this.bookings.update((items) => items.map((item) => item.id === booking.id ? updated : item));
+      this.recentBookings.update((items) => items.map((item) => item.id === booking.id ? updated : item));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to review the cashback claim.');
     }
   }
 

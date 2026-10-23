@@ -2,9 +2,10 @@ import { Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BOOKING_SELECT_FIELDS, Booking, BookingDraft } from '../models/booking.model';
 import { DemoTrackingService } from './demo-tracking.service';
+import { isSmartDrivePickupOutlet } from '../models/pickup-outlets';
 
 const INSURANCE_FEE = 500;
-const PWD_DISCOUNT_RATE = 0.2;
+export const PWD_SENIOR_CASHBACK_RATE = 0.2;
 const NEW_MEMBER_DISCOUNT_RATE = 0.15;
 
 export interface PricingBreakdown {
@@ -119,11 +120,11 @@ export class BookingService {
     };
   }
 
-  /** Mirrors the legacy site's rule: apply whichever eligible discount is largest. */
+  /** Applies the best available promo or new-member discount; cashback is separate. */
   computePricing(
     dailyRate: number,
     rentalDays: number,
-    options: { isPwd: boolean; isNewMember: boolean; promoCode?: { code: string; discountPercent: number; description: string } | null },
+    options: { isNewMember: boolean; promoCode?: { code: string; discountPercent: number; description: string } | null },
   ): PricingBreakdown {
     const subtotal = dailyRate * rentalDays;
     const insurance = INSURANCE_FEE;
@@ -136,14 +137,6 @@ export class BookingService {
       if (promoDiscount > bestDiscount) {
         bestDiscount = promoDiscount;
         discountLabel = `${options.promoCode.description} (${options.promoCode.code})`;
-      }
-    }
-
-    if (options.isPwd) {
-      const pwdDiscount = subtotal * PWD_DISCOUNT_RATE;
-      if (pwdDiscount > bestDiscount) {
-        bestDiscount = pwdDiscount;
-        discountLabel = 'PWD Discount (20%)';
       }
     }
 
@@ -219,6 +212,10 @@ export class BookingService {
     const draft = this.draft();
     if (!draft?.customer || !draft.pricing) throw new Error('Booking details are incomplete.');
     const customer = draft.customer;
+    const hasPwdSeniorClaim = customer.isPwdSenior === true;
+    if (!isSmartDrivePickupOutlet(draft.pickupLocation)) {
+      throw new Error('Choose a valid demo SmartDrive pickup outlet before continuing.');
+    }
     const validationError = this.validateCustomerBookingRequirements(customer);
     if (validationError) {
       throw new Error(validationError);
@@ -278,7 +275,12 @@ export class BookingService {
       payment_method: paymentMethod,
       payment_status: paymentStatus,
       booking_status: 'confirmed',
-      is_pwd_discount: customer.isPwd,
+      is_pwd_discount: false,
+      is_pwd_senior: hasPwdSeniorClaim,
+      pwd_senior_cashback_status: hasPwdSeniorClaim ? 'pending_verification' : 'not_applicable',
+      pwd_senior_cashback_amount: hasPwdSeniorClaim
+        ? Math.round(draft.pricing.subtotal * PWD_SENIOR_CASHBACK_RATE * 100) / 100
+        : 0,
       driver_age: customer.driverAge,
       booking_conditions_accepted: customer.conditionsAccepted,
       booking_conditions_accepted_at: new Date().toISOString(),

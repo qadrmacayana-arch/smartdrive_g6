@@ -114,27 +114,23 @@
         <div class="pwd-header">
           <ion-icon name="accessibility-outline"></ion-icon>
           <div>
-            <h4>PWD Discount</h4>
-            <p class="sd-muted">Registered PWDs may receive 20% off the rental subtotal. Present a valid PWD ID at pickup for verification. Senior discounts are not offered through this booking.</p>
+            <h4>PWD / Senior Citizen Cashback</h4>
+            <p class="sd-muted">Eligible customers may receive cashback equal to 20% of the rental subtotal in their SR Wallet after staff verifies a valid Philippine PWD or Senior Citizen ID at pickup. This does not reduce the amount due today.</p>
           </div>
         </div>
-        <ion-segment [value]="isPwd() ? 'yes' : 'no'" (ionChange)="onPwdChange($any($event.detail.value))">
+        <ion-segment [value]="isPwdSenior() ? 'yes' : 'no'" (ionChange)="onBenefitEligibilityChange($any($event.detail.value))">
           <ion-segment-button value="no">
             <ion-label>No</ion-label>
           </ion-segment-button>
           <ion-segment-button value="yes">
-            <ion-label>Yes</ion-label>
+            <ion-label>Yes, I am eligible</ion-label>
           </ion-segment-button>
         </ion-segment>
-        @if (isPwd()) {
-          <ion-checkbox
-            [checked]="pwdIdConfirmed()"
-            labelPlacement="start"
-            justify="space-between"
-            (ionChange)="onPwdIdConfirmChange($event)"
-          >
-            I am a registered PWD and will present my valid PWD ID at pickup.
-          </ion-checkbox>
+        @if (isPwdSenior()) {
+          <div class="pwd-id-notice" role="note">
+            <ion-icon name="information-circle-outline"></ion-icon>
+            <p>Bring your original valid Philippine PWD or Senior Citizen ID to the selected pickup outlet. Cashback is credited to your SR Wallet only after in-person verification.</p>
+          </div>
         }
       </div>
 
@@ -151,10 +147,10 @@
           <span class="sd-muted">Insurance</span>
           <strong>₱{{ insurance | number }}</strong>
         </div>
-        @if (discount() > 0) {
+        @if (cashback() > 0) {
           <div class="summary-row discount">
-            <span>PWD Discount</span>
-            <strong>-₱{{ discount() | number }}</strong>
+            <span>Potential cashback after pickup verification</span>
+            <strong>₱{{ cashback() | number }}</strong>
           </div>
         }
         <div class="summary-row total">

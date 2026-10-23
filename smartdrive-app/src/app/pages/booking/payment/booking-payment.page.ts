@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,10 +19,11 @@ import {
   IonSpinner,
 } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
-import { BookingService, PricingBreakdown } from '../../../core/services/booking.service';
+import { BookingService, PWD_SENIOR_CASHBACK_RATE, PricingBreakdown } from '../../../core/services/booking.service';
 import { WalletService } from '../../../core/services/wallet.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { WalletBalance } from '../../../core/models/wallet.model';
+import { isSmartDrivePickupOutlet, SMARTDRIVE_PICKUP_OUTLETS } from '../../../core/models/pickup-outlets';
 
 type PaymentMethod = 'credit-card' | 'gcash' | 'maya' | 'srpoints';
 
@@ -55,6 +56,14 @@ export class BookingPaymentPage implements OnInit {
   readonly promoInput = signal('');
   readonly promoError = signal<string | null>(null);
   readonly promoApplying = signal(false);
+  readonly pickupOutlets = SMARTDRIVE_PICKUP_OUTLETS;
+  readonly hasPickupOutlet = computed(() => isSmartDrivePickupOutlet(this.draft()?.pickupLocation ?? ''));
+  readonly cashbackAmount = computed(() => {
+    const draft = this.draft();
+    return draft?.customer?.isPwdSenior
+      ? Math.round(draft.vehicle.price * draft.rentalDays * PWD_SENIOR_CASHBACK_RATE * 100) / 100
+      : 0;
+  });
 
   readonly pricing = signal<PricingBreakdown | null>(null);
   readonly walletBalance = signal<WalletBalance | null>(null);
@@ -80,6 +89,13 @@ export class BookingPaymentPage implements OnInit {
       return;
     }
 
+    if (!isSmartDrivePickupOutlet(draft.pickupLocation)) {
+      this.bookingService.updateDraft((current) => ({
+        ...current,
+        pickupLocation: '',
+      }));
+    }
+
     await this.recompute();
 
     const user = this.auth.currentUser();
@@ -94,7 +110,6 @@ export class BookingPaymentPage implements OnInit {
 
     const isNewMember = await this.bookingService.isNewMember(draft.customer.email);
     const pricing = this.bookingService.computePricing(draft.vehicle.price, draft.rentalDays, {
-      isPwd: draft.customer.isPwd,
       isNewMember,
       promoCode: draft.promoCode,
     });
@@ -136,11 +151,25 @@ export class BookingPaymentPage implements OnInit {
     this.errorMessage.set(null);
   }
 
+  onPickupOutletChange(value: string): void {
+    if (!isSmartDrivePickupOutlet(value)) {
+      this.errorMessage.set('Choose one of the listed demo SmartDrive pickup outlets.');
+      return;
+    }
+    this.bookingService.updateDraft((draft) => ({ ...draft, pickupLocation: value }));
+    this.errorMessage.set(null);
+  }
+
   async confirmPayment(): Promise<void> {
     const draft = this.draft();
     const pricing = this.pricing();
     const user = this.auth.currentUser();
     if (!draft?.customer || !pricing || !user) return;
+
+    if (!isSmartDrivePickupOutlet(draft.pickupLocation)) {
+      this.errorMessage.set('Choose a demo SmartDrive pickup outlet before continuing.');
+      return;
+    }
 
     if (this.insufficientPoints) {
       this.errorMessage.set('Insufficient SR Points balance. Choose another payment method.');
@@ -181,7 +210,7 @@ export class BookingPaymentPage implements OnInit {
             customerAddress: customer.address,
             driverAge: customer.driverAge,
             bookingConditionsAccepted: customer.conditionsAccepted,
-            isPwd: customer.isPwd,
+            isPwdSenior: customer.isPwdSenior === true,
             paymentMethod: this.paymentMethod(),
             promoCode: draft.promoCode?.code ?? null,
             returnToApp: Capacitor.getPlatform() === 'android',

@@ -20,7 +20,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingDraft } from '../../../core/models/booking.model';
-import { BookingService } from '../../../core/services/booking.service';
+import { BookingService, PWD_SENIOR_CASHBACK_RATE } from '../../../core/services/booking.service';
 import { calculateAgeOnDate } from '../../../core/utils/age';
 
 @Component({
@@ -54,8 +54,7 @@ export class BookingDetailsPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly draft = this.bookingService.draft;
-  readonly isPwd = signal(false);
-  readonly pwdIdConfirmed = signal(false);
+  readonly isPwdSenior = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly maxBirthDate = this.getTodayDate();
 
@@ -70,8 +69,8 @@ export class BookingDetailsPage implements OnInit {
 
   readonly subtotal = computed(() => (this.draft()?.vehicle.price ?? 0) * (this.draft()?.rentalDays ?? 0));
   readonly insurance = 500;
-  readonly discount = computed(() => (this.isPwd() ? this.subtotal() * 0.2 : 0));
-  readonly total = computed(() => this.subtotal() + this.insurance - this.discount());
+  readonly cashback = computed(() => (this.isPwdSenior() ? this.subtotal() * PWD_SENIOR_CASHBACK_RATE : 0));
+  readonly total = computed(() => this.subtotal() + this.insurance);
 
   ngOnInit(): void {
     if (!this.draft()) {
@@ -97,9 +96,7 @@ export class BookingDetailsPage implements OnInit {
         address: customer.address ?? user?.address ?? '',
         conditionsAccepted: customer.conditionsAccepted,
       });
-      const savedPwdClaim = Boolean(customer.isPwd);
-      this.isPwd.set(savedPwdClaim);
-      this.pwdIdConfirmed.set(savedPwdClaim);
+      this.isPwdSenior.set(Boolean(customer.isPwdSenior));
     }
   }
 
@@ -112,11 +109,6 @@ export class BookingDetailsPage implements OnInit {
       );
       return;
     }
-    if (this.isPwd() && !this.pwdIdConfirmed()) {
-      this.errorMessage.set('Confirm that you are a registered PWD and will present your valid PWD ID at pickup.');
-      return;
-    }
-
     const value = this.form.getRawValue();
     const driverBirthDate = value.driverBirthDate!;
     const driverAgeOnToday = calculateAgeOnDate(driverBirthDate, this.maxBirthDate);
@@ -130,7 +122,7 @@ export class BookingDetailsPage implements OnInit {
       email: value.email!.trim(),
       phone: value.phone!.trim(),
       address: value.address?.trim() || null,
-      isPwd: this.isPwd(),
+      isPwdSenior: this.isPwdSenior(),
       driverAge,
       driverBirthDate,
       conditionsAccepted: value.conditionsAccepted!,
@@ -148,14 +140,8 @@ export class BookingDetailsPage implements OnInit {
     this.router.navigate(['/booking', vehicleId, 'payment']);
   }
 
-  onPwdChange(value: string): void {
-    const selected = value === 'yes';
-    this.isPwd.set(selected);
-    if (!selected) this.pwdIdConfirmed.set(false);
-  }
-
-  onPwdIdConfirmChange(event: CustomEvent<{ checked: boolean }>): void {
-    this.pwdIdConfirmed.set(event.detail.checked);
+  onBenefitEligibilityChange(value: string): void {
+    this.isPwdSenior.set(value === 'yes');
   }
 
   driverAgeOnPickup(): number | null {
