@@ -91,6 +91,11 @@ export class HomePage implements OnInit {
   readonly activePromotionIndex = signal(0);
   readonly carouselRotationEnabled = signal(true);
   readonly vehicles = signal<Vehicle[]>([]);
+  readonly heroVehicle = computed(() =>
+    this.vehicles().find((vehicle) => vehicle.is_featured && vehicle.image)
+      ?? this.vehicles().find((vehicle) => vehicle.image)
+      ?? null,
+  );
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly recommendedVehicles = signal<Vehicle[]>([]);

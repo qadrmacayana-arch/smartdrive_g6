@@ -10,11 +10,20 @@
       }
     </header>
 
-    <section class="hero-card">
-      <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
-      <h1>Ride more.<br>Drive further.</h1>
-      <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
-      <a class="hero-fleet-link" routerLink="/tabs/rent-a-car">Browse vehicles <ion-icon name="arrow-forward-outline"></ion-icon></a>
+    <section class="hero-card" [class.has-hero-vehicle]="heroVehicle()">
+      <div class="hero-copy">
+        <span class="hero-kicker"><ion-icon name="sparkles-outline"></ion-icon> Motorcycle &amp; car rentals across the Philippines</span>
+        <h1>Ride more.<br>Drive further.</h1>
+        <p>Find a motorcycle for the daily commute or a car for the road ahead. SmartDrive makes discovering and booking your next ride simple.</p>
+        <div class="hero-trust"><span><ion-icon name="shield-checkmark-outline"></ion-icon> Secure checkout</span><span><ion-icon name="checkmark-circle-outline"></ion-icon> Verified vehicles</span></div>
+        <a class="hero-fleet-link" routerLink="/tabs/rent-a-car">Browse vehicles <ion-icon name="arrow-forward-outline"></ion-icon></a>
+      </div>
+      @if (heroVehicle(); as vehicle) {
+        <div class="hero-visual">
+          <img [src]="vehicle.image" [alt]="vehicle.name" fetchpriority="high">
+          <div class="hero-vehicle-label"><span>FEATURED RIDE</span><strong>{{ vehicle.name }}</strong><small>{{ vehicle.type }}</small></div>
+        </div>
+      }
     </section>
 
     <section class="home-promo" aria-label="SmartDrive promotions" aria-roledescription="carousel">
