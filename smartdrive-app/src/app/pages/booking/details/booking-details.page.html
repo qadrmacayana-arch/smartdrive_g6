@@ -30,7 +30,7 @@
         <span>{{ d.pickupDate | date: 'mediumDate' }} – {{ d.returnDate | date: 'mediumDate' }} · {{ d.rentalDays }} {{ d.rentalDays === 1 ? 'day' : 'days' }}</span>
       </div>
     </section>
-    <form [formGroup]="form" (ngSubmit)="continue()">
+    <form class="details-form" [formGroup]="form" (ngSubmit)="continue()">
       <ion-item class="auth-item" lines="none">
         <ion-icon slot="start" name="person-outline"></ion-icon>
         <ion-input label="Full Name" labelPlacement="floating" formControlName="name"></ion-input>
@@ -53,7 +53,6 @@
 
       <section class="conditions-card sd-card" aria-labelledby="conditions-title">
         <div class="conditions-heading">
-          <ion-icon name="clipboard-outline" aria-hidden="true"></ion-icon>
           <div>
             <h2 id="conditions-title">Booking conditions</h2>
             <p>Confirm the driver’s age and review the rental guidance.</p>
@@ -100,7 +99,11 @@
             Your date of birth is used to calculate eligibility and is not saved with the booking.
           </p>
 
-          <ion-checkbox formControlName="conditionsAccepted">
+          <ion-checkbox
+            formControlName="conditionsAccepted"
+            labelPlacement="start"
+            justify="space-between"
+          >
             I have read the booking conditions and understand SmartDrive will verify driver eligibility and confirm any applicable charges before handover.
           </ion-checkbox>
           <p class="conditions-privacy">Required documents are checked in person at pickup; no identity documents are collected in this booking form.</p>
@@ -124,7 +127,12 @@
           </ion-segment-button>
         </ion-segment>
         @if (isPwd()) {
-          <ion-checkbox [checked]="pwdIdConfirmed()" (ionChange)="onPwdIdConfirmChange($event)">
+          <ion-checkbox
+            [checked]="pwdIdConfirmed()"
+            labelPlacement="start"
+            justify="space-between"
+            (ionChange)="onPwdIdConfirmChange($event)"
+          >
             I am a registered PWD and will present my valid PWD ID at pickup.
           </ion-checkbox>
         }

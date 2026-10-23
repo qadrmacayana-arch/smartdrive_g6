@@ -27,7 +27,7 @@
         </div>
         <span class="availability" [class.unavailable]="v.status !== 'available'">
           <span class="status-dot"></span>
-          {{ v.status === 'available' ? 'Available now' : (v.status | titlecase) }}
+          {{ v.available_quantity ?? 0 }} of {{ v.fleet_quantity }} available today
         </span>
       </div>
 
@@ -36,6 +36,9 @@
           <ion-icon name="people-outline"></ion-icon>
           <span><strong>{{ v.seats }}</strong> seats</span>
         </div>
+        @if (v.available_quantity === 0) {
+          <p role="status">No units are available today. Choose your rental dates to check future availability.</p>
+        }
         <div class="spec">
           <ion-icon name="speedometer-outline"></ion-icon>
           <span><strong>{{ v.transmission }}</strong></span>

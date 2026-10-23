@@ -9,6 +9,8 @@ export interface BookingDateEstimate {
   usingCount: number;
   reservedCount: number;
   pendingCount: number;
+  totalQuantity: number;
+  availableQuantity: number;
 }
 
 export interface VehicleDemandInsight {
@@ -42,7 +44,7 @@ export class PredictiveInsightsService {
         p_pickup_date: pickupDate,
         p_return_date: returnDate,
       }),
-      this.supabase.client.rpc('get_vehicle_booking_availability', {
+      this.supabase.client.rpc('get_vehicle_date_availability', {
         p_vehicle_id: vehicleId,
         p_pickup_date: pickupDate,
         p_return_date: returnDate,
@@ -77,6 +79,8 @@ export class PredictiveInsightsService {
       || !('using_count' in availabilityRow)
       || !('reserved_count' in availabilityRow)
       || !('pending_count' in availabilityRow)
+      || !('total_quantity' in availabilityRow)
+      || !('available_quantity' in availabilityRow)
     ) {
       throw new Error('Date availability counts returned an unexpected response.');
     }
@@ -84,14 +88,21 @@ export class PredictiveInsightsService {
       using_count: unknown;
       reserved_count: unknown;
       pending_count: unknown;
+      total_quantity: unknown;
+      available_quantity: unknown;
     };
     if (
       !Number.isInteger(counts.using_count)
       || !Number.isInteger(counts.reserved_count)
       || !Number.isInteger(counts.pending_count)
+      || !Number.isInteger(counts.total_quantity)
+      || !Number.isInteger(counts.available_quantity)
       || Number(counts.using_count) < 0
       || Number(counts.reserved_count) < 0
       || Number(counts.pending_count) < 0
+      || Number(counts.total_quantity) < 1
+      || Number(counts.available_quantity) < 0
+      || Number(counts.available_quantity) > Number(counts.total_quantity)
     ) {
       throw new Error('Date availability counts returned invalid values.');
     }
@@ -101,6 +112,8 @@ export class PredictiveInsightsService {
       usingCount: Number(counts.using_count),
       reservedCount: Number(counts.reserved_count),
       pendingCount: Number(counts.pending_count),
+      totalQuantity: Number(counts.total_quantity),
+      availableQuantity: Number(counts.available_quantity),
     };
   }
 

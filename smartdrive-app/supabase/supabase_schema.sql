@@ -400,6 +400,7 @@ create table if not exists public.vehicles (
   transmission text default 'Automatic',
   fuel text default 'Gasoline',
   seats integer default 5,
+  fleet_quantity integer not null default 1 check (fleet_quantity > 0),
   status text default 'available'
     check (status in ('available', 'booked', 'maintenance', 'archived')),
   is_featured boolean default false,
@@ -409,6 +410,12 @@ create table if not exists public.vehicles (
 
 alter table public.vehicles
   add column if not exists plate_number text;
+alter table public.vehicles
+  add column if not exists fleet_quantity integer not null default 1;
+alter table public.vehicles
+  drop constraint if exists vehicles_fleet_quantity_check;
+alter table public.vehicles
+  add constraint vehicles_fleet_quantity_check check (fleet_quantity > 0);
 
 create index if not exists idx_vehicles_type on public.vehicles (type);
 create index if not exists idx_vehicles_status on public.vehicles (status);

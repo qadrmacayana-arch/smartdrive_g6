@@ -66,7 +66,12 @@ export class ForgotPasswordPage {
       this.message.set('If an account exists for that email, a reset link has been sent.');
     } catch (error) {
       this.isError.set(true);
-      this.message.set(error instanceof Error ? error.message : 'Unable to send reset email.');
+      const errorMessage = error instanceof Error ? error.message : 'Unable to send reset email.';
+      this.message.set(
+        errorMessage.toLowerCase().includes('error sending recovery email')
+          ? 'The reset email could not be sent. Email delivery may be unavailable or not configured for this project. Please try again later or contact support.'
+          : errorMessage,
+      );
     } finally {
       this.submitting.set(false);
     }

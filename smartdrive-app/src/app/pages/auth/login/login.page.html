@@ -26,8 +26,8 @@
         </header>
         <form [formGroup]="form" (ngSubmit)="submit()" class="auth-form">
           @if (errorMessage()) {
-            <div class="auth-alert" role="alert">
-              <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+            <div class="auth-alert" [class.success]="isPasswordReset()" [attr.role]="isPasswordReset() ? 'status' : 'alert'">
+              <ion-icon [name]="isPasswordReset() ? 'checkmark-circle-outline' : 'alert-circle-outline'" aria-hidden="true"></ion-icon>
               <span>{{ errorMessage() }}</span>
             </div>
           }

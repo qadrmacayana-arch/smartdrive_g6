@@ -42,6 +42,7 @@ export class LoginPage implements OnDestroy {
 
   readonly submitting = signal(false);
   readonly errorMessage = signal<string | null>(null);
+  readonly isPasswordReset = signal(false);
   readonly showPassword = signal(false);
   readonly oauthSubmitting = signal(false);
   private oauthStartedRoute: string | null = null;
@@ -69,6 +70,9 @@ export class LoginPage implements OnDestroy {
     }
     if (this.route.snapshot.queryParamMap.get('adminPortal') === '1') {
       this.errorMessage.set('Administrator accounts must sign in through the separate admin portal.');
+    } else if (this.route.snapshot.queryParamMap.get('passwordReset') === '1') {
+      this.isPasswordReset.set(true);
+      this.errorMessage.set('Your password has been reset. Sign in with your new password.');
     } else if (this.route.snapshot.queryParamMap.get('googleError') === '1') {
       this.errorMessage.set(
         sessionStorage.getItem('smartdrive_google_oauth_error')

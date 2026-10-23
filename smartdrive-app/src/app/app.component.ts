@@ -258,6 +258,7 @@ export class AppComponent {
     return !url.startsWith('/login')
       && !url.startsWith('/signup')
       && !url.startsWith('/forgot-password')
+      && !url.startsWith('/reset-password')
       && !url.startsWith('/vehicle/')
       && !url.startsWith('/booking/');
   }

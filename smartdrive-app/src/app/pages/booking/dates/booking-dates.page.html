@@ -158,33 +158,70 @@
           </div>
 
           @if (pickupDate() && returnDate()) {
-            <section class="booking-estimate" aria-live="polite" aria-label="Booking date estimate">
-              <span class="estimate-icon"><ion-icon name="sparkles-outline"></ion-icon></span>
-              <div>
-                <small>SMARTDRIVE DATE INSIGHT</small>
-                @if (bookingEstimateLoading()) {
-                  <strong>Checking these dates…</strong>
-                } @else if (bookingEstimateError()) {
-                  <strong>Availability could not be confirmed</strong>
-                  <p>{{ bookingEstimateError() }} Your booking cannot continue until these dates can be checked.</p>
-                  <button class="estimate-retry" type="button" (click)="refreshBookingEstimate()">Check availability again</button>
-                } @else if (bookingEstimate(); as estimate) {
-                  @if (estimate.hasConflict) {
-                    <strong>Booking conflict: this vehicle is already reserved</strong>
-                    <p>These dates overlap {{ estimate.usingCount + estimate.reservedCount + estimate.pendingCount }} active booking(s): {{ estimate.usingCount }} in use, {{ estimate.reservedCount }} confirmed, and {{ estimate.pendingCount }} pending checkout(s). Choose another pick-up or drop-off date to continue.</p>
-                    <small>Customer identities are kept private. Pending checkouts hold the vehicle for up to 10 minutes.</small>
-                  } @else if (estimate.historicalSignalPercent !== null) {
-                    <strong>{{ estimate.historicalSignalPercent }}% historical booking signal</strong>
-                    <p>No active booking overlaps your dates. The percentage is based on past bookings for this vehicle on similar weekdays.</p>
+            <section
+              class="booking-estimate"
+              [class.unavailable]="bookingEstimate()?.hasConflict"
+              [class.checking]="bookingEstimateLoading()"
+              aria-live="polite"
+              aria-label="Vehicle availability for selected dates">
+              <header class="estimate-header">
+                <span class="estimate-icon">
+                  <ion-icon [name]="bookingEstimate()?.hasConflict ? 'close-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+                </span>
+                <div class="estimate-heading">
+                  <small>DATE AVAILABILITY</small>
+                  @if (bookingEstimateLoading()) {
+                    <strong>Checking your dates</strong>
+                  } @else if (bookingEstimateError()) {
+                    <strong>Availability check needed</strong>
+                  } @else if (bookingEstimate()?.hasConflict) {
+                    <strong>Fully booked for these dates</strong>
                   } @else {
-                    <strong>No current reservation conflict found</strong>
-                    <p>No active booking overlaps your dates. There is not enough history for a demand estimate.</p>
+                    <strong>Vehicles available for your trip</strong>
                   }
-                  @if (!estimate.hasConflict && (estimate.usingCount + estimate.reservedCount + estimate.pendingCount > 0)) {
-                    <p>{{ estimate.usingCount }} in use, {{ estimate.reservedCount }} confirmed, and {{ estimate.pendingCount }} pending checkout(s) overlap the selected period.</p>
-                  }
+                </div>
+              </header>
+              @if (bookingEstimateLoading()) {
+                <p class="estimate-message">Checking the fleet for your selected rental period…</p>
+              } @else if (bookingEstimateError()) {
+                <p class="estimate-message">{{ bookingEstimateError() }} Your booking cannot continue until availability is checked.</p>
+                <button class="estimate-retry" type="button" (click)="refreshBookingEstimate()">Check availability again</button>
+              } @else if (bookingEstimate(); as estimate) {
+                @if (!estimate.hasConflict) {
+                  <div class="availability-hero">
+                    <strong>{{ estimate.availableQuantity }}</strong>
+                    <span>of {{ estimate.totalQuantity }} units available</span>
+                  </div>
+                  <div
+                    class="availability-meter"
+                    role="meter"
+                    [attr.aria-valuenow]="estimate.availableQuantity"
+                    [attr.aria-valuemin]="0"
+                    [attr.aria-valuemax]="estimate.totalQuantity"
+                    aria-label="Available vehicles for selected dates">
+                    <span [style.width.%]="estimate.totalQuantity ? estimate.availableQuantity / estimate.totalQuantity * 100 : 0"></span>
+                  </div>
+                  <p class="estimate-message">Availability across your selected rental dates.</p>
+                } @else {
+                  <p class="estimate-message">All {{ estimate.totalQuantity }} units are booked during part of your selected rental period. Try adjusting your dates.</p>
                 }
-              </div>
+                @if (estimate.usingCount + estimate.reservedCount + estimate.pendingCount > 0) {
+                  <div class="overlap-summary">
+                    <span class="overlap-label">At the busiest point in your trip</span>
+                    <div class="overlap-counts" aria-label="Vehicles already booked">
+                      <span><strong>{{ estimate.usingCount }}</strong> in use</span>
+                      <span><strong>{{ estimate.reservedCount }}</strong> confirmed</span>
+                      <span><strong>{{ estimate.pendingCount }}</strong> checkout holds</span>
+                    </div>
+                  </div>
+                }
+                @if (!estimate.hasConflict && estimate.historicalSignalPercent !== null) {
+                  <p class="historical-signal">{{ estimate.historicalSignalPercent }}% historical booking signal for similar weekdays.</p>
+                }
+                @if (estimate.pendingCount > 0) {
+                  <small class="estimate-footnote">Checkout holds expire after 10 minutes. Customer details are private.</small>
+                }
+              }
             </section>
           }
 

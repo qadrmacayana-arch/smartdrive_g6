@@ -120,6 +120,7 @@
 .google-button { --background: #fff; --background-hover: #faf8ff; --border-radius: 13px; --border-color: #e4deec; --color: #41364f; }
 .google-button ion-icon { font-size: 1rem; }
 .auth-alert { display: flex; align-items: flex-start; gap: .55rem; padding: .72rem .8rem; border: 1px solid #f2d4d7; border-radius: .75rem; background: #fff6f6; color: #b42335; font-size: .72rem; line-height: 1.5; }
+.auth-alert.success { border-color: #b7ebd5; background: #f0fff7; color: #087443; }
 .auth-alert ion-icon { flex: 0 0 auto; margin-top: .05rem; font-size: 1rem; }
 
 .form-footer { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .3rem; padding: 1.2rem .8rem 0; margin-top: 1.5rem; border-top: 1px solid #eeeaf4; color: var(--sd-muted-foreground); font-size: .72rem; text-align: center; }

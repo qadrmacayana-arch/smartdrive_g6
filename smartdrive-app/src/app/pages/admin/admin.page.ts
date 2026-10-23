@@ -45,6 +45,7 @@ interface VehicleAvailability {
   using: Booking[];
   reserved: Booking[];
   pending: Booking[];
+  availableUnits: number;
 }
 interface AdminUser {
   id: string;
@@ -96,6 +97,7 @@ interface AdminPromo {
 interface VehicleEditDraft {
   id: number;
   plate_number: string;
+  fleet_quantity: number;
   name: string;
   type: string;
   main_category: string;
@@ -176,20 +178,26 @@ export class AdminPage implements OnDestroy, OnInit {
       .filter((vehicle) => vehicle.status !== 'archived')
       .map((vehicle) => {
         const vehicleBookings = eligible.filter((booking) => booking.vehicle_id === vehicle.id);
+        const using = vehicleBookings.filter((booking) =>
+          booking.booking_status === 'ongoing' && booking.payment_status === 'completed',
+        );
+        const reserved = vehicleBookings.filter((booking) =>
+          booking.booking_status === 'confirmed' && booking.payment_status === 'completed',
+        );
+        const pending = vehicleBookings.filter((booking) =>
+          booking.booking_status === 'confirmed'
+          && booking.payment_status === 'pending'
+          && booking.created_at != null
+          && Date.parse(booking.created_at) > now - 10 * 60 * 1000,
+        );
         return {
           vehicle,
-          using: vehicleBookings.filter((booking) =>
-            booking.booking_status === 'ongoing' && booking.payment_status === 'completed',
-          ),
-          reserved: vehicleBookings.filter((booking) =>
-            booking.booking_status === 'confirmed' && booking.payment_status === 'completed',
-          ),
-          pending: vehicleBookings.filter((booking) =>
-            booking.booking_status === 'confirmed'
-            && booking.payment_status === 'pending'
-            && booking.created_at != null
-            && Date.parse(booking.created_at) > now - 10 * 60 * 1000,
-          ),
+          using,
+          reserved,
+          pending,
+          availableUnits: vehicle.status === 'available'
+            ? Math.max(0, Number(vehicle.fleet_quantity ?? 1) - using.length - reserved.length - pending.length)
+            : 0,
         };
       });
   });
@@ -345,6 +353,7 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly newVehicle = {
     vehicle_id: '',
     plate_number: '',
+    fleet_quantity: 1,
     name: '',
     type: '',
     main_category: 'Cars',
@@ -1031,12 +1040,13 @@ export class AdminPage implements OnDestroy, OnInit {
       ...this.newVehicle,
       vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
       plate_number: this.newVehicle.plate_number.trim().toUpperCase(),
+      fleet_quantity: Number(this.newVehicle.fleet_quantity),
       name: this.newVehicle.name.trim(),
       type: this.newVehicle.type.trim(),
       main_category: this.newVehicle.main_category.trim(),
     };
-    if (!vehicle.vehicle_id || !vehicle.plate_number || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0) {
-      this.errorMessage.set('Enter a unique vehicle ID and plate number, name, type, category, and a positive daily rate.');
+    if (!vehicle.vehicle_id || !vehicle.plate_number || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0 || !Number.isInteger(vehicle.fleet_quantity) || vehicle.fleet_quantity < 1) {
+      this.errorMessage.set('Enter a unique vehicle ID and plate number, name, type, category, a positive daily rate, and a quantity of at least 1.');
       return;
     }
     this.errorMessage.set(null);
@@ -1051,6 +1061,7 @@ export class AdminPage implements OnDestroy, OnInit {
     Object.assign(this.newVehicle, {
       vehicle_id: '',
       plate_number: '',
+      fleet_quantity: 1,
       name: '',
       type: '',
       main_category: 'Cars',
@@ -1065,6 +1076,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.editingVehicle.set({
       id: vehicle.id,
       plate_number: vehicle.plate_number ?? '',
+      fleet_quantity: Number(vehicle.fleet_quantity ?? 1),
       name: vehicle.name,
       type: vehicle.type,
       main_category: vehicle.main_category,
@@ -1095,8 +1107,9 @@ export class AdminPage implements OnDestroy, OnInit {
     const mainCategory = draft.main_category.trim();
     const price = Number(draft.price);
     const seats = Number(draft.seats);
-    if (!name || !type || !mainCategory || !Number.isFinite(price) || price <= 0 || !Number.isInteger(seats) || seats < 1) {
-      this.vehicleEditError.set('Enter a name, type, category, positive daily rate, and seat capacity of at least 1.');
+    const fleetQuantity = Number(draft.fleet_quantity);
+    if (!name || !type || !mainCategory || !Number.isFinite(price) || price <= 0 || !Number.isInteger(seats) || seats < 1 || !Number.isInteger(fleetQuantity) || fleetQuantity < 1) {
+      this.vehicleEditError.set('Enter a name, type, category, positive daily rate, seat capacity of at least 1, and fleet quantity of at least 1.');
       return;
     }
 
@@ -1105,6 +1118,7 @@ export class AdminPage implements OnDestroy, OnInit {
     try {
       const updates = {
         plate_number: plateNumber || null,
+        fleet_quantity: fleetQuantity,
         name,
         type,
         main_category: mainCategory,

@@ -73,28 +73,32 @@ Deno.serve(async (request) => {
   try {
     input = await request.json();
   } catch {
-    return response({ error: 'Invalid checkout details.' }, 400);
+    return response({ error: 'Checkout request body must be valid JSON.' }, 400);
   }
-  if (
-    !input
-    || !Number.isSafeInteger(input?.vehicleId)
-    || !['credit-card', 'gcash', 'maya'].includes(input?.paymentMethod)
-    || typeof input.isPwd !== 'boolean'
-    || typeof input.pickupDate !== 'string'
-    || typeof input.returnDate !== 'string'
-    || typeof input.pickupLocation !== 'string'
-    || typeof input.customerName !== 'string'
-    || typeof input.customerEmail !== 'string'
-    || typeof input.customerPhone !== 'string'
-    || (input.customerAddress != null && typeof input.customerAddress !== 'string')
-    || !Number.isInteger(input.driverAge)
-    || input.driverAge < 18
-    || input.driverAge > 100
-    || input.bookingConditionsAccepted !== true
-    || (input.promoCode !== null && typeof input.promoCode !== 'string')
-    || (input.returnToApp !== undefined && typeof input.returnToApp !== 'boolean')
-  ) {
-    return response({ error: 'Invalid checkout details.' }, 400);
+  const invalidFields = [
+    !input || !Number.isSafeInteger(input?.vehicleId) ? 'vehicleId' : null,
+    !input || !['credit-card', 'gcash', 'maya'].includes(input?.paymentMethod) ? 'paymentMethod' : null,
+    !input || typeof input.isPwd !== 'boolean' ? 'isPwd' : null,
+    !input || typeof input.pickupDate !== 'string' ? 'pickupDate' : null,
+    !input || typeof input.returnDate !== 'string' ? 'returnDate' : null,
+    !input || typeof input.pickupLocation !== 'string' ? 'pickupLocation' : null,
+    !input || typeof input.customerName !== 'string' ? 'customerName' : null,
+    !input || typeof input.customerEmail !== 'string' ? 'customerEmail' : null,
+    !input || typeof input.customerPhone !== 'string' ? 'customerPhone' : null,
+    !input || (input.customerAddress != null && typeof input.customerAddress !== 'string')
+      ? 'customerAddress'
+      : null,
+    !input || !Number.isInteger(input.driverAge) || input.driverAge < 18 || input.driverAge > 100
+      ? 'driverAge'
+      : null,
+    !input || input.bookingConditionsAccepted !== true ? 'bookingConditionsAccepted' : null,
+    !input || (input.promoCode !== null && typeof input.promoCode !== 'string') ? 'promoCode' : null,
+    !input || (input.returnToApp !== undefined && typeof input.returnToApp !== 'boolean')
+      ? 'returnToApp'
+      : null,
+  ].filter((field): field is string => field !== null);
+  if (invalidFields.length) {
+    return response({ error: `Invalid checkout details: ${invalidFields.join(', ')}.` }, 400);
   }
   const days = rentalDays(input.pickupDate, input.returnDate);
   const today = new Date().toISOString().slice(0, 10);

@@ -38,14 +38,17 @@ export class VehicleService {
       .order('is_featured', { ascending: false })
       .order('name', { ascending: true });
     if (!error && data?.length) {
-      localStorage.setItem('fleetData', JSON.stringify(data));
-      return data as Vehicle[];
+      const vehicles = await this.withCurrentAvailability(data as Vehicle[]);
+      localStorage.setItem('fleetData', JSON.stringify(vehicles));
+      return vehicles;
     }
 
     try {
       const stored = JSON.parse(localStorage.getItem('fleetData') || '[]');
       if (Array.isArray(stored) && stored.length) {
-        return stored.filter((vehicle) => vehicle.status !== 'archived') as Vehicle[];
+        return this.withCurrentAvailability(
+          stored.filter((vehicle) => vehicle.status !== 'archived') as Vehicle[],
+        );
       }
     } catch {
       localStorage.removeItem('fleetData');
@@ -60,15 +63,66 @@ export class VehicleService {
       .select('*')
       .eq('id', id)
       .maybeSingle();
-    if (!error && data) return data as Vehicle;
+    if (!error && data) {
+      const [vehicle] = await this.withCurrentAvailability([data as Vehicle]);
+      return vehicle;
+    }
+    let cachedVehicle: Vehicle | null = null;
     try {
       const stored = JSON.parse(localStorage.getItem('fleetData') || '[]');
-      const vehicle = Array.isArray(stored) ? stored.find((item) => Number(item.id) === id || String(item.vehicle_id) === String(id)) : null;
-      if (vehicle) return vehicle as Vehicle;
+      const vehicle = Array.isArray(stored)
+        ? stored.find((item) => Number(item.id) === id || String(item.vehicle_id) === String(id))
+        : null;
+      if (vehicle) cachedVehicle = vehicle as Vehicle;
     } catch {
       localStorage.removeItem('fleetData');
     }
+    if (cachedVehicle) {
+      const [currentVehicle] = await this.withCurrentAvailability([cachedVehicle]);
+      return currentVehicle;
+    }
     if (error) throw new Error(error.message);
     return null;
+  }
+
+  private async withCurrentAvailability(vehicles: Vehicle[]): Promise<Vehicle[]> {
+    const { data, error } = await this.supabase.client.rpc('get_current_vehicle_availability');
+    if (error) throw new Error(`Could not load current vehicle availability: ${error.message}`);
+    if (!Array.isArray(data)) throw new Error('Current vehicle availability returned an unexpected response.');
+
+    const availability = new Map<number, { fleetQuantity: number; availableQuantity: number }>();
+    for (const row of data) {
+      if (
+        !row
+        || typeof row !== 'object'
+        || !('vehicle_id' in row)
+        || !('fleet_quantity' in row)
+        || !('available_quantity' in row)
+        || !Number.isInteger(row.vehicle_id)
+        || !Number.isInteger(row.fleet_quantity)
+        || !Number.isInteger(row.available_quantity)
+        || Number(row.fleet_quantity) < 1
+        || Number(row.available_quantity) < 0
+        || Number(row.available_quantity) > Number(row.fleet_quantity)
+      ) {
+        throw new Error('Current vehicle availability returned invalid values.');
+      }
+      availability.set(Number(row.vehicle_id), {
+        fleetQuantity: Number(row.fleet_quantity),
+        availableQuantity: Number(row.available_quantity),
+      });
+    }
+
+    return vehicles.map((vehicle) => {
+      const currentAvailability = availability.get(vehicle.id);
+      if (!currentAvailability) {
+        throw new Error(`Current availability was not returned for ${vehicle.name}.`);
+      }
+      return {
+        ...vehicle,
+        fleet_quantity: currentAvailability.fleetQuantity,
+        available_quantity: currentAvailability.availableQuantity,
+      };
+    });
   }
 }

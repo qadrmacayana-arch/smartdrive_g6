@@ -13,6 +13,8 @@ export interface Vehicle {
   transmission: string;
   fuel: string;
   seats: number;
+  fleet_quantity: number;
+  available_quantity?: number;
   status: 'available' | 'booked' | 'maintenance' | 'archived';
   is_featured: boolean;
   created_at?: string | null;

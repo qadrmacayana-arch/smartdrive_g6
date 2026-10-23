@@ -35,6 +35,11 @@ export const routes: Routes = [
       import('./pages/auth/forgot-password/forgot-password.page').then((m) => m.ForgotPasswordPage),
   },
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./pages/auth/reset-password/reset-password.page').then((m) => m.ResetPasswordPage),
+  },
+  {
     path: 'services',
     canActivate: [customerGuard],
     loadComponent: () => import('./pages/services/services.page').then((m) => m.ServicesPage),
