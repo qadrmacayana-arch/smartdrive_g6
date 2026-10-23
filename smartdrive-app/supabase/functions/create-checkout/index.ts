@@ -169,29 +169,48 @@ Deno.serve(async (request) => {
   });
   const { data: vehicle, error: vehicleError } = await admin
     .from('vehicles')
-    .select('id,name,price,status')
+    .select('id,name,price,status,fleet_quantity')
     .eq('id', input.vehicleId)
     .maybeSingle();
   if (vehicleError || !vehicle || vehicle.status !== 'available') {
     if (vehicleError) console.error('Unable to verify checkout vehicle.', vehicleError);
     return response({ error: 'This vehicle is not currently available.' }, 409);
   }
+  const fleetQuantity = Number(vehicle.fleet_quantity);
+  if (!Number.isSafeInteger(fleetQuantity) || fleetQuantity < 1) {
+    console.error('Vehicle has an invalid fleet quantity.', { vehicleId: vehicle.id });
+    return response({ error: 'Unable to verify vehicle availability.' }, 500);
+  }
 
   const pendingHoldCutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const { data: conflicts, error: conflictError } = await admin
+  const { data: overlappingBookings, error: conflictError } = await admin
     .from('bookings')
-    .select('id')
+    .select('pickup_date,return_date')
     .eq('vehicle_id', vehicle.id)
     .in('booking_status', ['confirmed', 'ongoing'])
     .or(`payment_status.eq.completed,and(payment_status.eq.pending,created_at.gt.${pendingHoldCutoff})`)
     .lt('pickup_date', input.returnDate)
-    .gt('return_date', input.pickupDate)
-    .limit(1);
+    .gt('return_date', input.pickupDate);
   if (conflictError) {
     console.error('Unable to verify vehicle availability.', conflictError);
     return response({ error: 'Unable to verify vehicle availability.' }, 500);
   }
-  if (conflicts?.length) return response({ error: 'This vehicle is no longer available for those dates.' }, 409);
+  const bookings: Array<{ pickup_date: string; return_date: string }> = overlappingBookings ?? [];
+  const candidatePickupDates = new Set([
+    input.pickupDate,
+    ...bookings
+      .map((booking) => booking.pickup_date)
+      .filter((pickupDate) => pickupDate >= input.pickupDate && pickupDate < input.returnDate),
+  ]);
+  const peakOccupancy = Math.max(
+    0,
+    ...[...candidatePickupDates].map((date) =>
+      bookings.filter((booking) => booking.pickup_date <= date && booking.return_date > date).length,
+    ),
+  );
+  if (peakOccupancy >= fleetQuantity) {
+    return response({ error: 'This vehicle is no longer available for those dates.' }, 409);
+  }
 
   const subtotal = money(Number(vehicle.price) * days);
   const options: Array<{ amount: number; label: string; priority: number }> = [
