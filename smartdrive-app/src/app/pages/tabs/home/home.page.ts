@@ -128,6 +128,11 @@ export class HomePage implements OnInit {
   });
 
   readonly featuredVehicles = computed(() => this.vehicles().filter((v) => v.is_featured).slice(0, 6));
+  readonly heroVehicle = computed(() =>
+    this.filteredVehicles().find((vehicle) => vehicle.is_featured)
+    ?? this.filteredVehicles()[0]
+    ?? null,
+  );
 
   constructor() {
     effect(() => {

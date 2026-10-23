@@ -8,13 +8,13 @@
 }
 
 .home { width: min(1240px,100%); min-height: 100%; box-sizing: border-box; padding: 1.05rem clamp(1rem,3vw,2rem) 3rem; margin: 0 auto; color: var(--home-ink); }
-.hero-card { position: relative; overflow: hidden; padding: clamp(1.5rem,4vw,3rem); border: 1px solid #573596; border-radius: 1.2rem; background: linear-gradient(115deg,#321d5c 0%,#592ca0 58%,#7c3aed 100%); box-shadow: 0 18px 44px rgba(76,29,149,.18); }
-.hero-card::after { position: absolute; top: -9rem; right: 8%; width: 22rem; height: 22rem; border: 1px solid rgba(255,255,255,.12); border-radius: 50%; box-shadow: 0 0 0 2.4rem rgba(255,255,255,.035),0 0 0 5rem rgba(255,255,255,.025); content: ''; pointer-events: none; }
+.hero-card { display: grid; position: relative; grid-template-columns: minmax(0,1.25fr) minmax(250px,.75fr); align-items: center; gap: clamp(1.25rem,3vw,2.5rem); overflow: hidden; padding: clamp(1.5rem,4vw,3rem); border: 1px solid #573596; border-radius: 1.2rem; background: linear-gradient(115deg,#321d5c 0%,#592ca0 58%,#7c3aed 100%); box-shadow: 0 18px 44px rgba(76,29,149,.18); }
+.hero-copy { position: relative; z-index: 1; min-width: 0; }
 .hero-kicker { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: .42rem; padding: .38rem .62rem; border: 1px solid rgba(255,255,255,.24); border-radius: 99px; background: rgba(255,255,255,.11); color: #f1e8ff; font-size: .63rem; font-weight: 700; }
 .hero-kicker ion-icon { font-size: .85rem; }
-.hero-card h1 { position: relative; z-index: 1; max-width: 680px; margin: 1rem 0 .65rem; color: white; font: 800 clamp(2rem,5vw,3.35rem)/1.05 'Sora',sans-serif; letter-spacing: -.065em; }
-.hero-card > p { position: relative; z-index: 1; max-width: 610px; margin: 0; color: rgba(255,255,255,.8); font-size: .85rem; line-height: 1.65; }
-.booking-bar { position: relative; z-index: 1; display: flex; max-width: 760px; gap: .5rem; margin-top: 1.45rem; padding: .45rem; border: 1px solid rgba(255,255,255,.2); border-radius: .85rem; background: rgba(255,255,255,.13); backdrop-filter: blur(8px); }
+.hero-copy h1 { position: relative; z-index: 1; max-width: 680px; margin: 1rem 0 .65rem; color: white; font: 800 clamp(2rem,5vw,3.35rem)/1.05 'Sora',sans-serif; letter-spacing: -.065em; }
+.hero-copy > p { position: relative; z-index: 1; max-width: 610px; margin: 0; color: rgba(255,255,255,.8); font-size: .85rem; line-height: 1.65; }
+.booking-bar { position: relative; z-index: 1; display: flex; width: 100%; max-width: 760px; box-sizing: border-box; gap: .5rem; margin-top: 1.45rem; padding: .45rem; border: 1px solid rgba(255,255,255,.2); border-radius: .85rem; background: rgba(255,255,255,.13); backdrop-filter: blur(8px); }
 .booking-input { display: flex; min-width: 0; min-height: 2.9rem; align-items: center; gap: .5rem; padding: 0 .65rem; border: 1px solid transparent; border-radius: .55rem; background: var(--sd-card); color: var(--home-muted); }
 .booking-input:focus-within { border-color: #c6aaf9; box-shadow: 0 0 0 3px rgba(255,255,255,.18); }
 .booking-input ion-icon { flex: 0 0 auto; color: var(--home-purple); font-size: 1rem; }
@@ -25,6 +25,31 @@
 .booking-bar > button { display: inline-flex; flex: 0 0 auto; min-height: 2.9rem; align-items: center; justify-content: center; gap: .42rem; padding: 0 1rem; border: 0; border-radius: .55rem; background: #20123d; color: white; font: 750 .72rem 'Plus Jakarta Sans',sans-serif; cursor: pointer; transition: background .16s,transform .16s; }
 .booking-bar > button:hover { transform: translateY(-1px); background: #140b29; }
 .booking-bar > button ion-icon { font-size: .95rem; }
+.hero-vehicle-card { display: grid; position: relative; z-index: 1; width: 100%; min-width: 0; justify-self: end; overflow: hidden; padding: 0; border: 1px solid rgba(255,255,255,.55); border-radius: 1rem; background: #fff; box-shadow: 0 18px 36px rgba(24,12,42,.25); color: var(--home-ink); text-align: left; cursor: pointer; transition: transform .18s ease,box-shadow .18s ease; }
+.hero-vehicle-card:hover { transform: translateY(-3px); box-shadow: 0 22px 42px rgba(24,12,42,.3); }
+.hero-vehicle-card:focus-visible,.hero-discovery-card:focus-visible { outline: 3px solid #e7d8ff; outline-offset: 4px; }
+.hero-vehicle-photo { position: relative; display: block; height: 190px; overflow: hidden; background: linear-gradient(145deg,#eee6ff,#d8cdf0); }
+.hero-vehicle-photo > img { width: 100%; height: 100%; object-fit: cover; }
+.hero-vehicle-placeholder { display: grid; width: 100%; height: 100%; place-items: center; color: #8153c8; }
+.hero-vehicle-placeholder ion-icon { font-size: 4rem; }
+.hero-vehicle-tag { position: absolute; top: .75rem; left: .75rem; display: inline-flex; align-items: center; gap: .3rem; padding: .35rem .55rem; border: 1px solid rgba(255,255,255,.55); border-radius: 99px; background: rgba(48,27,83,.82); color: #fff; font-size: .55rem; font-weight: 800; letter-spacing: .06em; backdrop-filter: blur(8px); }
+.hero-vehicle-tag ion-icon { font-size: .72rem; }
+.hero-vehicle-details { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .65rem; padding: .8rem .9rem .45rem; }
+.hero-vehicle-description { display: grid; min-width: 0; gap: .15rem; }
+.hero-vehicle-description small { overflow: hidden; color: var(--home-muted); font-size: .6rem; text-overflow: ellipsis; white-space: nowrap; }
+.hero-vehicle-description strong { overflow: hidden; color: var(--home-ink); font: 750 .9rem 'Sora',sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+.hero-vehicle-price { display: flex; flex: 0 0 auto; align-items: baseline; gap: .2rem; color: var(--home-purple); }
+.hero-vehicle-price strong { font: 800 .9rem 'Sora',sans-serif; }
+.hero-vehicle-price small { color: var(--home-muted); font-size: .59rem; }
+.hero-vehicle-link { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .9rem .75rem; color: var(--home-purple); font-size: .66rem; font-weight: 800; }
+.hero-vehicle-link ion-icon { font-size: .82rem; transition: transform .16s ease; }
+.hero-vehicle-card:hover .hero-vehicle-link ion-icon,.hero-discovery-card:hover .hero-vehicle-link ion-icon { transform: translateX(3px); }
+.hero-discovery-card { display: grid; position: relative; z-index: 1; align-content: center; justify-items: start; gap: .55rem; min-height: 270px; padding: 1.25rem; border: 1px solid rgba(255,255,255,.28); border-radius: 1rem; background: rgba(255,255,255,.1); color: #fff; text-decoration: none; backdrop-filter: blur(8px); }
+.hero-discovery-icons { display: flex; gap: .5rem; margin-bottom: .3rem; }
+.hero-discovery-icons ion-icon { display: grid; width: 2.5rem; height: 2.5rem; padding: .55rem; border-radius: .75rem; background: rgba(255,255,255,.14); color: #f1e8ff; font-size: 1.3rem; }
+.hero-discovery-card > strong { max-width: 15ch; font: 750 1.12rem/1.3 'Sora',sans-serif; }
+.hero-discovery-card > span:not(.hero-discovery-icons):not(.hero-vehicle-link) { color: rgba(255,255,255,.76); font-size: .72rem; }
+.hero-discovery-card .hero-vehicle-link { padding: .3rem 0 0; color: #f1e8ff; }
 
 .categories { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .75rem; margin: 1rem 0 1.8rem; }
 .categories button { display: grid; grid-template-columns: 2.65rem minmax(0,1fr); align-items: center; gap: .12rem .75rem; min-height: 76px; padding: .8rem .9rem; border: 1px solid var(--home-line); border-radius: .85rem; background: var(--sd-card); color: var(--home-ink); text-align: left; cursor: pointer; transition: border .16s,background .16s,transform .16s,box-shadow .16s; }
@@ -99,12 +124,17 @@
   .specs { gap: .25rem; }
   .specs span { padding-inline: .32rem; font-size: .52rem; }
 }
+@media (max-width: 860px) {
+  .hero-card { grid-template-columns: minmax(0,1fr); gap: 1.25rem; }
+  .hero-vehicle-card,.hero-discovery-card { width: min(100%, 460px); justify-self: start; }
+  .hero-vehicle-photo { height: clamp(170px, 34vw, 230px); }
+  .hero-discovery-card { min-height: 210px; }
+}
 @media (max-width: 700px) {
   .home { padding: .65rem .85rem 2rem; }
   .hero-card { padding: 1.55rem 1.25rem; border-radius: 1rem; }
-  .hero-card h1 { max-width: 18ch; font-size: clamp(1.8rem,8vw,2.5rem); }
-  .hero-card > p { max-width: 500px; font-size: .75rem; }
-  .hero-card::after { right: -11rem; opacity: .65; }
+  .hero-copy h1 { max-width: 18ch; font-size: clamp(1.8rem,8vw,2.5rem); }
+  .hero-copy > p { max-width: 500px; font-size: .75rem; }
   .booking-bar { flex-wrap: wrap; padding: .4rem; }
   .location-input { flex: 1 1 100%; }
   .date-input { flex: 1 1 130px; }
