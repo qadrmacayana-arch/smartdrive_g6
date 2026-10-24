@@ -181,9 +181,14 @@ tbody tr:hover { background: #fafcfb; }
 .status-pill.pending { background: #fff5e8; color: #a96b19; }
 .booking-status-cell { display: grid; justify-items: start; gap: .42rem; }
 .booking-status-cell .cell-subtitle { margin-top: 0; }
-.booking-actions-cell { min-width: 8.5rem; }
+.booking-actions-cell { min-width: 14rem; vertical-align: top; }
+.booking-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: .4rem; }
+.booking-actions > .booking-action-primary,.booking-actions > .booking-action-note { grid-column: 1 / -1; }
+.booking-actions > .danger { width: 100%; min-height: 1.9rem; margin: 0; padding: .38rem .45rem; white-space: nowrap; }
+.booking-action-note { display: block; margin: -.1rem 0 0; color: #879395; font-size: .62rem; line-height: 1.4; }
+.booking-action-secondary { width: 100%; margin: 0; padding: .38rem .4rem; white-space: nowrap; }
 .booking-action-empty { color: #a0acab; }
-.booking-return-action { width: fit-content; min-height: 1.8rem; margin: 0; padding: .35rem .55rem; border-color: #cfe5d8; background: #e8f5ed; color: #277b50; white-space: nowrap; }
+.booking-return-action { width: 100%; min-height: 1.9rem; margin: 0; padding: .38rem .45rem; border-color: #cfe5d8; background: #e8f5ed; color: #277b50; white-space: nowrap; }
 .booking-return-action ion-icon { font-size: .85rem; }
 .booking-return-action:hover { border-color: #b7dac7; background: #d9eee2; }
 .booking-return-action:focus-visible { outline: 3px solid rgba(39,123,80,.22); outline-offset: 2px; }

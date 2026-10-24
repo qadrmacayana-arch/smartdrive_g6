@@ -477,30 +477,32 @@
                   </div>
                 </td>
                 <td class="booking-actions-cell">
-                  @if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
-                    @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
-                      <button class="table-action booking-return-action" type="button" [disabled]="!pickupDocumentsComplete(booking)" (click)="reviewPwdSeniorCashback(booking, true)">
-                        <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
-                        Verify ID & credit
-                      </button>
-                      @if (!pickupDocumentsComplete(booking)) {
-                        <small class="cell-subtitle">Check all required documents first</small>
+                  <div class="booking-actions">
+                    @if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
+                      @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
+                        <button class="table-action booking-return-action booking-action-primary" type="button" [disabled]="!pickupDocumentsComplete(booking)" (click)="reviewPwdSeniorCashback(booking, true)">
+                          <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+                          Verify ID &amp; credit
+                        </button>
+                        @if (!pickupDocumentsComplete(booking)) {
+                          <small class="booking-action-note">Check all required documents first</small>
+                        }
+                        <button class="table-action danger" type="button" (click)="reviewPwdSeniorCashback(booking, false)">Decline claim</button>
+                      } @else {
+                        <small class="booking-action-note">Verify ID at pickup</small>
                       }
-                      <button class="table-action danger" type="button" (click)="reviewPwdSeniorCashback(booking, false)">Decline claim</button>
-                    } @else {
-                      <small class="cell-subtitle">Verify ID at pickup</small>
+                    } @else if (booking.pwd_senior_cashback_status === 'credited') {
+                      <small class="booking-action-note">Cashback credited to SR Wallet</small>
                     }
-                  } @else if (booking.pwd_senior_cashback_status === 'credited') {
-                    <small class="cell-subtitle">Cashback credited to SR Wallet</small>
-                  }
-                  @if (booking.booking_status === 'ongoing') {
-                    <button class="table-action booking-return-action" type="button" (click)="updateBookingStatus(booking, 'completed')">
-                      <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
-                      Mark returned
-                    </button>
-                  } @else {
-                    <span class="booking-action-empty" aria-label="No action required">—</span>
-                  }
+                    @if (booking.booking_status === 'ongoing') {
+                      <button class="table-action booking-return-action booking-action-secondary" type="button" (click)="updateBookingStatus(booking, 'completed')">
+                        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+                        Mark returned
+                      </button>
+                    } @else if (!booking.is_pwd_senior || booking.pwd_senior_cashback_status !== 'pending_verification') {
+                      <span class="booking-action-empty" aria-label="No action required">—</span>
+                    }
+                  </div>
                 </td>
               </tr>
             } @empty { <tr><td colspan="9" class="empty">No bookings match the current search and filters.</td></tr> }
