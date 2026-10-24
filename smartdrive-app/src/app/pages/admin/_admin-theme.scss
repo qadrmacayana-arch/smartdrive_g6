@@ -223,6 +223,7 @@ tbody tr:hover { background: #fafcfb; }
 .secondary-action { min-height: 2.45rem; padding: .55rem .8rem; border-color: var(--admin-border); background: #fff; color: #506064; }
 .secondary-action:hover { border-color: #c4d8cf; color: var(--admin-green); }
 .cell-subtitle { display: block; margin-top: .2rem; color: #879395; font-size: .65rem; }
+.payment-id { max-width: 14rem; overflow-wrap: anywhere; white-space: normal; }
 .date-separator { padding: 0 .15rem; color: #9eaaa7; }
 .customer-cell-avatar,.vehicle-cell-icon { display: inline-grid; width: 1.85rem; height: 1.85rem; margin-right: .5rem; vertical-align: middle; place-items: center; border-radius: .55rem; background: #eaf3ef; color: var(--admin-green-dark); font-size: .7rem; }
 .vehicle-cell-icon ion-icon { font-size: 1rem; }
