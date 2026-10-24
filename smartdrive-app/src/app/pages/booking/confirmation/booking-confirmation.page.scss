@@ -270,7 +270,7 @@
 
 .ref-card {
   text-align: center;
-  padding: 1.25rem 1rem;
+  padding: 1.5rem 1.25rem;
   margin-bottom: 1rem;
   overflow-wrap: anywhere;
   border: 1px dashed color-mix(in srgb, var(--receipt-accent) 55%, var(--sd-border));
@@ -278,47 +278,84 @@
   background: linear-gradient(135deg, var(--sd-card), var(--receipt-tint));
 
   span {
-    font-size: 0.78rem;
+    font-size: 0.85rem;
   }
 
   h2 {
-    margin: 0.35rem 0 0;
+    margin: 0.55rem 0 0;
     font-family: monospace;
-    font-size: 1.3rem;
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
     letter-spacing: 0.05em;
     color: var(--receipt-accent);
+  }
+
+  p {
+    max-width: 34rem;
+    margin: 0.9rem auto 0;
+    font-size: 0.88rem;
+    line-height: 1.6;
   }
 }
 
 .detail-card {
-  padding: 1rem;
+  padding: 1.35rem 1.25rem;
   margin-bottom: 1.5rem;
   border-radius: 1.1rem;
   box-shadow: var(--sd-shadow-md);
 }
 
+.detail-heading {
+  margin: 0 0 0.55rem;
+  color: var(--sd-heading);
+  font-family: 'Sora', sans-serif;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.rental-section-heading {
+  margin-top: 1.35rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--sd-border);
+}
+
 .detail-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.8fr) minmax(0, 1.2fr);
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.5rem 0;
+  gap: 0.85rem;
+  padding: 0.7rem 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
 
   > * {
     min-width: 0;
   }
 
+  > span {
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+
   strong {
     text-align: right;
     overflow-wrap: anywhere;
+    font-size: 0.9rem;
+    font-weight: 650;
   }
 
   &.total {
     border-top: 1px dashed color-mix(in srgb, var(--receipt-accent) 35%, var(--sd-border));
-    margin-top: 0.4rem;
-    padding-top: 0.85rem;
+    margin-top: 0.65rem;
+    padding-top: 1rem;
     font-weight: 800;
     color: var(--receipt-accent);
+    font-size: 1rem;
+
+    strong {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
   }
 }
 
@@ -373,7 +410,8 @@ ion-button {
   }
 
   .detail-row {
-    gap: 0.6rem;
-    font-size: 0.82rem;
+    grid-template-columns: minmax(5.75rem, 0.75fr) minmax(0, 1.25fr);
+    gap: 0.55rem;
+    font-size: 0.86rem;
   }
 }
