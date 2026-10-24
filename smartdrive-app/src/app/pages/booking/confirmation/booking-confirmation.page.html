@@ -187,7 +187,13 @@
         <span class="sd-muted">Payment Status</span>
         <strong>{{ b.payment_status | titlecase }}</strong>
       </div>
-      @if (b.payment_status === 'completed' && b.paymongo_payment_id) {
+      @if (b.paymongo_checkout_session_id) {
+        <div class="detail-row">
+          <span class="sd-muted">PayMongo Checkout Session ID</span>
+          <strong>{{ b.paymongo_checkout_session_id }}</strong>
+        </div>
+      }
+      @if (b.paymongo_payment_id) {
         <div class="detail-row">
           <span class="sd-muted">PayMongo Payment ID</span>
           <strong>{{ b.paymongo_payment_id }}</strong>

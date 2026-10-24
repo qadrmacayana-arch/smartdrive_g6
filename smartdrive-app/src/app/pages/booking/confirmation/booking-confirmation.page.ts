@@ -327,7 +327,10 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     addRow('Payment method', this.paymentMethodLabel(booking.payment_method));
     addRow('Processed via', this.paymentProviderLabel(booking.payment_method));
     addRow('Payment status', booking.payment_status);
-    if (booking.payment_status === 'completed' && booking.paymongo_payment_id) {
+    if (booking.paymongo_checkout_session_id) {
+      addRow('PayMongo checkout session ID', booking.paymongo_checkout_session_id);
+    }
+    if (booking.paymongo_payment_id) {
       addRow('PayMongo payment ID', booking.paymongo_payment_id);
     }
     addRow('Rental subtotal', `PHP ${Number(booking.subtotal).toLocaleString()}`);
