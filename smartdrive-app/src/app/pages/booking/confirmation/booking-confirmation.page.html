@@ -159,6 +159,12 @@
         <span class="sd-muted">Vehicle</span>
         <strong>{{ b.vehicle_name }}</strong>
       </div>
+      @if (b.vehicle_plate_number) {
+        <div class="detail-row">
+          <span class="sd-muted">Demo plate number</span>
+          <strong>{{ b.vehicle_plate_number }}</strong>
+        </div>
+      }
       <div class="detail-row">
         <span class="sd-muted">Pick-up</span>
         <strong>{{ b.pickup_date }}</strong>

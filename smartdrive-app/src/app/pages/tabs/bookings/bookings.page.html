@@ -65,6 +65,9 @@
                 <div class="booking-title">
                   <h2>{{ booking.vehicle_name }}</h2>
                   <p class="booking-trip-label">SMARTDRIVE RESERVATION</p>
+                  @if (booking.vehicle_plate_number) {
+                    <p class="booking-trip-label">Demo plate: {{ booking.vehicle_plate_number }}</p>
+                  }
                 </div>
                 <span class="status-badge" [attr.data-status]="booking.booking_status">{{ booking.booking_status }}</span>
               </div>

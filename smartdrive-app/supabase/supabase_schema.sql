@@ -442,6 +442,7 @@ create table if not exists public.bookings (
   customer_address text default null,
   vehicle_id bigint not null references public.vehicles(id) on delete cascade on update cascade,
   vehicle_name text not null,
+  vehicle_plate_number text,
   pickup_date date not null,
   return_date date not null,
   pickup_location text default null,
@@ -494,6 +495,9 @@ create table if not exists public.bookings (
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.bookings
+  add column if not exists vehicle_plate_number text;
 
 alter table public.bookings
   add column if not exists is_pwd_discount boolean not null default false,

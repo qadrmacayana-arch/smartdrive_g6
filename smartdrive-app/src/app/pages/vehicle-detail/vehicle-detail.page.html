@@ -24,6 +24,9 @@
         <div>
           <span class="type-label">{{ v.type }}</span>
           <h1>{{ v.name }}</h1>
+          @if (v.plate_number) {
+            <p class="sd-muted">Demo plate: <strong>{{ v.plate_number }}</strong></p>
+          }
         </div>
         <span class="availability" [class.unavailable]="v.status !== 'available'">
           <span class="status-dot"></span>

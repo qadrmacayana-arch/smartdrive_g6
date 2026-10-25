@@ -261,6 +261,7 @@ export class BookingService {
       customer_address: customer.address,
       vehicle_id: draft.vehicle.id,
       vehicle_name: draft.vehicle.name,
+      vehicle_plate_number: draft.vehicle.plateNumber,
       pickup_date: draft.pickupDate,
       return_date: draft.returnDate,
       pickup_location: draft.pickupLocation,

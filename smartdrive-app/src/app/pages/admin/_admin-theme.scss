@@ -209,6 +209,7 @@ tbody tr:hover { background: #fafcfb; }
 .module-title { min-width: 0; }
 .module-title h2 { display: flex; align-items: center; gap: .55rem; margin-top: .28rem; font: 720 1.15rem 'Sora',sans-serif; letter-spacing: -.04em; }
 .module-title > p { margin: .35rem 0 0; color: var(--admin-muted); font-size: .73rem; }
+.module-title > .demo-plate-note { color: #936b2c; font-size: .65rem; }
 .count-pill { display: inline-grid; min-width: 1.5rem; height: 1.35rem; place-items: center; padding: 0 .38rem; border-radius: 99px; background: #eef4f1; color: var(--admin-green-dark); font: 750 .66rem 'Plus Jakarta Sans',sans-serif; }
 .search-field { display: flex; width: min(350px,45%); min-height: 2.55rem; align-items: center; gap: .55rem; padding: 0 .75rem; border: 1px solid #e3e9e6; border-radius: .65rem; background: #fbfcfb; color: #879492; }
 .search-field:focus-within { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
@@ -254,6 +255,8 @@ tbody tr:hover { background: #fafcfb; }
 .vehicle-form { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); align-items: end; gap: .65rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e7eeea; border-radius: .75rem; background: #f8faf9; }
 .vehicle-form label,.edit-card label { display: grid; gap: .38rem; color: #617174; font-size: .67rem; font-weight: 700; }
 .vehicle-form label > span { color: #728184; }
+.vehicle-form label small { color: var(--admin-muted); font-size: .61rem; font-weight: 500; line-height: 1.4; }
+.vehicle-form label .table-action,.vehicle-edit-grid label .table-action { justify-self: start; margin: 0; }
 .vehicle-form input,.vehicle-form select,.edit-card input:not([type="checkbox"]) { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
 .vehicle-form input:focus,.vehicle-form select:focus,.edit-card input:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
 .vehicle-form .primary-action { min-height: 2.45rem; }

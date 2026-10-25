@@ -176,7 +176,7 @@ Deno.serve(async (request) => {
   });
   const { data: vehicle, error: vehicleError } = await admin
     .from('vehicles')
-    .select('id,name,price,status,fleet_quantity')
+    .select('id,name,price,status,fleet_quantity,plate_number')
     .eq('id', input.vehicleId)
     .maybeSingle();
   if (vehicleError || !vehicle || vehicle.status !== 'available') {
@@ -314,6 +314,7 @@ Deno.serve(async (request) => {
     customer_address: customerAddress || null,
     vehicle_id: vehicle.id,
     vehicle_name: vehicle.name,
+    vehicle_plate_number: vehicle.plate_number,
     pickup_date: input.pickupDate,
     return_date: input.returnDate,
     pickup_location: location,

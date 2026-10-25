@@ -320,7 +320,14 @@ export class BookingDatesPage implements OnInit {
     ) return;
 
     this.bookingService.startDraft(
-      { id: vehicle.id, name: vehicle.name, price: vehicle.price, srPoints: vehicle.sr_points, image: vehicle.image },
+      {
+        id: vehicle.id,
+        name: vehicle.name,
+        plateNumber: vehicle.plate_number ?? '',
+        price: vehicle.price,
+        srPoints: vehicle.sr_points,
+        image: vehicle.image,
+      },
       pickup,
       returnDate,
       '',

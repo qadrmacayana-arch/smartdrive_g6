@@ -469,7 +469,7 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly savingVehicleEdit = signal(false);
   readonly newVehicle = {
     vehicle_id: '',
-    plate_number: '',
+    plate_number: this.generateUniquePlateNumber(),
     fleet_quantity: 1,
     name: '',
     type: '',
@@ -728,13 +728,14 @@ export class AdminPage implements OnDestroy, OnInit {
     const bookings = this.filteredReportBookings();
     const quote = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
     const rows = [
-      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
+      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Demo plate', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
       ...bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ?? '',
         booking.customer_name,
         booking.customer_email,
         booking.vehicle_name,
+        booking.vehicle_plate_number ?? '',
         booking.pickup_date,
         booking.return_date,
         booking.booking_status,
@@ -838,17 +839,18 @@ export class AdminPage implements OnDestroy, OnInit {
     this.addPdfSection(cursor, 'Booking details');
     this.addAdminPdfTable(
       cursor,
-      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Rental dates', 'Payment', 'Total PHP'],
+      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Demo plate', 'Rental dates', 'Payment', 'Total PHP'],
       bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ? new Date(booking.created_at).toLocaleDateString() : '—',
         `${booking.customer_name}\n${booking.customer_email}`,
         booking.vehicle_name,
+        booking.vehicle_plate_number || '—',
         `${booking.pickup_date} – ${booking.return_date}`,
         `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
         Number(booking.total_price ?? 0).toFixed(2),
       ]),
-      [0.13, 0.1, 0.2, 0.15, 0.15, 0.16, 0.11],
+      [0.12, 0.09, 0.18, 0.14, 0.12, 0.14, 0.12, 0.09],
     );
 
     this.saveAdminPdf(cursor, `SmartDrive-business-report-${this.reportPeriod()}`);
@@ -912,17 +914,18 @@ export class AdminPage implements OnDestroy, OnInit {
       this.addPdfSection(cursor, 'Booking payments');
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Vehicle', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
+        ['Reference', 'Vehicle', 'Demo plate', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
         summary.bookings.map((booking) => [
           booking.reference_number,
           booking.vehicle_name,
+          booking.vehicle_plate_number || '—',
           `${booking.pickup_date} – ${booking.return_date}`,
           this.paymentMethod(booking.payment_method),
           booking.payment_status,
           booking.booking_status,
           Number(booking.total_price ?? 0).toFixed(2),
         ]),
-        [0.15, 0.16, 0.2, 0.17, 0.12, 0.1, 0.1],
+        [0.12, 0.14, 0.12, 0.17, 0.15, 0.11, 0.1, 0.09],
       );
     }
 
@@ -1801,17 +1804,18 @@ export class AdminPage implements OnDestroy, OnInit {
       );
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
+        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Demo plate', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
         bookings.map((booking) => [
           booking.reference_number,
           `${booking.customer_name}\n${booking.customer_email}${booking.customer_phone ? `\n${booking.customer_phone}` : ''}`,
           `${booking.vehicle_name}\n${booking.pickup_location || 'Pickup location not provided'}`,
+          booking.vehicle_plate_number || '—',
           `${booking.pickup_date} – ${booking.return_date}\n${booking.rental_days} days`,
           `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
           booking.booking_status,
           Number(booking.total_price ?? 0).toFixed(2),
         ]),
-        [0.13, 0.2, 0.19, 0.15, 0.14, 0.1, 0.09],
+        [0.11, 0.17, 0.17, 0.12, 0.14, 0.12, 0.09, 0.08],
       );
       this.saveAdminPdf(cursor, 'SmartDrive-booking-report');
     } catch (error) {
@@ -1837,28 +1841,33 @@ export class AdminPage implements OnDestroy, OnInit {
     const vehicle = {
       ...this.newVehicle,
       vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
-      plate_number: this.newVehicle.plate_number.trim().toUpperCase(),
+      plate_number: this.newVehicle.plate_number.trim().toUpperCase() || this.generateUniquePlateNumber(),
       fleet_quantity: Number(this.newVehicle.fleet_quantity),
       name: this.newVehicle.name.trim(),
       type: this.newVehicle.type.trim(),
       main_category: this.newVehicle.main_category.trim(),
     };
     if (!vehicle.vehicle_id || !vehicle.plate_number || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0 || !Number.isInteger(vehicle.fleet_quantity) || vehicle.fleet_quantity < 1) {
-      this.errorMessage.set('Enter a unique vehicle ID and plate number, name, type, category, a positive daily rate, and a quantity of at least 1.');
+      this.errorMessage.set('Enter a unique vehicle ID, name, type, category, a positive daily rate, and a quantity of at least 1.');
       return;
     }
     this.errorMessage.set(null);
     const { data, error } = await this.supabase.client.from('vehicles').insert([vehicle]).select().single();
     if (error) {
-      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key') || error.message.includes('vehicles_plate_number_uidx')
-        ? 'That vehicle ID or plate number is already in the fleet. Each physical vehicle needs its own unique values.'
+      if (error.message.includes('vehicles_plate_number_uidx')) {
+        this.newVehicle.plate_number = this.generateUniquePlateNumber();
+        this.errorMessage.set('That generated demo plate was already in use. A new plate was generated; submit again.');
+        return;
+      }
+      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key')
+        ? 'That vehicle ID is already in the fleet. Enter a unique vehicle ID.'
         : `Could not add this vehicle: ${error.message}`);
       return;
     }
     this.vehicles.update((items) => [data, ...items]);
     Object.assign(this.newVehicle, {
       vehicle_id: '',
-      plate_number: '',
+      plate_number: this.generateUniquePlateNumber(),
       fleet_quantity: 1,
       name: '',
       type: '',
@@ -1867,6 +1876,30 @@ export class AdminPage implements OnDestroy, OnInit {
       image: '',
       status: 'available',
     });
+  }
+
+  regenerateNewVehiclePlate(): void {
+    this.newVehicle.plate_number = this.generateUniquePlateNumber();
+  }
+
+  regenerateEditingVehiclePlate(): void {
+    const draft = this.editingVehicle();
+    if (draft) this.editingVehicle.set({ ...draft, plate_number: this.generateUniquePlateNumber(draft.id) });
+  }
+
+  private generateUniquePlateNumber(excludeVehicleId?: number): string {
+    for (let attempt = 0; attempt < 50; attempt++) {
+      const random = crypto.getRandomValues(new Uint32Array(2));
+      const suffix = Array.from(random, (value) => value.toString(36).toUpperCase().padStart(7, '0'))
+        .join('')
+        .slice(0, 7);
+      const plateNumber = `SD-DEMO-${suffix}`;
+      const alreadyUsed = this.vehicles().some((vehicle) =>
+        vehicle.id !== excludeVehicleId && vehicle.plate_number?.trim().toUpperCase() === plateNumber,
+      );
+      if (!alreadyUsed) return plateNumber;
+    }
+    throw new Error('Could not generate a unique demo plate number. Please try again.');
   }
 
   openVehicleEditor(vehicle: Vehicle): void {
@@ -1900,7 +1933,7 @@ export class AdminPage implements OnDestroy, OnInit {
     if (!draft || this.savingVehicleEdit()) return;
 
     const name = draft.name.trim();
-    const plateNumber = draft.plate_number.trim().toUpperCase();
+    const plateNumber = draft.plate_number.trim().toUpperCase() || this.generateUniquePlateNumber(draft.id);
     const type = draft.type.trim();
     const mainCategory = draft.main_category.trim();
     const price = Number(draft.price);
