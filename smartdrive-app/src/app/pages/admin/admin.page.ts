@@ -1790,68 +1790,34 @@ export class AdminPage implements OnDestroy, OnInit {
     }
   }
 
-  printBookingReport(): void {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      this.errorMessage.set('The printable report was blocked by your browser. Allow pop-ups for this site and try again.');
-      return;
-    }
+  async exportBookingsPdf(): Promise<void> {
     this.errorMessage.set(null);
-
-    const escapeHtml = (value: unknown): string => String(value ?? '').replace(/[&<>"']/g, (character) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    })[character] ?? character);
-    const formatDate = (value: string): string => {
-      const date = new Date(`${value}T00:00:00`);
-      return Number.isNaN(date.getTime())
-        ? value
-        : new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'short', day: 'numeric' }).format(date);
-    };
-    const rows = this.filteredBookings().map((booking) => `
-      <tr>
-        <td>${escapeHtml(booking.reference_number)}</td>
-        <td>${escapeHtml(booking.customer_name)}<br><small>${escapeHtml(booking.customer_email)}${booking.customer_phone ? `<br>${escapeHtml(booking.customer_phone)}` : ''}</small></td>
-        <td>${escapeHtml(booking.vehicle_name)}<br><small>${escapeHtml(booking.pickup_location || 'Pickup location not provided')}</small></td>
-        <td>${escapeHtml(formatDate(booking.pickup_date))} – ${escapeHtml(formatDate(booking.return_date))}<br><small>${escapeHtml(booking.rental_days)} days</small></td>
-        <td>${escapeHtml(booking.payment_method)}<br><small>${escapeHtml(booking.payment_status)}</small></td>
-        <td>${escapeHtml(booking.booking_status)}</td>
-        <td class="amount">₱${escapeHtml(Number(booking.total_price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }))}</td>
-      </tr>`).join('');
-
-    printWindow.document.write(`<!doctype html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <title>SmartDrive booking report</title>
-          <style>
-            body { margin: 2rem; color: #1d2433; font: 13px Arial, sans-serif; }
-            h1 { margin: 0 0 .3rem; font-size: 24px; }
-            p { margin: .2rem 0 1.2rem; color: #5b6472; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 9px 7px; border: 1px solid #d8dce4; text-align: left; vertical-align: top; }
-            th { background: #f1eef9; }
-            small { color: #596273; }
-            .amount { text-align: right; white-space: nowrap; }
-            @media print { body { margin: 10mm; } tr { break-inside: avoid; } }
-          </style>
-        </head>
-        <body>
-          <h1>SmartDrive booking report</h1>
-          <p>${this.filteredBookings().length} booking(s) · Generated ${escapeHtml(new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date()))}</p>
-          <table>
-            <thead><tr><th>Reference</th><th>Customer</th><th>Vehicle / pickup</th><th>Rental dates</th><th>Payment</th><th>Booking status</th><th>Total</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="7">No bookings match the current search.</td></tr>'}</tbody>
-          </table>
-        </body>
-      </html>`);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    try {
+      const bookings = this.filteredBookings();
+      const cursor = await this.createAdminPdf(
+        'SmartDrive booking report',
+        `${bookings.length} booking(s) · ${this.bookingStatusFilter() === 'all' ? 'All booking statuses' : this.bookingStatusFilter()} · ${this.paymentStatusFilter() === 'all' ? 'All payment statuses' : this.paymentStatusFilter()}`,
+        'landscape',
+      );
+      this.addAdminPdfTable(
+        cursor,
+        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
+        bookings.map((booking) => [
+          booking.reference_number,
+          `${booking.customer_name}\n${booking.customer_email}${booking.customer_phone ? `\n${booking.customer_phone}` : ''}`,
+          `${booking.vehicle_name}\n${booking.pickup_location || 'Pickup location not provided'}`,
+          `${booking.pickup_date} – ${booking.return_date}\n${booking.rental_days} days`,
+          `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
+          booking.booking_status,
+          Number(booking.total_price ?? 0).toFixed(2),
+        ]),
+        [0.13, 0.2, 0.19, 0.15, 0.14, 0.1, 0.09],
+      );
+      this.saveAdminPdf(cursor, 'SmartDrive-booking-report');
+    } catch (error) {
+      console.error('Unable to create the booking report PDF.', error);
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to create the booking report PDF.');
+    }
   }
 
   async updateUser(user: AdminUser): Promise<void> {
