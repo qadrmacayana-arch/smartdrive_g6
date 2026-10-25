@@ -28,6 +28,7 @@ import {
 } from '../../core/services/support-conversation.service';
 import { ContactMessage, ContactMessageService } from '../../core/services/contact-message.service';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import type { jsPDF } from 'jspdf';
 
 interface AdminStats {
   revenue: number;
@@ -71,6 +72,15 @@ interface AdminAuditLog {
   resource_id: string | null;
   changed_fields: string[];
   created_at: string;
+}
+interface AdminPdfCursor {
+  pdf: jsPDF;
+  title: string;
+  subtitle: string;
+  margin: number;
+  pageWidth: number;
+  pageHeight: number;
+  y: number;
 }
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
@@ -741,6 +751,289 @@ export class AdminPage implements OnDestroy, OnInit {
     link.download = `SmartDrive-business-report-${this.reportPeriod()}-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async exportBusinessReportPdf(): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      await this.createBusinessReportPdf();
+    } catch (error) {
+      console.error('Unable to create the business report PDF.', error);
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to create the business report PDF.');
+    }
+  }
+
+  private async createBusinessReportPdf(): Promise<void> {
+    const bookings = this.filteredReportBookings();
+    const periodLabel = this.reportPeriod() === 'all'
+      ? 'All time'
+      : this.reportPeriod() === '30' ? 'Last 30 days' : 'Last 12 months';
+    const cursor = await this.createAdminPdf(
+      'SmartDrive business report',
+      `${periodLabel} · ${bookings.length} booking(s)`,
+      'landscape',
+    );
+    const summary = this.reportSummary();
+    const summaryRows = [
+      ['Collected revenue', `PHP ${summary.revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Bookings', String(summary.bookings)],
+      ['Customers', String(summary.activeCustomers), 'Active promos', String(summary.activePromos)],
+      ['Completed trips', String(summary.completedTrips), 'Pending payments', String(summary.pendingPayments)],
+      ['Cancelled bookings', String(this.reportCancellationCount()), 'Period', periodLabel],
+    ];
+    this.addPdfSection(cursor, 'Summary');
+    this.addAdminPdfTable(cursor, ['Metric', 'Value', 'Metric', 'Value'], summaryRows, [0.23, 0.27, 0.23, 0.27]);
+
+    this.addPdfSection(cursor, 'Bookings by status');
+    this.addAdminPdfTable(
+      cursor,
+      ['Status', 'Bookings', 'Share'],
+      this.reportStatusBreakdown().map((item) => [
+        item.label,
+        String(item.count),
+        `${summary.bookings ? (item.count / summary.bookings * 100).toFixed(1) : '0.0'}%`,
+      ]),
+      [0.5, 0.25, 0.25],
+    );
+
+    this.addPdfSection(cursor, 'Payments by method');
+    this.addAdminPdfTable(
+      cursor,
+      ['Method', 'Bookings', 'Collected PHP', 'Pending PHP', 'Refunded PHP'],
+      this.reportPaymentBreakdown().map((item) => [
+        item.method,
+        String(item.count),
+        item.paid.toFixed(2),
+        item.pending.toFixed(2),
+        item.refunded.toFixed(2),
+      ]),
+      [0.28, 0.14, 0.2, 0.19, 0.19],
+    );
+
+    this.addPdfSection(cursor, 'Vehicle utilization');
+    this.addAdminPdfTable(
+      cursor,
+      ['Vehicle', 'Bookings', 'Collected PHP', 'Cancelled'],
+      this.reportVehicleBreakdown().map((item) => [
+        item.vehicle,
+        String(item.bookings),
+        item.revenue.toFixed(2),
+        String(item.cancelled),
+      ]),
+      [0.4, 0.2, 0.22, 0.18],
+    );
+
+    this.addPdfSection(cursor, 'Top customers');
+    this.addAdminPdfTable(
+      cursor,
+      ['Customer', 'Email', 'Bookings', 'Collected PHP'],
+      this.reportCustomerBreakdown().map((item) => [
+        item.customer,
+        item.email || '—',
+        String(item.bookings),
+        item.paid.toFixed(2),
+      ]),
+      [0.25, 0.4, 0.15, 0.2],
+    );
+
+    this.addPdfSection(cursor, 'Booking details');
+    this.addAdminPdfTable(
+      cursor,
+      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Rental dates', 'Payment', 'Total PHP'],
+      bookings.map((booking) => [
+        booking.reference_number,
+        booking.created_at ? new Date(booking.created_at).toLocaleDateString() : '—',
+        `${booking.customer_name}\n${booking.customer_email}`,
+        booking.vehicle_name,
+        `${booking.pickup_date} – ${booking.return_date}`,
+        `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
+        Number(booking.total_price ?? 0).toFixed(2),
+      ]),
+      [0.13, 0.1, 0.2, 0.15, 0.15, 0.16, 0.11],
+    );
+
+    this.saveAdminPdf(cursor, `SmartDrive-business-report-${this.reportPeriod()}`);
+  }
+
+  async exportUserTransactionsPdf(): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      await this.createUserTransactionsPdf();
+    } catch (error) {
+      console.error('Unable to create the user transactions PDF.', error);
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to create the user transactions PDF.');
+    }
+  }
+
+  private async createUserTransactionsPdf(): Promise<void> {
+    const summaries = this.filteredTransactionSummaries();
+    const filterLabel = ({
+      all: 'All activity',
+      wallet: 'Wallet activity',
+      bookings: 'Booking payments',
+      balance: 'Positive wallet balance',
+    } as const)[this.transactionFilter()];
+    const cursor = await this.createAdminPdf(
+      'SmartDrive user transaction report',
+      `${filterLabel} · ${summaries.length} customer(s)`,
+      'portrait',
+    );
+
+    if (!summaries.length) {
+      this.addPdfSection(cursor, 'No matching customer transactions');
+    }
+
+    for (const summary of summaries) {
+      this.addPdfSection(cursor, `${summary.user.full_name || 'Customer'} · ${summary.user.email}`);
+      this.addAdminPdfTable(
+        cursor,
+        ['Wallet balance', 'Booking payments', 'Wallet transactions'],
+        [[
+          `PHP ${Number(summary.balance).toFixed(2)}`,
+          String(summary.bookings.length),
+          String(summary.transactions.length),
+        ]],
+        [0.36, 0.32, 0.32],
+      );
+
+      this.addPdfSection(cursor, 'Wallet transactions');
+      this.addAdminPdfTable(
+        cursor,
+        ['Date', 'Type / description', 'Method', 'Status', 'Amount PHP'],
+        summary.transactions.map((transaction) => [
+          transaction.created_at ? new Date(transaction.created_at).toLocaleDateString() : '—',
+          `${transaction.type ? `${transaction.type}: ` : ''}${transaction.description}`,
+          transaction.payment_method || '—',
+          transaction.status || '—',
+          Number(transaction.amount).toFixed(2),
+        ]),
+        [0.15, 0.37, 0.18, 0.14, 0.16],
+      );
+
+      this.addPdfSection(cursor, 'Booking payments');
+      this.addAdminPdfTable(
+        cursor,
+        ['Reference', 'Vehicle', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
+        summary.bookings.map((booking) => [
+          booking.reference_number,
+          booking.vehicle_name,
+          `${booking.pickup_date} – ${booking.return_date}`,
+          this.paymentMethod(booking.payment_method),
+          booking.payment_status,
+          booking.booking_status,
+          Number(booking.total_price ?? 0).toFixed(2),
+        ]),
+        [0.15, 0.16, 0.2, 0.17, 0.12, 0.1, 0.1],
+      );
+    }
+
+    this.saveAdminPdf(cursor, `SmartDrive-user-transactions-${this.transactionFilter()}`);
+  }
+
+  private async createAdminPdf(
+    title: string,
+    subtitle: string,
+    orientation: 'portrait' | 'landscape',
+  ): Promise<AdminPdfCursor> {
+    const { jsPDF } = await import('jspdf');
+    const pdf = new jsPDF({ format: 'a4', unit: 'mm', orientation });
+    const cursor: AdminPdfCursor = {
+      pdf,
+      title,
+      subtitle,
+      margin: 12,
+      pageWidth: pdf.internal.pageSize.getWidth(),
+      pageHeight: pdf.internal.pageSize.getHeight(),
+      y: 0,
+    };
+    this.drawAdminPdfPageHeader(cursor);
+    return cursor;
+  }
+
+  private drawAdminPdfPageHeader(cursor: AdminPdfCursor): void {
+    const { pdf, margin, pageWidth } = cursor;
+    pdf.setFillColor(22, 76, 60);
+    pdf.rect(0, 0, pageWidth, 25, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(15);
+    pdf.text(cursor.title, margin, 11);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(8);
+    pdf.text(cursor.subtitle, margin, 18);
+    pdf.text(
+      `Generated ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date())}`,
+      pageWidth - margin,
+      18,
+      { align: 'right' },
+    );
+    pdf.setTextColor(35, 45, 42);
+    cursor.y = 32;
+  }
+
+  private addPdfSection(cursor: AdminPdfCursor, title: string): void {
+    if (cursor.y + 10 > cursor.pageHeight - cursor.margin) {
+      cursor.pdf.addPage();
+      this.drawAdminPdfPageHeader(cursor);
+    }
+    cursor.pdf.setFont('helvetica', 'bold');
+    cursor.pdf.setFontSize(10);
+    cursor.pdf.setTextColor(22, 76, 60);
+    cursor.pdf.text(title, cursor.margin, cursor.y);
+    cursor.pdf.setTextColor(35, 45, 42);
+    cursor.y += 5;
+  }
+
+  private addAdminPdfTable(
+    cursor: AdminPdfCursor,
+    headers: string[],
+    rows: string[][],
+    columnWeights: number[],
+  ): void {
+    const { pdf, margin, pageWidth, pageHeight } = cursor;
+    const widths = columnWeights.map((weight) => (pageWidth - margin * 2) * weight);
+    const drawHeader = (): void => {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(7);
+      pdf.setFillColor(239, 245, 241);
+      pdf.setTextColor(38, 67, 56);
+      let x = margin;
+      headers.forEach((header, index) => {
+        pdf.rect(x, cursor.y - 3.5, widths[index], 7, 'F');
+        pdf.text(pdf.splitTextToSize(header, widths[index] - 4), x + 2, cursor.y);
+        x += widths[index];
+      });
+      cursor.y += 7;
+      pdf.setTextColor(35, 45, 42);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(7);
+    };
+
+    drawHeader();
+    for (const row of rows.length ? rows : [headers.map(() => '—')]) {
+      const lines = row.map((value, index) =>
+        pdf.splitTextToSize(String(value ?? '—'), Math.max(8, widths[index] - 4)),
+      );
+      const rowHeight = Math.max(7, ...lines.map((cellLines) => cellLines.length * 3.5 + 3));
+      if (cursor.y + rowHeight > pageHeight - margin) {
+        pdf.addPage();
+        this.drawAdminPdfPageHeader(cursor);
+        drawHeader();
+      }
+      let x = margin;
+      lines.forEach((cellLines, index) => {
+        pdf.setDrawColor(220, 227, 222);
+        pdf.rect(x, cursor.y - 3.5, widths[index], rowHeight);
+        pdf.text(cellLines, x + 2, cursor.y);
+        x += widths[index];
+      });
+      cursor.y += rowHeight;
+    }
+    cursor.y += 5;
+  }
+
+  private saveAdminPdf(cursor: AdminPdfCursor, fileName: string): void {
+    const safeDate = new Date().toISOString().slice(0, 10);
+    cursor.pdf.save(`${fileName}-${safeDate}.pdf`);
   }
 
   private async loadPromos(): Promise<void> {

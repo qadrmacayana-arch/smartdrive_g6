@@ -205,6 +205,7 @@ tbody tr:hover { background: #fafcfb; }
 
 .admin-module { margin-top: .1rem; padding: 1.4rem; }
 .module-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.report-export-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
 .module-title { min-width: 0; }
 .module-title h2 { display: flex; align-items: center; gap: .55rem; margin-top: .28rem; font: 720 1.15rem 'Sora',sans-serif; letter-spacing: -.04em; }
 .module-title > p { margin: .35rem 0 0; color: var(--admin-muted); font-size: .73rem; }
