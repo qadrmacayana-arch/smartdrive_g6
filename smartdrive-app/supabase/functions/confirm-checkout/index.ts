@@ -19,6 +19,7 @@ const bookingFields = [
   'customer_phone',
   'customer_address',
   'vehicle_id',
+  'vehicle_unit_id',
   'vehicle_name',
   'vehicle_plate_number',
   'pickup_date',

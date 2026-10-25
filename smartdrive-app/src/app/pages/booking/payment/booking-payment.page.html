@@ -28,9 +28,6 @@
       </div>
       <div>
         <h3>{{ d.vehicle.name }}</h3>
-        @if (d.vehicle.plateNumber) {
-          <p class="sd-muted">Demo plate: {{ d.vehicle.plateNumber }}</p>
-        }
         <p class="sd-muted">{{ d.pickupDate | date: 'mediumDate' }} → {{ d.returnDate | date: 'mediumDate' }} · {{ d.rentalDays }} day(s)</p>
       </div>
     </div>

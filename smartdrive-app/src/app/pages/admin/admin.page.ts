@@ -16,7 +16,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { SupabaseService } from '../../core/services/supabase.service';
 import { BOOKING_SELECT_FIELDS, Booking } from '../../core/models/booking.model';
-import { Vehicle } from '../../core/models/vehicle.model';
+import { Vehicle, VehicleUnit } from '../../core/models/vehicle.model';
 import { DemoTrackingService } from '../../core/services/demo-tracking.service';
 import { FleetForecast, PredictiveInsightsService } from '../../core/services/predictive-insights.service';
 import {
@@ -141,7 +141,6 @@ interface AdminPromo {
 }
 interface VehicleEditDraft {
   id: number;
-  plate_number: string;
   fleet_quantity: number;
   name: string;
   type: string;
@@ -469,7 +468,6 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly savingVehicleEdit = signal(false);
   readonly newVehicle = {
     vehicle_id: '',
-    plate_number: this.generateUniquePlateNumber(),
     fleet_quantity: 1,
     name: '',
     type: '',
@@ -653,9 +651,22 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   private async loadFleet(): Promise<void> {
-    const { data, error } = await this.supabase.client.from('vehicles').select('*').order('created_at', { ascending: false });
+    const [{ data, error }, { data: units, error: unitError }] = await Promise.all([
+      this.supabase.client.from('vehicles').select('*').order('created_at', { ascending: false }),
+      this.supabase.client.from('vehicle_units').select('id,vehicle_id,unit_number,plate_number,is_active').order('unit_number'),
+    ]);
     if (error) throw new Error(error.message);
-    this.vehicles.set(data ?? []);
+    if (unitError) throw new Error(`Vehicle units could not be loaded: ${unitError.message}`);
+    const unitsByVehicle = new Map<number, VehicleUnit[]>();
+    for (const unit of (units ?? []) as VehicleUnit[]) {
+      const list = unitsByVehicle.get(unit.vehicle_id) ?? [];
+      list.push(unit);
+      unitsByVehicle.set(unit.vehicle_id, list);
+    }
+    this.vehicles.set((data ?? []).map((vehicle) => ({
+      ...vehicle,
+      units: unitsByVehicle.get(vehicle.id) ?? [],
+    })));
   }
 
   private async loadReviews(): Promise<void> {
@@ -728,7 +739,7 @@ export class AdminPage implements OnDestroy, OnInit {
     const bookings = this.filteredReportBookings();
     const quote = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
     const rows = [
-      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Demo plate', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
+      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Assigned unit plate', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
       ...bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ?? '',
@@ -839,7 +850,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.addPdfSection(cursor, 'Booking details');
     this.addAdminPdfTable(
       cursor,
-      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Demo plate', 'Rental dates', 'Payment', 'Total PHP'],
+      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Assigned unit plate', 'Rental dates', 'Payment', 'Total PHP'],
       bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ? new Date(booking.created_at).toLocaleDateString() : '—',
@@ -914,7 +925,7 @@ export class AdminPage implements OnDestroy, OnInit {
       this.addPdfSection(cursor, 'Booking payments');
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Vehicle', 'Demo plate', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
+        ['Reference', 'Vehicle', 'Assigned unit plate', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
         summary.bookings.map((booking) => [
           booking.reference_number,
           booking.vehicle_name,
@@ -1628,7 +1639,12 @@ export class AdminPage implements OnDestroy, OnInit {
         || vehicle.main_category.toLowerCase() === filter
         || (filter === 'available' && vehicle.status === 'available')
         || (filter === 'archived' && vehicle.status === 'archived'))
-      && (!term || [vehicle.name, vehicle.type, vehicle.vehicle_id, vehicle.plate_number]
+      && (!term || [
+        vehicle.name,
+        vehicle.type,
+        vehicle.vehicle_id,
+        ...(vehicle.units ?? []).map((unit) => unit.plate_number),
+      ]
         .some((value) => String(value ?? '').toLowerCase().includes(term))),
     );
   }
@@ -1804,7 +1820,7 @@ export class AdminPage implements OnDestroy, OnInit {
       );
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Demo plate', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
+        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Assigned unit plate', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
         bookings.map((booking) => [
           booking.reference_number,
           `${booking.customer_name}\n${booking.customer_email}${booking.customer_phone ? `\n${booking.customer_phone}` : ''}`,
@@ -1841,33 +1857,26 @@ export class AdminPage implements OnDestroy, OnInit {
     const vehicle = {
       ...this.newVehicle,
       vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
-      plate_number: this.newVehicle.plate_number.trim().toUpperCase() || this.generateUniquePlateNumber(),
       fleet_quantity: Number(this.newVehicle.fleet_quantity),
       name: this.newVehicle.name.trim(),
       type: this.newVehicle.type.trim(),
       main_category: this.newVehicle.main_category.trim(),
     };
-    if (!vehicle.vehicle_id || !vehicle.plate_number || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0 || !Number.isInteger(vehicle.fleet_quantity) || vehicle.fleet_quantity < 1) {
+    if (!vehicle.vehicle_id || !vehicle.name || !vehicle.type || !vehicle.main_category || !Number.isFinite(vehicle.price) || vehicle.price <= 0 || !Number.isInteger(vehicle.fleet_quantity) || vehicle.fleet_quantity < 1) {
       this.errorMessage.set('Enter a unique vehicle ID, name, type, category, a positive daily rate, and a quantity of at least 1.');
       return;
     }
     this.errorMessage.set(null);
-    const { data, error } = await this.supabase.client.from('vehicles').insert([vehicle]).select().single();
+    const { error } = await this.supabase.client.from('vehicles').insert([vehicle]);
     if (error) {
-      if (error.message.includes('vehicles_plate_number_uidx')) {
-        this.newVehicle.plate_number = this.generateUniquePlateNumber();
-        this.errorMessage.set('That generated demo plate was already in use. A new plate was generated; submit again.');
-        return;
-      }
       this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key')
         ? 'That vehicle ID is already in the fleet. Enter a unique vehicle ID.'
         : `Could not add this vehicle: ${error.message}`);
       return;
     }
-    this.vehicles.update((items) => [data, ...items]);
+    await this.loadFleet();
     Object.assign(this.newVehicle, {
       vehicle_id: '',
-      plate_number: this.generateUniquePlateNumber(),
       fleet_quantity: 1,
       name: '',
       type: '',
@@ -1878,35 +1887,10 @@ export class AdminPage implements OnDestroy, OnInit {
     });
   }
 
-  regenerateNewVehiclePlate(): void {
-    this.newVehicle.plate_number = this.generateUniquePlateNumber();
-  }
-
-  regenerateEditingVehiclePlate(): void {
-    const draft = this.editingVehicle();
-    if (draft) this.editingVehicle.set({ ...draft, plate_number: this.generateUniquePlateNumber(draft.id) });
-  }
-
-  private generateUniquePlateNumber(excludeVehicleId?: number): string {
-    for (let attempt = 0; attempt < 50; attempt++) {
-      const random = crypto.getRandomValues(new Uint32Array(2));
-      const suffix = Array.from(random, (value) => value.toString(36).toUpperCase().padStart(7, '0'))
-        .join('')
-        .slice(0, 7);
-      const plateNumber = `SD-DEMO-${suffix}`;
-      const alreadyUsed = this.vehicles().some((vehicle) =>
-        vehicle.id !== excludeVehicleId && vehicle.plate_number?.trim().toUpperCase() === plateNumber,
-      );
-      if (!alreadyUsed) return plateNumber;
-    }
-    throw new Error('Could not generate a unique demo plate number. Please try again.');
-  }
-
   openVehicleEditor(vehicle: Vehicle): void {
     this.vehicleEditError.set(null);
     this.editingVehicle.set({
       id: vehicle.id,
-      plate_number: vehicle.plate_number ?? '',
       fleet_quantity: Number(vehicle.fleet_quantity ?? 1),
       name: vehicle.name,
       type: vehicle.type,
@@ -1933,7 +1917,6 @@ export class AdminPage implements OnDestroy, OnInit {
     if (!draft || this.savingVehicleEdit()) return;
 
     const name = draft.name.trim();
-    const plateNumber = draft.plate_number.trim().toUpperCase() || this.generateUniquePlateNumber(draft.id);
     const type = draft.type.trim();
     const mainCategory = draft.main_category.trim();
     const price = Number(draft.price);
@@ -1948,7 +1931,6 @@ export class AdminPage implements OnDestroy, OnInit {
     this.vehicleEditError.set(null);
     try {
       const updates = {
-        plate_number: plateNumber || null,
         fleet_quantity: fleetQuantity,
         name,
         type,
@@ -1969,19 +1951,41 @@ export class AdminPage implements OnDestroy, OnInit {
         .select()
         .single();
       if (error) {
-        throw new Error(error.message.includes('vehicles_plate_number_uidx')
-          ? 'That plate number is already assigned to another vehicle.'
-          : error.message);
+        throw new Error(error.message);
       }
       if (!data) throw new Error('The updated vehicle was not returned by the database.');
-      const savedVehicle = data as Vehicle;
-      this.vehicles.update((items) => items.map((vehicle) => vehicle.id === savedVehicle.id ? savedVehicle : vehicle));
+      await this.loadFleet();
       this.editingVehicle.set(null);
     } catch (error) {
       this.vehicleEditError.set(error instanceof Error ? error.message : 'Unable to save vehicle details.');
     } finally {
       this.savingVehicleEdit.set(false);
     }
+  }
+
+  async editVehicleUnitPlate(unit: VehicleUnit): Promise<void> {
+    const requested = prompt(`Enter the registration plate for fleet unit ${unit.unit_number}:`, unit.plate_number);
+    if (requested === null) return;
+    const plateNumber = requested.trim().toUpperCase();
+    if (!plateNumber || plateNumber.length > 32) {
+      this.errorMessage.set('Enter a plate number between 1 and 32 characters.');
+      return;
+    }
+
+    const { error } = await this.supabase.client
+      .from('vehicle_units')
+      .update({ plate_number: plateNumber })
+      .eq('id', unit.id);
+    if (error) {
+      this.errorMessage.set(error.message.includes('vehicle_units_plate_number_uidx')
+        ? 'That plate is already assigned to another fleet unit.'
+        : `Could not update the unit plate: ${error.message}`);
+      return;
+    }
+    this.vehicles.update((items) => items.map((vehicle) => ({
+      ...vehicle,
+      units: vehicle.units?.map((item) => item.id === unit.id ? { ...item, plate_number: plateNumber } : item),
+    })));
   }
 
   async archiveVehicle(vehicle: Vehicle): Promise<void> {

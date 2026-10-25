@@ -27,9 +27,6 @@
       <span class="summary-icon"><ion-icon name="car-sport-outline"></ion-icon></span>
       <div>
         <strong>{{ d.vehicle.name }}</strong>
-        @if (d.vehicle.plateNumber) {
-          <span>Demo plate: {{ d.vehicle.plateNumber }}</span>
-        }
         <span>{{ d.pickupDate | date: 'mediumDate' }} – {{ d.returnDate | date: 'mediumDate' }} · {{ d.rentalDays }} {{ d.rentalDays === 1 ? 'day' : 'days' }}</span>
       </div>
     </section>

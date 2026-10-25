@@ -306,7 +306,7 @@ export class BookingConfirmationPage implements OnInit, OnDestroy {
     addSection('RENTAL');
     addRow('Vehicle', booking.vehicle_name);
     if (booking.vehicle_plate_number) {
-      addRow('Demo plate number', booking.vehicle_plate_number);
+      addRow('Assigned unit plate', booking.vehicle_plate_number);
     }
     addRow('Pick-up', booking.pickup_date);
     addRow('Return', booking.return_date);

@@ -24,9 +24,7 @@
         <div>
           <span class="type-label">{{ v.type }}</span>
           <h1>{{ v.name }}</h1>
-          @if (v.plate_number) {
-            <p class="sd-muted">Demo plate: <strong>{{ v.plate_number }}</strong></p>
-          }
+          <p class="sd-muted">A specific unit and plate number are assigned when your booking is confirmed.</p>
         </div>
         <span class="availability" [class.unavailable]="v.status !== 'available'">
           <span class="status-dot"></span>

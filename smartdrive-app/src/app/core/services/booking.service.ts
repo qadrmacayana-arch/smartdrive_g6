@@ -252,16 +252,38 @@ export class BookingService {
       throw new Error('This vehicle is already reserved for some of your selected dates. Choose another date range.');
     }
 
+    const referenceNumber = this.generateReferenceNumber();
+    const { data: reservedUnit, error: unitError } = await this.supabase.client.rpc('reserve_vehicle_unit', {
+      p_vehicle_id: draft.vehicle.id,
+      p_pickup_date: draft.pickupDate,
+      p_return_date: draft.returnDate,
+      p_reservation_key: referenceNumber,
+    });
+    if (unitError) throw new Error(`Could not assign a vehicle unit: ${unitError.message}`);
+    const unit = Array.isArray(reservedUnit) ? reservedUnit[0] : reservedUnit;
+    if (
+      !unit
+      || typeof unit !== 'object'
+      || !('vehicle_unit_id' in unit)
+      || !Number.isInteger(unit.vehicle_unit_id)
+      || !('plate_number' in unit)
+      || typeof unit.plate_number !== 'string'
+      || !unit.plate_number.trim()
+    ) {
+      throw new Error('Vehicle assignment returned invalid details. Please try again.');
+    }
+
     const booking: Booking = {
-      reference_number: this.generateReferenceNumber(),
+      reference_number: referenceNumber,
       user_id: userId,
       customer_email: customer.email,
       customer_name: customer.name,
       customer_phone: customer.phone,
       customer_address: customer.address,
       vehicle_id: draft.vehicle.id,
+      vehicle_unit_id: Number(unit.vehicle_unit_id),
       vehicle_name: draft.vehicle.name,
-      vehicle_plate_number: draft.vehicle.plateNumber,
+      vehicle_plate_number: unit.plate_number,
       pickup_date: draft.pickupDate,
       return_date: draft.returnDate,
       pickup_location: draft.pickupLocation,

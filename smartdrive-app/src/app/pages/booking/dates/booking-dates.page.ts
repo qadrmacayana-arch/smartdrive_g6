@@ -323,7 +323,6 @@ export class BookingDatesPage implements OnInit {
       {
         id: vehicle.id,
         name: vehicle.name,
-        plateNumber: vehicle.plate_number ?? '',
         price: vehicle.price,
         srPoints: vehicle.sr_points,
         image: vehicle.image,

@@ -305,6 +305,24 @@ Deno.serve(async (request) => {
   const referenceNumber =
     `SD-${new Date().getFullYear()}-${crypto.randomUUID().replaceAll('-', '').slice(0, 12).toUpperCase()}`;
   const attemptId = crypto.randomUUID();
+  const { data: reservedUnits, error: reservationError } = await admin.rpc('reserve_vehicle_unit', {
+    p_vehicle_id: vehicle.id,
+    p_pickup_date: input.pickupDate,
+    p_return_date: input.returnDate,
+    p_reservation_key: referenceNumber,
+  });
+  const reservedUnit = Array.isArray(reservedUnits) ? reservedUnits[0] : reservedUnits;
+  if (reservationError || !reservedUnit
+    || !Number.isSafeInteger(Number(reservedUnit.vehicle_unit_id))
+    || typeof reservedUnit.plate_number !== 'string'
+    || !reservedUnit.plate_number.trim()) {
+    if (reservationError) console.error('Unable to reserve a fleet unit for checkout.', reservationError);
+    return response({
+      error: reservationError?.message.includes('No fleet unit is available')
+        ? 'This vehicle is no longer available for those dates.'
+        : 'Unable to assign a fleet unit. Please try again.',
+    }, reservationError?.message.includes('No fleet unit is available') ? 409 : 500);
+  }
   const booking = {
     reference_number: referenceNumber,
     user_id: authData.user.id,
@@ -313,8 +331,9 @@ Deno.serve(async (request) => {
     customer_phone: phone,
     customer_address: customerAddress || null,
     vehicle_id: vehicle.id,
+    vehicle_unit_id: Number(reservedUnit.vehicle_unit_id),
     vehicle_name: vehicle.name,
-    vehicle_plate_number: vehicle.plate_number,
+    vehicle_plate_number: reservedUnit.plate_number,
     pickup_date: input.pickupDate,
     return_date: input.returnDate,
     pickup_location: location,
