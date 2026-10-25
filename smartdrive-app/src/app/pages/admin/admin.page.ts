@@ -651,21 +651,40 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   private async loadFleet(): Promise<void> {
-    const [{ data, error }, { data: units, error: unitError }] = await Promise.all([
+    const [{ data, error }, { data: units, error: unitError }, { data: availability, error: availabilityError }] = await Promise.all([
       this.supabase.client.from('vehicles').select('*').order('created_at', { ascending: false }),
       this.supabase.client.from('vehicle_units').select('id,vehicle_id,unit_number,is_active').order('unit_number'),
+      this.supabase.client.rpc('get_current_vehicle_availability'),
     ]);
     if (error) throw new Error(error.message);
     if (unitError) throw new Error(`Vehicle units could not be loaded: ${unitError.message}`);
+    if (availabilityError) throw new Error(`Fleet availability could not be loaded: ${availabilityError.message}`);
     const unitsByVehicle = new Map<number, VehicleUnit[]>();
     for (const unit of (units ?? []) as VehicleUnit[]) {
       const list = unitsByVehicle.get(unit.vehicle_id) ?? [];
       list.push(unit);
       unitsByVehicle.set(unit.vehicle_id, list);
     }
-    this.vehicles.set((data ?? []).map((vehicle) => ({
+    const availabilityRows = (availability ?? []) as Array<{
+      vehicle_id: number;
+      available_quantity: number;
+    }>;
+    const availableByVehicle = new Map<number, number>(
+      availabilityRows.map((row) => [
+        Number(row.vehicle_id),
+        Number(row.available_quantity),
+      ]),
+    );
+    const fleetVehicles = data ?? [];
+    for (const vehicle of fleetVehicles) {
+      if (vehicle.status !== 'archived' && !availableByVehicle.has(vehicle.id)) {
+        throw new Error(`Availability was not returned for vehicle ${vehicle.vehicle_id}.`);
+      }
+    }
+    this.vehicles.set(fleetVehicles.map((vehicle) => ({
       ...vehicle,
       units: unitsByVehicle.get(vehicle.id) ?? [],
+      available_quantity: availableByVehicle.get(vehicle.id),
     })));
   }
 
@@ -1656,7 +1675,7 @@ export class AdminPage implements OnDestroy, OnInit {
     );
   }
 
-  activeUnitCount(vehicle: Vehicle): number {
+  enabledUnitCount(vehicle: Vehicle): number {
     return (vehicle.units ?? []).filter((unit) => unit.is_active).length;
   }
 
