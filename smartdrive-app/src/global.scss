@@ -43,9 +43,9 @@
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background:
-    radial-gradient(950px 500px at 92% -8%, rgba(168, 85, 247, 0.11), transparent 62%),
-    radial-gradient(850px 460px at -8% 18%, rgba(16, 185, 129, 0.075), transparent 58%),
-    radial-gradient(850px 480px at 76% 108%, rgba(56, 189, 248, 0.07), transparent 60%),
+    radial-gradient(1000px 620px at 95% -8%, rgba(168, 85, 247, 0.18), transparent 66%),
+    radial-gradient(900px 560px at -12% 28%, rgba(16, 185, 129, 0.12), transparent 63%),
+    radial-gradient(1000px 620px at 82% 108%, rgba(56, 189, 248, 0.12), transparent 64%),
     var(--sd-background);
   background-attachment: fixed;
   color: var(--sd-foreground);
@@ -56,9 +56,9 @@ body {
 
 html[data-theme='dark'] body {
   background:
-    radial-gradient(950px 500px at 92% -8%, rgba(168, 85, 247, 0.16), transparent 62%),
-    radial-gradient(850px 460px at -8% 18%, rgba(16, 185, 129, 0.09), transparent 58%),
-    radial-gradient(850px 480px at 76% 108%, rgba(56, 189, 248, 0.09), transparent 60%),
+    radial-gradient(1000px 620px at 95% -8%, rgba(168, 85, 247, 0.22), transparent 66%),
+    radial-gradient(900px 560px at -12% 28%, rgba(16, 185, 129, 0.14), transparent 63%),
+    radial-gradient(1000px 620px at 82% 108%, rgba(56, 189, 248, 0.14), transparent 64%),
     var(--sd-background);
 }
 
@@ -203,22 +203,24 @@ ion-content {
 
 ion-content:not(.menu-content)::part(background) {
   background-image:
-    radial-gradient(ellipse 70% 42% at 100% 0%, rgba(168, 85, 247, 0.085), transparent 72%),
-    radial-gradient(ellipse 62% 38% at 0% 38%, rgba(16, 185, 129, 0.06), transparent 72%),
-    radial-gradient(ellipse 70% 42% at 96% 100%, rgba(56, 189, 248, 0.06), transparent 72%),
-    radial-gradient(circle, rgba(124, 58, 237, 0.045) 0.8px, transparent 1.1px),
-    radial-gradient(ellipse 125% 38% at 50% 112%, transparent 77%, rgba(124, 58, 237, 0.045) 77.3%, transparent 77.7%, transparent 85%, rgba(16, 185, 129, 0.035) 85.3%, transparent 85.7%);
-  background-size: auto, auto, auto, 26px 26px, auto;
+    radial-gradient(ellipse 54% 30% at 100% 4%, rgba(168, 85, 247, 0.16), transparent 74%),
+    radial-gradient(ellipse 48% 34% at 0% 42%, rgba(16, 185, 129, 0.11), transparent 74%),
+    radial-gradient(ellipse 58% 38% at 100% 98%, rgba(56, 189, 248, 0.11), transparent 74%),
+    radial-gradient(ellipse 45% 28% at 12% 100%, rgba(217, 70, 239, 0.07), transparent 74%),
+    radial-gradient(circle, rgba(124, 58, 237, 0.075) 1px, transparent 1.4px),
+    radial-gradient(ellipse 130% 42% at 55% 116%, transparent 70%, rgba(124, 58, 237, 0.09) 70.25%, transparent 70.7%, transparent 77%, rgba(16, 185, 129, 0.075) 77.25%, transparent 77.7%, transparent 84%, rgba(56, 189, 248, 0.065) 84.25%, transparent 84.7%);
+  background-size: auto, auto, auto, auto, 32px 32px, auto;
 }
 
 html[data-theme='dark'] ion-content:not(.menu-content)::part(background) {
   background-image:
-    radial-gradient(ellipse 70% 42% at 100% 0%, rgba(167, 139, 250, 0.12), transparent 72%),
-    radial-gradient(ellipse 62% 38% at 0% 38%, rgba(52, 211, 153, 0.055), transparent 72%),
-    radial-gradient(ellipse 70% 42% at 96% 100%, rgba(56, 189, 248, 0.055), transparent 72%),
-    radial-gradient(circle, rgba(196, 181, 253, 0.055) 0.8px, transparent 1.1px),
-    radial-gradient(ellipse 125% 38% at 50% 112%, transparent 77%, rgba(167, 139, 250, 0.06) 77.3%, transparent 77.7%, transparent 85%, rgba(52, 211, 153, 0.045) 85.3%, transparent 85.7%);
-  background-size: auto, auto, auto, 26px 26px, auto;
+    radial-gradient(ellipse 54% 30% at 100% 4%, rgba(167, 139, 250, 0.2), transparent 74%),
+    radial-gradient(ellipse 48% 34% at 0% 42%, rgba(52, 211, 153, 0.1), transparent 74%),
+    radial-gradient(ellipse 58% 38% at 100% 98%, rgba(56, 189, 248, 0.1), transparent 74%),
+    radial-gradient(ellipse 45% 28% at 12% 100%, rgba(232, 121, 249, 0.07), transparent 74%),
+    radial-gradient(circle, rgba(196, 181, 253, 0.09) 1px, transparent 1.4px),
+    radial-gradient(ellipse 130% 42% at 55% 116%, transparent 70%, rgba(167, 139, 250, 0.1) 70.25%, transparent 70.7%, transparent 77%, rgba(52, 211, 153, 0.075) 77.25%, transparent 77.7%, transparent 84%, rgba(56, 189, 248, 0.07) 84.25%, transparent 84.7%);
+  background-size: auto, auto, auto, auto, 32px 32px, auto;
 }
 
 .sd-gradient-btn {
