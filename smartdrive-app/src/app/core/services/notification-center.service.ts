@@ -6,7 +6,7 @@ import { SupabaseService } from './supabase.service';
 
 export interface CustomerNotification {
   id: string;
-  kind: 'promo' | 'deal' | 'vehicle';
+  kind: 'promo' | 'deal' | 'vehicle' | 'announcement';
   title: string;
   message: string;
   createdAt: string;
@@ -34,6 +34,18 @@ interface VehicleRow {
   type: string;
   price: number;
   created_at: string | null;
+}
+
+interface CmsContentRow {
+  id: string;
+  title: string;
+  message: string;
+  route: string;
+  created_at: string;
+}
+
+interface AdminNotificationRow extends CmsContentRow {
+  published_at: string | null;
 }
 
 const NEW_VEHICLE_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
@@ -145,7 +157,7 @@ export class NotificationCenterService {
     this.loading.set(true);
     this.errorMessage.set(null);
     try {
-      const [promosResult, vehiclesResult] = await Promise.all([
+      const [promosResult, vehiclesResult, cmsResult, announcementsResult] = await Promise.all([
         this.supabase.client
           .from('discount_codes')
           .select('id,code,description,discount_percent,valid_from,valid_until,created_at,updated_at,is_active,current_uses,max_uses')
@@ -158,9 +170,23 @@ export class NotificationCenterService {
           .neq('status', 'archived')
           .order('created_at', { ascending: false })
           .limit(30),
+        this.supabase.client
+          .from('cms_content')
+          .select('id,title,message,route,created_at')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(30),
+        this.supabase.client
+          .from('admin_notifications')
+          .select('id,title,message,route,created_at,published_at')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(30),
       ]);
       if (promosResult.error) throw new Error(`Could not load current promo codes: ${promosResult.error.message}`);
       if (vehiclesResult.error) throw new Error(`Could not load new vehicles: ${vehiclesResult.error.message}`);
+      if (cmsResult.error) throw new Error(`Could not load published content: ${cmsResult.error.message}`);
+      if (announcementsResult.error) throw new Error(`Could not load announcements: ${announcementsResult.error.message}`);
 
       const now = Date.now();
       const promos = ((promosResult.data ?? []) as PromoRow[])
@@ -199,7 +225,23 @@ export class NotificationCenterService {
         createdAt: new Date().toISOString(),
         route: '/offers',
       }));
-      const items = [...promos, ...deals, ...newVehicles]
+      const cmsContent = ((cmsResult.data ?? []) as CmsContentRow[]).map((item): CustomerNotification => ({
+        id: `cms-${item.id}`,
+        kind: 'deal',
+        title: item.title,
+        message: item.message,
+        createdAt: item.created_at,
+        route: item.route,
+      }));
+      const announcements = ((announcementsResult.data ?? []) as AdminNotificationRow[]).map((item): CustomerNotification => ({
+        id: `admin-notification-${item.id}`,
+        kind: 'announcement',
+        title: item.title,
+        message: item.message,
+        createdAt: item.published_at ?? item.created_at,
+        route: item.route,
+      }));
+      const items = [...promos, ...deals, ...newVehicles, ...cmsContent, ...announcements]
         .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt));
       const priorIds = this.loadedUserId === userId ? this.previouslyLoadedIds : null;
       this.notifications.set(items);
@@ -229,6 +271,12 @@ export class NotificationCenterService {
         void this.load(userId, true);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'discount_codes' }, () => {
+        void this.load(userId, true);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cms_content' }, () => {
+        void this.load(userId, true);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'admin_notifications' }, () => {
         void this.load(userId, true);
       })
       .subscribe((status, error) => {

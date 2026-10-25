@@ -72,6 +72,19 @@
         <a class="nav-item" [class.active]="section() === 'promos'" [attr.aria-current]="section() === 'promos' ? 'page' : null" (click)="openSection('promos')">
           <ion-icon name="pricetag-outline"></ion-icon><span>Promo codes</span>
         </a>
+        <span class="nav-group-label">ADMINISTRATION</span>
+        <a class="nav-item" [class.active]="section() === 'cms'" [attr.aria-current]="section() === 'cms' ? 'page' : null" (click)="openSection('cms')">
+          <ion-icon name="document-text-outline"></ion-icon><span>Content management</span>
+        </a>
+        <a class="nav-item" [class.active]="section() === 'settings'" [attr.aria-current]="section() === 'settings' ? 'page' : null" (click)="openSection('settings')">
+          <ion-icon name="settings-outline"></ion-icon><span>Settings &amp; configuration</span>
+        </a>
+        <a class="nav-item" [class.active]="section() === 'notifications'" [attr.aria-current]="section() === 'notifications' ? 'page' : null" (click)="openSection('notifications')">
+          <ion-icon name="notifications-outline"></ion-icon><span>Notification management</span>
+        </a>
+        <a class="nav-item" [class.active]="section() === 'audit'" [attr.aria-current]="section() === 'audit' ? 'page' : null" (click)="openSection('audit')">
+          <ion-icon name="list-outline"></ion-icon><span>Audit trail</span>
+        </a>
       </nav>
 
       <div class="sidebar-account">
@@ -85,22 +98,8 @@
       <header class="dashboard-heading">
         <div>
           <p class="eyebrow">SMARTDRIVE <span>/</span> {{ section() | titlecase }}</p>
-          <h1>{{ section() === 'overview' ? 'Good to see you, ' + (currentUser()?.fullName || 'Admin') : (section() === 'fleet' ? 'Fleet management' : section() === 'tracking' ? 'Vehicle tracking' : section() === 'transactions' ? 'User transactions' : section() === 'reviews' ? 'Reviews & ratings' : section() === 'support' ? 'Support inbox' : section() === 'email-concerns' ? 'Email concerns' : section() === 'reports' ? 'Business reports' : section() === 'promos' ? 'Promo codes' : section() | titlecase) }}</h1>
-          <p class="subtitle">
-            @switch (section()) {
-              @case ('overview') { Here's what's happening across your rental business today. }
-              @case ('bookings') { Review reservations and keep every trip moving smoothly. }
-              @case ('users') { Manage your customer accounts and membership details. }
-              @case ('fleet') { Keep your vehicles, rates, and availability up to date. }
-              @case ('transactions') { Review wallet balances, bookings, and transaction history. }
-              @case ('reviews') { See what customers are saying about their experience. }
-              @case ('tracking') { View the latest reported and sample vehicle locations. }
-              @case ('support') { Review saved conversations, reported problems, and internal follow-up notes. }
-              @case ('email-concerns') { Read and manage messages sent to smartdriveteam&#64;smartdrive.com. }
-              @case ('reports') { Review operational performance, booking volume, and business health trends. }
-              @case ('promos') { Create and manage discount codes available at checkout. }
-            }
-          </p>
+          <h1>{{ sectionTitle() }}</h1>
+          <p class="subtitle">{{ sectionDescription() }}</p>
         </div>
         <div class="heading-actions">
           <span class="today-label">Admin portal</span>
@@ -709,6 +708,130 @@
             @for (promo of filteredPromoCodes(); track promo.id) {
               <tr><td><strong>{{ promo.code }}</strong><small class="cell-subtitle">{{ promo.description || 'No description' }}</small></td><td>{{ promo.discount_percent }}% <small class="cell-subtitle">Min. ₱{{ promo.min_spend | number:'1.0-2' }}</small></td><td>{{ promo.current_uses }} / {{ promo.max_uses ?? '∞' }}</td><td>{{ promo.valid_from ? (promo.valid_from | date:'mediumDate') : 'Anytime' }} – {{ promo.valid_until ? (promo.valid_until | date:'mediumDate') : 'No end' }}</td><td><span class="status-pill" [class.suspended]="!promo.is_active">{{ promo.is_active ? 'Active' : 'Inactive' }}</span></td><td><button class="table-action" type="button" (click)="togglePromo(promo)">{{ promo.is_active ? 'Deactivate' : 'Activate' }}</button></td></tr>
             } @empty { <tr><td colspan="6" class="empty">{{ promoCodes().length ? 'No promo codes match this status.' : 'No promo codes yet.' }}</td></tr> }
+          </tbody></table></div>
+        </section>
+      }
+
+      @if (section() === 'cms') {
+        <section class="data-card admin-module">
+          <div class="module-title">
+            <span class="section-kicker">CUSTOMER-FACING CONTENT</span>
+            <h2>{{ cmsDraft.id ? 'Edit content' : 'Create content' }}</h2>
+            <p>Published content appears in the customer Notifications feed while its schedule is active.</p>
+          </div>
+          <form class="admin-form-grid" (submit)="$event.preventDefault(); saveCmsContent()">
+            <label><span>Title</span><input [(ngModel)]="cmsDraft.title" name="cmsTitle" maxlength="120" required></label>
+            <label><span>App route</span><input [(ngModel)]="cmsDraft.route" name="cmsRoute" placeholder="/offers" maxlength="200" required></label>
+            <label class="admin-form-wide"><span>Message</span><textarea [(ngModel)]="cmsDraft.message" name="cmsMessage" maxlength="1000" rows="3" required></textarea></label>
+            <label><span>Publish from <small>(optional)</small></span><input type="datetime-local" [(ngModel)]="cmsDraft.startsAt" name="cmsStartsAt"></label>
+            <label><span>Publish until <small>(optional)</small></span><input type="datetime-local" [(ngModel)]="cmsDraft.endsAt" name="cmsEndsAt"></label>
+            <label><span>Status</span><select [(ngModel)]="cmsDraft.status" name="cmsStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label>
+            <div class="admin-form-actions">
+              @if (cmsDraft.id) { <button class="secondary-action" type="button" (click)="resetCmsDraft()">Cancel edit</button> }
+              <button class="primary-action" type="submit" [disabled]="savingCms()">{{ savingCms() ? 'Saving…' : cmsDraft.id ? 'Save content' : 'Create content' }}</button>
+            </div>
+          </form>
+          @if (cmsFeedback()) { <p class="admin-form-feedback" role="status">{{ cmsFeedback() }}</p> }
+        </section>
+        <section class="data-card admin-module">
+          <div class="section-heading"><div><span class="section-kicker">CONTENT LIBRARY</span><h2>Managed content <span class="count-pill">{{ cmsItems().length }}</span></h2></div></div>
+          <div class="table-scroll"><table><thead><tr><th>Content</th><th>Route</th><th>Schedule</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+            @for (item of cmsItems(); track item.id) {
+              <tr>
+                <td><strong>{{ item.title }}</strong><small class="cell-subtitle content-message">{{ item.message }}</small></td>
+                <td>{{ item.route }}</td>
+                <td>{{ item.starts_at ? (item.starts_at | date:'short') : 'Immediately' }}<small class="cell-subtitle">Until {{ item.ends_at ? (item.ends_at | date:'short') : 'further notice' }}</small></td>
+                <td><span class="status-pill" [class.suspended]="item.status !== 'published'">{{ item.status | titlecase }}</span></td>
+                <td class="admin-table-actions">
+                  <button class="table-action" type="button" (click)="editCmsContent(item)">Edit</button>
+                  @if (item.status !== 'published') { <button class="table-action" type="button" (click)="changeCmsStatus(item, 'published')">Publish</button> }
+                  @if (item.status !== 'archived') { <button class="table-action danger" type="button" (click)="changeCmsStatus(item, 'archived')">Archive</button> }
+                </td>
+              </tr>
+            } @empty { <tr><td colspan="5" class="empty">No managed content yet.</td></tr> }
+          </tbody></table></div>
+        </section>
+      }
+
+      @if (section() === 'settings') {
+        <section class="data-card admin-module">
+          <div class="section-heading">
+            <div><span class="section-kicker">PUBLIC CONTACT CONFIGURATION</span><h2>Customer support details</h2><p>These details are displayed on the customer Contact page.</p></div>
+          </div>
+          <form class="admin-form-grid settings-form" (submit)="$event.preventDefault(); saveSiteSettings()">
+            @for (setting of siteSettings(); track setting.setting_key) {
+              <label>
+                <span>{{ setting.setting_key === 'support_email' ? 'Support email' : setting.setting_key === 'support_phone' ? 'Support phone' : setting.setting_key }}</span>
+                <input
+                  [type]="setting.setting_key === 'support_email' ? 'email' : 'text'"
+                  [attr.placeholder]="setting.setting_key === 'support_phone' ? 'Optional phone number' : null"
+                  [value]="siteSettingsDraft()[setting.setting_key] ?? ''"
+                  (input)="updateSiteSettingFromEvent(setting.setting_key, $event)"
+                  [attr.maxlength]="setting.setting_key === 'support_email' ? 254 : 40"
+                >
+                <small>{{ setting.is_public ? 'Visible to customers' : 'Admin only' }}</small>
+              </label>
+            } @empty { <p class="empty">No configurable settings are available.</p> }
+            <div class="admin-form-actions"><button class="primary-action" type="submit" [disabled]="savingSiteSettings() || !siteSettings().length">{{ savingSiteSettings() ? 'Saving…' : 'Save settings' }}</button></div>
+          </form>
+          @if (settingsFeedback()) { <p class="admin-form-feedback" role="status">{{ settingsFeedback() }}</p> }
+        </section>
+      }
+
+      @if (section() === 'notifications') {
+        <section class="data-card admin-module">
+          <div class="module-title"><span class="section-kicker">IN-APP BROADCAST</span><h2>{{ editingAdminNotificationId() ? 'Edit notification draft' : 'Compose a notification' }}</h2><p>Published announcements appear in the customer Notifications feed. This does not send email, SMS, or offline push notifications.</p></div>
+          <form class="admin-form-grid" (submit)="$event.preventDefault(); saveAdminNotification()">
+            <label><span>Title</span><input [(ngModel)]="notificationDraft.title" name="notificationTitle" maxlength="120" required></label>
+            <label><span>App route</span><input [(ngModel)]="notificationDraft.route" name="notificationRoute" maxlength="200" required></label>
+            <label class="admin-form-wide"><span>Message</span><textarea [(ngModel)]="notificationDraft.message" name="notificationMessage" maxlength="1000" rows="3" required></textarea></label>
+            <label><span>Expires at <small>(optional)</small></span><input type="datetime-local" [(ngModel)]="notificationDraft.expiresAt" name="notificationExpiry"></label>
+            <div class="admin-form-actions">
+              @if (editingAdminNotificationId()) { <button class="secondary-action" type="button" (click)="resetAdminNotificationDraft()">Cancel edit</button> }
+              <button class="primary-action" type="submit" [disabled]="savingAdminNotification()">{{ savingAdminNotification() ? 'Saving…' : 'Save draft' }}</button>
+            </div>
+          </form>
+          @if (notificationFeedback()) { <p class="admin-form-feedback" role="status">{{ notificationFeedback() }}</p> }
+        </section>
+        <section class="data-card admin-module">
+          <div class="section-heading"><div><span class="section-kicker">ANNOUNCEMENTS</span><h2>Notifications <span class="count-pill">{{ adminNotifications().length }}</span></h2></div></div>
+          <div class="table-scroll"><table><thead><tr><th>Notification</th><th>Route</th><th>Expires</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+            @for (item of adminNotifications(); track item.id) {
+              <tr>
+                <td><strong>{{ item.title }}</strong><small class="cell-subtitle content-message">{{ item.message }}</small></td>
+                <td>{{ item.route }}</td>
+                <td>{{ item.expires_at ? (item.expires_at | date:'short') : 'No expiry' }}</td>
+                <td><span class="status-pill" [class.suspended]="item.status !== 'published'">{{ item.status | titlecase }}</span></td>
+                <td class="admin-table-actions">
+                  @if (item.status === 'draft') {
+                    <button class="table-action" type="button" (click)="editAdminNotification(item)">Edit</button>
+                    <button class="table-action booking-return-action" type="button" (click)="changeAdminNotificationStatus(item, 'published')">Publish</button>
+                  }
+                  @if (item.status !== 'archived') { <button class="table-action danger" type="button" (click)="changeAdminNotificationStatus(item, 'archived')">Archive</button> }
+                </td>
+              </tr>
+            } @empty { <tr><td colspan="5" class="empty">No notifications have been created.</td></tr> }
+          </tbody></table></div>
+        </section>
+      }
+
+      @if (section() === 'audit') {
+        <section class="data-card admin-module">
+          <div class="module-toolbar">
+            <div class="module-title"><span class="section-kicker">ADMINISTRATOR ACTIVITY</span><h2>Audit events <span class="count-pill">{{ filteredAuditLogs().length }}</span></h2><p>Showing the latest 300 recorded changes. Values are excluded; changed field names are retained.</p></div>
+            <label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search audit events" placeholder="Search actor, table, record, or field..." [ngModel]="auditSearch()" (ngModelChange)="auditSearch.set($event)"></label>
+          </div>
+          <div class="table-scroll"><table><thead><tr><th>Date &amp; time</th><th>Administrator</th><th>Action</th><th>Resource</th><th>Record</th><th>Changed fields</th></tr></thead><tbody>
+            @for (event of filteredAuditLogs(); track event.id) {
+              <tr>
+                <td>{{ event.created_at | date:'medium' }}</td>
+                <td>{{ event.actor_email || 'Administrator' }}</td>
+                <td>{{ event.action | titlecase }}</td>
+                <td>{{ event.resource_type }}</td>
+                <td>{{ event.resource_id || '—' }}</td>
+                <td class="content-message">{{ event.changed_fields.join(', ') || '—' }}</td>
+              </tr>
+            } @empty { <tr><td colspan="6" class="empty">No audit events match this search.</td></tr> }
           </tbody></table></div>
         </section>
       }

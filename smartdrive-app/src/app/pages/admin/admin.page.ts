@@ -36,7 +36,42 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'availability' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos';
+type AdminSection = 'overview' | 'bookings' | 'availability' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos' | 'cms' | 'settings' | 'notifications' | 'audit';
+type CmsStatus = 'draft' | 'published' | 'archived';
+interface CmsContentItem {
+  id: string;
+  title: string;
+  message: string;
+  route: string;
+  status: CmsStatus;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at: string;
+}
+interface AdminNotification {
+  id: string;
+  title: string;
+  message: string;
+  route: string;
+  status: CmsStatus;
+  published_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+interface SiteSetting {
+  setting_key: string;
+  setting_value: string;
+  is_public: boolean;
+}
+interface AdminAuditLog {
+  id: number;
+  actor_email: string;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  changed_fields: string[];
+  created_at: string;
+}
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
@@ -320,6 +355,50 @@ export class AdminPage implements OnDestroy, OnInit {
   );
   readonly promoFeedback = signal<string | null>(null);
   readonly savingPromo = signal(false);
+  readonly cmsItems = signal<CmsContentItem[]>([]);
+  readonly cmsFeedback = signal<string | null>(null);
+  readonly savingCms = signal(false);
+  readonly cmsDraft: {
+    id: string | null;
+    title: string;
+    message: string;
+    route: string;
+    status: CmsStatus;
+    startsAt: string;
+    endsAt: string;
+  } = {
+    id: null,
+    title: '',
+    message: '',
+    route: '/offers',
+    status: 'draft',
+    startsAt: '',
+    endsAt: '',
+  };
+  readonly adminNotifications = signal<AdminNotification[]>([]);
+  readonly notificationFeedback = signal<string | null>(null);
+  readonly savingAdminNotification = signal(false);
+  readonly editingAdminNotificationId = signal<string | null>(null);
+  readonly notificationDraft = {
+    title: '',
+    message: '',
+    route: '/notifications',
+    expiresAt: '',
+  };
+  readonly siteSettings = signal<SiteSetting[]>([]);
+  readonly siteSettingsDraft = signal<Record<string, string>>({});
+  readonly settingsFeedback = signal<string | null>(null);
+  readonly savingSiteSettings = signal(false);
+  readonly auditLogs = signal<AdminAuditLog[]>([]);
+  readonly auditSearch = signal('');
+  readonly filteredAuditLogs = computed(() => {
+    const search = this.auditSearch().trim().toLowerCase();
+    if (!search) return this.auditLogs();
+    return this.auditLogs().filter((event) =>
+      [event.actor_email, event.action, event.resource_type, event.resource_id, ...event.changed_fields]
+        .some((value) => String(value ?? '').toLowerCase().includes(search)),
+    );
+  });
   readonly newPromo = {
     code: '',
     description: '',
@@ -400,8 +479,14 @@ export class AdminPage implements OnDestroy, OnInit {
     });
     void this.loadUnreadContactMessageCount();
     this.route.queryParamMap.subscribe((params) => {
-      const requested = params.get('section') as AdminSection | null;
-      this.section.set(requested ?? 'overview');
+      const requested = params.get('section');
+      const availableSections: AdminSection[] = [
+        'overview', 'bookings', 'availability', 'users', 'fleet', 'transactions', 'reviews',
+        'tracking', 'support', 'email-concerns', 'reports', 'promos', 'cms', 'settings',
+        'notifications', 'audit',
+      ];
+      const currentSection = availableSections.find((item) => item === requested) ?? 'overview';
+      this.section.set(currentSection);
       void this.loadSection(this.section());
     });
     window.setInterval(() => {
@@ -441,6 +526,10 @@ export class AdminPage implements OnDestroy, OnInit {
       if (section === 'email-concerns') await this.loadContactMessages();
       if (section === 'reports') await this.loadReports();
       if (section === 'promos') await this.loadPromos();
+      if (section === 'cms') await this.loadCmsContent();
+      if (section === 'settings') await this.loadSiteSettings();
+      if (section === 'notifications') await this.loadAdminNotifications();
+      if (section === 'audit') await this.loadAuditLogs();
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : `Unable to load ${section}.`);
     } finally {
@@ -661,6 +750,265 @@ export class AdminPage implements OnDestroy, OnInit {
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     this.promoCodes.set((data ?? []) as AdminPromo[]);
+  }
+
+  private async loadCmsContent(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('cms_content')
+      .select('id,title,message,route,status,starts_at,ends_at,created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    this.cmsItems.set((data ?? []) as CmsContentItem[]);
+  }
+
+  editCmsContent(item: CmsContentItem): void {
+    this.cmsDraft.id = item.id;
+    this.cmsDraft.title = item.title;
+    this.cmsDraft.message = item.message;
+    this.cmsDraft.route = item.route;
+    this.cmsDraft.status = item.status;
+    this.cmsDraft.startsAt = item.starts_at ? this.toLocalDateTime(item.starts_at) : '';
+    this.cmsDraft.endsAt = item.ends_at ? this.toLocalDateTime(item.ends_at) : '';
+    this.cmsFeedback.set(null);
+  }
+
+  resetCmsDraft(): void {
+    this.cmsDraft.id = null;
+    this.cmsDraft.title = '';
+    this.cmsDraft.message = '';
+    this.cmsDraft.route = '/offers';
+    this.cmsDraft.status = 'draft';
+    this.cmsDraft.startsAt = '';
+    this.cmsDraft.endsAt = '';
+    this.cmsFeedback.set(null);
+  }
+
+  async saveCmsContent(): Promise<void> {
+    const title = this.cmsDraft.title.trim();
+    const message = this.cmsDraft.message.trim();
+    const route = this.cmsDraft.route.trim();
+    if (title.length < 3 || title.length > 120 || message.length < 5 || message.length > 1000) {
+      this.cmsFeedback.set('Title must be 3–120 characters and message 5–1,000 characters.');
+      return;
+    }
+    if (!/^\/(?!\/)/.test(route) || route.includes('\\')) {
+      this.cmsFeedback.set('Use a local app route beginning with one slash, such as /offers.');
+      return;
+    }
+    const startsAt = this.cmsDraft.startsAt ? new Date(this.cmsDraft.startsAt) : null;
+    const endsAt = this.cmsDraft.endsAt ? new Date(this.cmsDraft.endsAt) : null;
+    if ((startsAt && !Number.isFinite(startsAt.getTime())) || (endsAt && !Number.isFinite(endsAt.getTime()))) {
+      this.cmsFeedback.set('Enter valid publication dates.');
+      return;
+    }
+    if (startsAt && endsAt && endsAt <= startsAt) {
+      this.cmsFeedback.set('The end date must be after the start date.');
+      return;
+    }
+
+    this.savingCms.set(true);
+    this.cmsFeedback.set(null);
+    this.errorMessage.set(null);
+    try {
+      const adminId = this.currentUser()?.id ?? null;
+      const values = {
+        title,
+        message,
+        route,
+        status: this.cmsDraft.status,
+        starts_at: startsAt?.toISOString() ?? null,
+        ends_at: endsAt?.toISOString() ?? null,
+        updated_by: adminId,
+      };
+      const result = this.cmsDraft.id
+        ? await this.supabase.client.from('cms_content').update(values).eq('id', this.cmsDraft.id)
+        : await this.supabase.client.from('cms_content').insert({ ...values, created_by: adminId });
+      if (result.error) throw new Error(result.error.message);
+      const successMessage = this.cmsDraft.id ? 'Content updated.' : 'Content created.';
+      this.resetCmsDraft();
+      this.cmsFeedback.set(successMessage);
+      await this.loadCmsContent();
+    } catch (error) {
+      this.cmsFeedback.set(error instanceof Error ? error.message : 'Unable to save content.');
+    } finally {
+      this.savingCms.set(false);
+    }
+  }
+
+  async changeCmsStatus(item: CmsContentItem, status: CmsStatus): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      const { error } = await this.supabase.client
+        .from('cms_content')
+        .update({ status, updated_by: this.currentUser()?.id ?? null })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+      await this.loadCmsContent();
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update content status.');
+    }
+  }
+
+  private async loadSiteSettings(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('site_settings')
+      .select('setting_key,setting_value,is_public')
+      .order('setting_key');
+    if (error) throw new Error(error.message);
+    const settings = (data ?? []) as SiteSetting[];
+    this.siteSettings.set(settings);
+    this.siteSettingsDraft.set(Object.fromEntries(settings.map((item) => [item.setting_key, item.setting_value])));
+  }
+
+  updateSiteSettingDraft(key: string, value: string): void {
+    this.siteSettingsDraft.update((draft) => ({ ...draft, [key]: value }));
+  }
+
+  updateSiteSettingFromEvent(key: string, event: Event): void {
+    const target = event.currentTarget;
+    if (target instanceof HTMLInputElement) this.updateSiteSettingDraft(key, target.value);
+  }
+
+  async saveSiteSettings(): Promise<void> {
+    const draft = this.siteSettingsDraft();
+    const email = draft['support_email']?.trim() ?? '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      this.settingsFeedback.set('Enter a valid support email address.');
+      return;
+    }
+    const phone = draft['support_phone']?.trim() ?? '';
+    if (phone.length > 40) {
+      this.settingsFeedback.set('Support phone must be 40 characters or fewer.');
+      return;
+    }
+
+    this.savingSiteSettings.set(true);
+    this.settingsFeedback.set(null);
+    this.errorMessage.set(null);
+    try {
+      const updatedBy = this.currentUser()?.id ?? null;
+      const rows = this.siteSettings().map((item) => ({
+        setting_key: item.setting_key,
+        setting_value: (draft[item.setting_key] ?? '').trim(),
+        is_public: item.is_public,
+        updated_by: updatedBy,
+      }));
+      const { error } = await this.supabase.client
+        .from('site_settings')
+        .upsert(rows, { onConflict: 'setting_key' });
+      if (error) throw new Error(error.message);
+      this.settingsFeedback.set('Settings saved.');
+      await this.loadSiteSettings();
+    } catch (error) {
+      this.settingsFeedback.set(error instanceof Error ? error.message : 'Unable to save settings.');
+    } finally {
+      this.savingSiteSettings.set(false);
+    }
+  }
+
+  private async loadAdminNotifications(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('admin_notifications')
+      .select('id,title,message,route,status,published_at,expires_at,created_at')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    this.adminNotifications.set((data ?? []) as AdminNotification[]);
+  }
+
+  editAdminNotification(item: AdminNotification): void {
+    if (item.status !== 'draft') return;
+    this.editingAdminNotificationId.set(item.id);
+    this.notificationDraft.title = item.title;
+    this.notificationDraft.message = item.message;
+    this.notificationDraft.route = item.route;
+    this.notificationDraft.expiresAt = item.expires_at ? this.toLocalDateTime(item.expires_at) : '';
+    this.notificationFeedback.set(null);
+  }
+
+  resetAdminNotificationDraft(): void {
+    this.editingAdminNotificationId.set(null);
+    this.notificationDraft.title = '';
+    this.notificationDraft.message = '';
+    this.notificationDraft.route = '/notifications';
+    this.notificationDraft.expiresAt = '';
+  }
+
+  async saveAdminNotification(): Promise<void> {
+    const title = this.notificationDraft.title.trim();
+    const message = this.notificationDraft.message.trim();
+    const route = this.notificationDraft.route.trim();
+    if (title.length < 3 || title.length > 120 || message.length < 5 || message.length > 1000) {
+      this.notificationFeedback.set('Title must be 3–120 characters and message 5–1,000 characters.');
+      return;
+    }
+    if (!/^\/(?!\/)/.test(route) || route.includes('\\')) {
+      this.notificationFeedback.set('Use a local app route beginning with one slash, such as /offers.');
+      return;
+    }
+    const expiresAt = this.notificationDraft.expiresAt ? new Date(this.notificationDraft.expiresAt) : null;
+    if (expiresAt && (!Number.isFinite(expiresAt.getTime()) || expiresAt <= new Date())) {
+      this.notificationFeedback.set('Choose an expiry date and time in the future.');
+      return;
+    }
+    this.savingAdminNotification.set(true);
+    this.notificationFeedback.set(null);
+    this.errorMessage.set(null);
+    try {
+      const adminId = this.currentUser()?.id ?? null;
+      const values = {
+        title,
+        message,
+        route,
+        status: 'draft' as const,
+        expires_at: expiresAt?.toISOString() ?? null,
+      };
+      const editingId = this.editingAdminNotificationId();
+      const result = editingId
+        ? await this.supabase.client.from('admin_notifications').update(values).eq('id', editingId)
+        : await this.supabase.client.from('admin_notifications').insert({ ...values, created_by: adminId });
+      if (result.error) throw new Error(result.error.message);
+      this.notificationFeedback.set(editingId ? 'Draft updated.' : 'Notification draft saved.');
+      this.resetAdminNotificationDraft();
+      await this.loadAdminNotifications();
+    } catch (error) {
+      this.notificationFeedback.set(error instanceof Error ? error.message : 'Unable to save notification.');
+    } finally {
+      this.savingAdminNotification.set(false);
+    }
+  }
+
+  async changeAdminNotificationStatus(item: AdminNotification, status: CmsStatus): Promise<void> {
+    this.errorMessage.set(null);
+    try {
+      const { error } = await this.supabase.client
+        .from('admin_notifications')
+        .update({
+          status,
+          published_at: status === 'published' ? new Date().toISOString() : item.published_at,
+        })
+        .eq('id', item.id);
+      if (error) throw new Error(error.message);
+      await this.loadAdminNotifications();
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update notification status.');
+    }
+  }
+
+  private async loadAuditLogs(): Promise<void> {
+    const { data, error } = await this.supabase.client
+      .from('admin_audit_logs')
+      .select('id,actor_email,action,resource_type,resource_id,changed_fields,created_at')
+      .order('created_at', { ascending: false })
+      .limit(300);
+    if (error) throw new Error(error.message);
+    this.auditLogs.set((data ?? []) as AdminAuditLog[]);
+  }
+
+  private toLocalDateTime(value: string): string {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return '';
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+    return local.toISOString().slice(0, 16);
   }
 
   async selectSupportConversation(conversation: SupportConversation): Promise<void> {
@@ -1367,6 +1715,46 @@ export class AdminPage implements OnDestroy, OnInit {
   openSection(section: AdminSection): void {
     this.search.set('');
     void this.router.navigate(['/admin'], { queryParams: { section } });
+  }
+
+  sectionTitle(): string {
+    const titles: Partial<Record<AdminSection, string>> = {
+      overview: `Good to see you, ${this.currentUser()?.fullName || 'Admin'}`,
+      fleet: 'Fleet management',
+      tracking: 'Vehicle tracking',
+      transactions: 'User transactions',
+      reviews: 'Reviews & ratings',
+      support: 'Support inbox',
+      'email-concerns': 'Email concerns',
+      reports: 'Business reports',
+      promos: 'Promo codes',
+      cms: 'Content management',
+      settings: 'Settings & configuration',
+      notifications: 'Notification management',
+      audit: 'Audit trail',
+    };
+    return titles[this.section()] ?? this.section().replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  }
+
+  sectionDescription(): string {
+    const descriptions: Partial<Record<AdminSection, string>> = {
+      overview: "Here's what's happening across your rental business today.",
+      bookings: 'Review reservations and keep every trip moving smoothly.',
+      users: 'Manage your customer accounts and membership details.',
+      fleet: 'Keep your vehicles, rates, and availability up to date.',
+      transactions: 'Review wallet balances, bookings, and transaction history.',
+      reviews: 'See what customers are saying about their experience.',
+      tracking: 'View the latest reported and sample vehicle locations.',
+      support: 'Review saved conversations, reported problems, and internal follow-up notes.',
+      'email-concerns': 'Read and manage messages sent to the support team.',
+      reports: 'Review operational performance, booking volume, and business health trends.',
+      promos: 'Create and manage discount codes available at checkout.',
+      cms: 'Create and schedule customer-facing content in the app notification feed.',
+      settings: 'Configure public contact information displayed to customers.',
+      notifications: 'Draft and publish in-app announcements for all customers.',
+      audit: 'Review administrator changes and the fields affected.',
+    };
+    return descriptions[this.section()] ?? 'Manage SmartDrive operations.';
   }
 
   async loadDashboard(event?: CustomEvent): Promise<void> {

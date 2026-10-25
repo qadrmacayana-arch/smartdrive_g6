@@ -67,6 +67,7 @@ export class NotificationsPage implements OnInit {
   kindLabel(kind: string): string {
     if (kind === 'vehicle') return 'New vehicle';
     if (kind === 'promo') return 'Promo code';
+    if (kind === 'announcement') return 'SmartDrive announcement';
     return 'Deal';
   }
 }

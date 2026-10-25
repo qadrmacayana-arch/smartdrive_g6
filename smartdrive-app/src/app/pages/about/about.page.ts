@@ -10,6 +10,7 @@ import {
 } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 import { ContactMessageService } from '../../core/services/contact-message.service';
+import { SiteSettingsService } from '../../core/services/site-settings.service';
 
 @Component({
   selector: 'app-about',
@@ -20,7 +21,10 @@ import { ContactMessageService } from '../../core/services/contact-message.servi
 })
 export class AboutPage {
   private readonly contactMessages = inject(ContactMessageService);
+  private readonly siteSettings = inject(SiteSettingsService);
   readonly currentUser = this.auth.currentUser;
+  readonly supportEmail = signal('smartdriveteam@smartdrive.com');
+  readonly supportPhone = signal('');
   readonly activeTab = signal<'about' | 'history' | 'contact' | 'developers'>('about');
   readonly contactComposerOpen = signal(false);
   readonly contactSubject = signal('');
@@ -34,12 +38,23 @@ export class AboutPage {
     private readonly route: ActivatedRoute,
     private readonly auth: AuthService,
   ) {
+    void this.loadPublicContactSettings();
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const section = params.get('section');
       this.activeTab.set(
         section === 'history' || section === 'contact' || section === 'developers' ? section : 'about',
       );
     });
+  }
+
+  private async loadPublicContactSettings(): Promise<void> {
+    try {
+      const settings = await this.siteSettings.getPublicSettings();
+      this.supportEmail.set(settings.supportEmail);
+      this.supportPhone.set(settings.supportPhone);
+    } catch (error) {
+      console.error('Unable to load public contact settings.', error);
+    }
   }
 
   browseFleet(): void {
