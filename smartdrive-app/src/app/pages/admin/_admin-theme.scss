@@ -163,6 +163,11 @@
 .text-action ion-icon { font-size: .9rem; }
 .lifetime-tag { padding: .3rem .48rem; border-radius: .4rem; background: #f1f5f3; color: #7e8d8d; font-size: .55rem; font-weight: 800; letter-spacing: .08em; }
 .table-scroll { overflow-x: auto; }
+.fleet-units { min-width: 8.5rem; }
+.fleet-units summary { color: var(--admin-green-dark); font-size: .68rem; font-weight: 750; cursor: pointer; }
+.fleet-unit-list { display: grid; gap: .25rem; padding: .45rem 0 .1rem; }
+.fleet-unit-list span { color: #516166; font-size: .67rem; white-space: nowrap; }
+.fleet-unit-list .inactive-unit { color: #9aa4a6; }
 table { width: 100%; border-collapse: collapse; font-size: .75rem; }
 thead { background: #f7f9f8; }
 th { color: #7c898c; font-size: .59rem; font-weight: 800; letter-spacing: .08em; text-align: left; text-transform: uppercase; }

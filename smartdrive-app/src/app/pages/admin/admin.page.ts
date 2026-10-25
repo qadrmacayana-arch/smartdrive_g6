@@ -1656,6 +1656,10 @@ export class AdminPage implements OnDestroy, OnInit {
     );
   }
 
+  activeUnitCount(vehicle: Vehicle): number {
+    return (vehicle.units ?? []).filter((unit) => unit.is_active).length;
+  }
+
   filteredAvailability(): VehicleAvailability[] {
     const filter = this.availabilityFilter();
     return this.vehicleAvailability().filter((item) =>
