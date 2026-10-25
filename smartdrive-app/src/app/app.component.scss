@@ -71,11 +71,18 @@ ion-menu {
   gap: clamp(0.25rem, 2vw, 1.4rem);
   margin: 0 auto;
   padding: 0 clamp(0.35rem, 2vw, 1.25rem);
-  border: 1px solid var(--sd-border);
-  border-radius: 22px;
-  background: var(--sd-card);
-  box-shadow: var(--sd-shadow-md);
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 12px 32px rgba(47, 33, 75, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(20px) saturate(1.45);
+  backdrop-filter: blur(20px) saturate(1.45);
+}
+
+html[data-theme='dark'] .customer-bottom-nav {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(24, 29, 45, 0.68);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .customer-bottom-nav > a,
