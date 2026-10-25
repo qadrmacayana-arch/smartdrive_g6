@@ -75,12 +75,18 @@
           <div class="calendar-instruction" aria-live="polite">
             <span class="instruction-dot" [class.complete]="returnDate()"></span>
             @if (!pickupDate()) {
-              <span>Choose your pick-up date</span>
+              <span><strong>Step 1 of 2:</strong> Choose the pick-up date when your rental begins.</span>
             } @else if (!returnDate()) {
-              <span>Now choose your drop-off date</span>
+              <span><strong>Step 2 of 2:</strong> Choose a drop-off date after pick-up.</span>
             } @else {
-              <span><strong>{{ rentalDays() }} {{ rentalDays() === 1 ? 'day' : 'days' }}</strong> selected</span>
+              <span><strong>{{ rentalDays() }} {{ rentalDays() === 1 ? 'rental day' : 'rental days' }}</strong> selected. Review your dates on the right.</span>
             }
+          </div>
+
+          <div class="calendar-legend" aria-label="Calendar date legend">
+            <span><i class="legend-pickup"></i>Pick-up</span>
+            <span><i class="legend-range"></i>Rental period</span>
+            <span><i class="legend-dropoff"></i>Drop-off</span>
           </div>
 
           <div class="calendar-grid weekday-row" aria-hidden="true">
@@ -96,11 +102,13 @@
                   type="button"
                   class="calendar-day"
                   [class.selected]="isDateSelected(day)"
+                  [class.pickup-date]="isPickupDate(day)"
+                  [class.dropoff-date]="isDropoffDate(day)"
                   [class.in-range]="isDateInRange(day)"
                   [class.disabled]="isDateDisabled(day)"
                   [class.today]="isToday(day)"
                   [disabled]="isDateDisabled(day)"
-                  [attr.aria-label]="day | date: 'fullDate'"
+                  [attr.aria-label]="calendarDayLabel(day)"
                   [attr.aria-pressed]="isDateSelected(day)"
                   [attr.aria-current]="isToday(day) ? 'date' : null"
                   (click)="selectDate(day)"
@@ -126,7 +134,7 @@
             <span class="date-choice-copy">
               <small>Pick-up date</small>
               <strong>{{ pickupDate() ? formatSelectedDate(pickupDate()) : 'Select date' }}</strong>
-              @if (!pickupDate()) { <span class="date-hint">Choose a date on the calendar</span> }
+              @if (!pickupDate()) { <span class="date-hint">Rental starts on this day</span> }
             </span>
           </button>
 
@@ -141,7 +149,7 @@
             <span class="date-choice-copy">
               <small>Drop-off date</small>
               <strong>{{ returnDate() ? formatSelectedDate(returnDate()) : 'Select date' }}</strong>
-              @if (!returnDate()) { <span class="date-hint">Must be after pick-up</span> }
+              @if (!returnDate()) { <span class="date-hint">Choose a day after pick-up</span> }
             </span>
           </button>
 

@@ -229,6 +229,22 @@ export class BookingDatesPage implements OnInit {
     return value === this.pickupDate() || value === this.returnDate();
   }
 
+  isPickupDate(date: Date): boolean {
+    return this.formatDate(date) === this.pickupDate();
+  }
+
+  isDropoffDate(date: Date): boolean {
+    return this.formatDate(date) === this.returnDate();
+  }
+
+  calendarDayLabel(date: Date): string {
+    const value = this.formatDate(date);
+    const label = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    if (value === this.pickupDate()) return `${label}, pick-up date`;
+    if (value === this.returnDate()) return `${label}, drop-off date`;
+    return label;
+  }
+
   isToday(date: Date): boolean {
     return this.formatDate(date) === this.today();
   }

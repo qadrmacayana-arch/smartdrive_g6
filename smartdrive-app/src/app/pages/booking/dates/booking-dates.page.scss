@@ -163,10 +163,10 @@
 
 .calendar-instruction {
   display: flex;
-  min-height: 2.65rem;
+  min-height: 3rem;
   align-items: center;
   gap: 0.6rem;
-  margin-bottom: 0.95rem;
+  margin-bottom: 0.65rem;
   padding: 0.55rem 0.75rem;
   border: 1px solid color-mix(in srgb, var(--sd-primary) 14%, var(--sd-border));
   border-radius: 0.8rem;
@@ -174,9 +174,48 @@
   color: var(--sd-muted-foreground);
   font-size: 0.72rem;
   font-weight: 650;
+  line-height: 1.45;
 
   strong {
     color: var(--sd-primary);
+  }
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.9rem;
+  margin: 0 0 0.55rem;
+  color: var(--sd-muted-foreground);
+  font-size: 0.63rem;
+  font-weight: 700;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  i {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    flex: 0 0 0.7rem;
+    border-radius: 50%;
+  }
+
+  .legend-pickup {
+    background: var(--sd-primary);
+  }
+
+  .legend-range {
+    border-radius: 0.2rem;
+    background: var(--sd-primary-soft);
+  }
+
+  .legend-dropoff {
+    background: var(--sd-success);
   }
 }
 
@@ -290,6 +329,11 @@
     background: var(--sd-gradient-primary);
     color: #fff;
     box-shadow: 0 5px 12px color-mix(in srgb, var(--sd-primary) 26%, transparent);
+  }
+
+  &.selected.dropoff-date {
+    background: var(--sd-success);
+    box-shadow: 0 5px 12px color-mix(in srgb, var(--sd-success) 26%, transparent);
   }
 
   &.disabled {
