@@ -159,9 +159,15 @@
         <span class="sd-muted">Vehicle</span>
         <strong>{{ b.vehicle_name }}</strong>
       </div>
+      @if (b.vehicle_unit_number) {
+        <div class="detail-row">
+          <span class="sd-muted">Assigned fleet unit</span>
+          <strong>Unit {{ b.vehicle_unit_number }}</strong>
+        </div>
+      }
       @if (b.vehicle_plate_number) {
         <div class="detail-row">
-          <span class="sd-muted">Assigned unit plate</span>
+          <span class="sd-muted">Booking demo plate</span>
           <strong>{{ b.vehicle_plate_number }}</strong>
         </div>
       }

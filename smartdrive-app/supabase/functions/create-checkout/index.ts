@@ -314,6 +314,7 @@ Deno.serve(async (request) => {
   const reservedUnit = Array.isArray(reservedUnits) ? reservedUnits[0] : reservedUnits;
   if (reservationError || !reservedUnit
     || !Number.isSafeInteger(Number(reservedUnit.vehicle_unit_id))
+    || !Number.isSafeInteger(Number(reservedUnit.vehicle_unit_number))
     || typeof reservedUnit.plate_number !== 'string'
     || !reservedUnit.plate_number.trim()) {
     if (reservationError) console.error('Unable to reserve a fleet unit for checkout.', reservationError);
@@ -332,6 +333,7 @@ Deno.serve(async (request) => {
     customer_address: customerAddress || null,
     vehicle_id: vehicle.id,
     vehicle_unit_id: Number(reservedUnit.vehicle_unit_id),
+    vehicle_unit_number: Number(reservedUnit.vehicle_unit_number),
     vehicle_name: vehicle.name,
     vehicle_plate_number: reservedUnit.plate_number,
     pickup_date: input.pickupDate,

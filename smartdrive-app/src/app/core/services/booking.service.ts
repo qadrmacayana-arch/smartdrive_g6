@@ -266,6 +266,8 @@ export class BookingService {
       || typeof unit !== 'object'
       || !('vehicle_unit_id' in unit)
       || !Number.isInteger(unit.vehicle_unit_id)
+      || !('vehicle_unit_number' in unit)
+      || !Number.isInteger(unit.vehicle_unit_number)
       || !('plate_number' in unit)
       || typeof unit.plate_number !== 'string'
       || !unit.plate_number.trim()
@@ -282,6 +284,7 @@ export class BookingService {
       customer_address: customer.address,
       vehicle_id: draft.vehicle.id,
       vehicle_unit_id: Number(unit.vehicle_unit_id),
+      vehicle_unit_number: Number(unit.vehicle_unit_number),
       vehicle_name: draft.vehicle.name,
       vehicle_plate_number: unit.plate_number,
       pickup_date: draft.pickupDate,

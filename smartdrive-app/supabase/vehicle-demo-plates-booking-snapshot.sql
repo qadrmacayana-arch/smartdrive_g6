@@ -1,17 +1,17 @@
--- Give every physical fleet unit its own plate and reserve a specific unit per booking.
+-- Reserve a specific fleet unit per booking and generate a unique demo plate per booking.
 -- Run after the base schema and vehicle-fleet-quantity.sql in the Supabase SQL Editor.
 create table if not exists public.vehicle_units (
   id bigint generated always as identity primary key,
   vehicle_id bigint not null references public.vehicles(id) on delete cascade,
   unit_number integer not null check (unit_number > 0),
-  plate_number text not null,
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   constraint vehicle_units_vehicle_number_key unique (vehicle_id, unit_number)
 );
 
-create unique index if not exists vehicle_units_plate_number_uidx
-  on public.vehicle_units (upper(btrim(plate_number)));
+drop index if exists public.vehicle_units_plate_number_uidx;
+alter table public.vehicle_units
+  drop column if exists plate_number;
 create index if not exists vehicle_units_vehicle_active_idx
   on public.vehicle_units (vehicle_id, is_active, unit_number);
 
@@ -19,6 +19,28 @@ alter table public.vehicles
   add column if not exists plate_number text;
 alter table public.vehicles
   alter column plate_number drop not null;
+
+alter table public.bookings
+  add column if not exists vehicle_unit_id bigint
+  references public.vehicle_units(id) on delete set null;
+alter table public.bookings
+  add column if not exists vehicle_unit_number integer;
+alter table public.bookings
+  add column if not exists vehicle_plate_number text;
+
+create table if not exists public.vehicle_unit_holds (
+  reservation_key text primary key,
+  vehicle_unit_id bigint not null references public.vehicle_units(id) on delete cascade,
+  pickup_date date not null,
+  return_date date not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  check (return_date > pickup_date)
+);
+alter table public.vehicle_unit_holds
+  add column if not exists plate_number text;
+create index if not exists vehicle_unit_holds_unit_dates_idx
+  on public.vehicle_unit_holds (vehicle_unit_id, pickup_date, return_date, expires_at);
 
 create or replace function public.generate_vehicle_demo_plate()
 returns text
@@ -35,7 +57,15 @@ begin
     attempts := attempts + 1;
     candidate := 'SD-DEMO-' || upper(substr(md5(random()::text || clock_timestamp()::text), 1, 7));
     exit when not exists (
-      select 1 from public.vehicle_units
+      select 1 from public.bookings
+      where upper(btrim(vehicle_plate_number)) = candidate
+    )
+    and not exists (
+      select 1 from public.vehicle_unit_holds
+      where upper(btrim(plate_number)) = candidate
+    )
+    and not exists (
+      select 1 from public.vehicles
       where upper(btrim(plate_number)) = candidate
     );
     if attempts >= 100 then
@@ -49,65 +79,54 @@ $$;
 revoke all on function public.generate_vehicle_demo_plate() from public, anon, authenticated;
 grant execute on function public.generate_vehicle_demo_plate() to service_role;
 
--- Preserve an existing listing plate as unit 1; create separate plates for remaining units.
+-- Create unit records without plates; demo plates are generated for bookings, not fleet units.
 do $$
 declare
   vehicle_row record;
-  unit_number integer;
-  unit_plate text;
+  next_unit_number integer;
 begin
   for vehicle_row in
-    select id, fleet_quantity, plate_number
+    select id, fleet_quantity
     from public.vehicles
     order by id
   loop
-    for unit_number in 1..greatest(vehicle_row.fleet_quantity, 1) loop
+    for next_unit_number in 1..greatest(vehicle_row.fleet_quantity, 1) loop
       if exists (
         select 1 from public.vehicle_units
-        where vehicle_id = vehicle_row.id and vehicle_units.unit_number = unit_number
+        where vehicle_id = vehicle_row.id
+          and vehicle_units.unit_number = next_unit_number
       ) then
         continue;
       end if;
 
-      unit_plate := case
-        when unit_number = 1 and nullif(btrim(vehicle_row.plate_number), '') is not null
-          then upper(btrim(vehicle_row.plate_number))
-        else public.generate_vehicle_demo_plate()
-      end;
-
-      if exists (
-        select 1 from public.vehicle_units
-        where upper(btrim(plate_number)) = unit_plate
-      ) then
-        unit_plate := public.generate_vehicle_demo_plate();
-      end if;
-
-      insert into public.vehicle_units(vehicle_id, unit_number, plate_number)
-      values (vehicle_row.id, unit_number, unit_plate)
+      insert into public.vehicle_units(vehicle_id, unit_number)
+      values (vehicle_row.id, next_unit_number)
       on conflict (vehicle_id, unit_number) do nothing;
     end loop;
   end loop;
 end $$;
 
-alter table public.bookings
-  add column if not exists vehicle_unit_id bigint
-  references public.vehicle_units(id) on delete set null;
-alter table public.bookings
-  add column if not exists vehicle_plate_number text;
-
--- Reassign old listing-level snapshots to distinct available physical units.
+-- Backfill units and replace duplicate listing-level plate snapshots with unique booking plates.
 do $$
 declare
   booking_row record;
   unit_row record;
 begin
   for booking_row in
-    select id, vehicle_id, pickup_date, return_date, booking_status, payment_status
-    from public.bookings
-    where vehicle_unit_id is null
+    select id, vehicle_id, vehicle_unit_id, pickup_date, return_date, booking_status, payment_status
+    from public.bookings booking
+    where booking.vehicle_unit_number is null
+      or booking.vehicle_plate_number is null
+      or btrim(booking.vehicle_plate_number) = ''
+      or exists (
+        select 1
+        from public.bookings duplicate
+        where duplicate.id <> booking.id
+          and upper(btrim(duplicate.vehicle_plate_number)) = upper(btrim(booking.vehicle_plate_number))
+      )
     order by pickup_date, created_at, id
   loop
-    select unit.id, unit.plate_number
+    select unit.id, unit.unit_number
     into unit_row
     from public.vehicle_units unit
     where unit.vehicle_id = booking_row.vehicle_id
@@ -121,29 +140,16 @@ begin
           and other_booking.pickup_date < booking_row.return_date
           and other_booking.return_date > booking_row.pickup_date
       )
-    order by unit.unit_number
+    order by (unit.id = booking_row.vehicle_unit_id) desc, random()
     limit 1;
 
-    if found then
-      update public.bookings
-      set vehicle_unit_id = unit_row.id,
-          vehicle_plate_number = unit_row.plate_number
-      where id = booking_row.id;
-    end if;
+    update public.bookings as target
+    set vehicle_unit_id = coalesce(unit_row.id, booking_row.vehicle_unit_id),
+        vehicle_unit_number = coalesce(unit_row.unit_number, target.vehicle_unit_number),
+        vehicle_plate_number = public.generate_vehicle_demo_plate()
+    where target.id = booking_row.id;
   end loop;
 end $$;
-
-create table if not exists public.vehicle_unit_holds (
-  reservation_key text primary key,
-  vehicle_unit_id bigint not null references public.vehicle_units(id) on delete cascade,
-  pickup_date date not null,
-  return_date date not null,
-  expires_at timestamptz not null,
-  created_at timestamptz not null default now(),
-  check (return_date > pickup_date)
-);
-create index if not exists vehicle_unit_holds_unit_dates_idx
-  on public.vehicle_unit_holds (vehicle_unit_id, pickup_date, return_date, expires_at);
 
 alter table public.vehicle_units enable row level security;
 alter table public.vehicle_unit_holds enable row level security;
@@ -211,11 +217,10 @@ begin
     end loop;
 
     while active_count < new.fleet_quantity loop
-      insert into public.vehicle_units(vehicle_id, unit_number, plate_number, is_active)
+      insert into public.vehicle_units(vehicle_id, unit_number, is_active)
       select
         new.id,
         coalesce(max(unit_number), 0) + 1,
-        public.generate_vehicle_demo_plate(),
         true
       from public.vehicle_units
       where vehicle_id = new.id;
@@ -267,7 +272,7 @@ create or replace function public.reserve_vehicle_unit(
   p_return_date date,
   p_reservation_key text
 )
-returns table (vehicle_unit_id bigint, plate_number text)
+returns table (vehicle_unit_id bigint, vehicle_unit_number integer, plate_number text)
 language plpgsql
 security definer
 set search_path = public
@@ -312,7 +317,13 @@ begin
       and unit.vehicle_id = p_vehicle_id
       and unit.is_active;
     if not found then raise exception 'The reserved fleet unit is no longer active.'; end if;
-    return query select selected_unit.id, selected_unit.plate_number;
+    if existing_hold.plate_number is null then
+      existing_hold.plate_number := public.generate_vehicle_demo_plate();
+      update public.vehicle_unit_holds
+      set plate_number = existing_hold.plate_number
+      where reservation_key = p_reservation_key;
+    end if;
+    return query select selected_unit.id, selected_unit.unit_number, existing_hold.plate_number;
     return;
   end if;
 
@@ -357,7 +368,7 @@ begin
         and booking.pickup_date < p_return_date
         and booking.return_date > p_pickup_date
     )
-  order by unit.unit_number
+  order by random()
   limit 1
   for update;
 
@@ -366,12 +377,20 @@ begin
   end if;
 
   insert into public.vehicle_unit_holds(
-    reservation_key, vehicle_unit_id, pickup_date, return_date, expires_at
+    reservation_key, vehicle_unit_id, pickup_date, return_date, expires_at, plate_number
   ) values (
-    p_reservation_key, selected_unit.id, p_pickup_date, p_return_date, now() + interval '45 minutes'
+    p_reservation_key,
+    selected_unit.id,
+    p_pickup_date,
+    p_return_date,
+    now() + interval '45 minutes',
+    public.generate_vehicle_demo_plate()
   );
 
-  return query select selected_unit.id, selected_unit.plate_number;
+  return query
+  select selected_unit.id, selected_unit.unit_number, hold.plate_number
+  from public.vehicle_unit_holds hold
+  where hold.reservation_key = p_reservation_key;
 end;
 $$;
 
@@ -413,7 +432,8 @@ begin
     raise exception 'The reserved fleet unit is no longer active.';
   end if;
 
-  new.vehicle_plate_number := assigned_unit.plate_number;
+  new.vehicle_unit_number := assigned_unit.unit_number;
+  new.vehicle_plate_number := reserved_hold.plate_number;
   return new;
 end;
 $$;

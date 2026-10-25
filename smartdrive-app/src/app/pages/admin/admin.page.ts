@@ -653,7 +653,7 @@ export class AdminPage implements OnDestroy, OnInit {
   private async loadFleet(): Promise<void> {
     const [{ data, error }, { data: units, error: unitError }] = await Promise.all([
       this.supabase.client.from('vehicles').select('*').order('created_at', { ascending: false }),
-      this.supabase.client.from('vehicle_units').select('id,vehicle_id,unit_number,plate_number,is_active').order('unit_number'),
+      this.supabase.client.from('vehicle_units').select('id,vehicle_id,unit_number,is_active').order('unit_number'),
     ]);
     if (error) throw new Error(error.message);
     if (unitError) throw new Error(`Vehicle units could not be loaded: ${unitError.message}`);
@@ -739,14 +739,14 @@ export class AdminPage implements OnDestroy, OnInit {
     const bookings = this.filteredReportBookings();
     const quote = (value: unknown): string => `"${String(value ?? '').replace(/"/g, '""')}"`;
     const rows = [
-      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Assigned unit plate', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
+      ['Reference', 'Created', 'Customer', 'Email', 'Vehicle', 'Assigned unit / booking demo plate', 'Pickup', 'Return', 'Booking status', 'Payment method', 'Payment status', 'Total PHP'],
       ...bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ?? '',
         booking.customer_name,
         booking.customer_email,
         booking.vehicle_name,
-        booking.vehicle_plate_number ?? '',
+        this.assignedUnitAndDemoPlate(booking),
         booking.pickup_date,
         booking.return_date,
         booking.booking_status,
@@ -850,13 +850,13 @@ export class AdminPage implements OnDestroy, OnInit {
     this.addPdfSection(cursor, 'Booking details');
     this.addAdminPdfTable(
       cursor,
-      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Assigned unit plate', 'Rental dates', 'Payment', 'Total PHP'],
+      ['Reference', 'Created', 'Customer / email', 'Vehicle', 'Assigned unit / booking demo plate', 'Rental dates', 'Payment', 'Total PHP'],
       bookings.map((booking) => [
         booking.reference_number,
         booking.created_at ? new Date(booking.created_at).toLocaleDateString() : '—',
         `${booking.customer_name}\n${booking.customer_email}`,
         booking.vehicle_name,
-        booking.vehicle_plate_number || '—',
+        this.assignedUnitAndDemoPlate(booking),
         `${booking.pickup_date} – ${booking.return_date}`,
         `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
         Number(booking.total_price ?? 0).toFixed(2),
@@ -925,11 +925,11 @@ export class AdminPage implements OnDestroy, OnInit {
       this.addPdfSection(cursor, 'Booking payments');
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Vehicle', 'Assigned unit plate', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
+        ['Reference', 'Vehicle', 'Assigned unit / booking demo plate', 'Rental dates', 'Method', 'Payment status', 'Booking status', 'Total PHP'],
         summary.bookings.map((booking) => [
           booking.reference_number,
           booking.vehicle_name,
-          booking.vehicle_plate_number || '—',
+          this.assignedUnitAndDemoPlate(booking),
           `${booking.pickup_date} – ${booking.return_date}`,
           this.paymentMethod(booking.payment_method),
           booking.payment_status,
@@ -1631,6 +1631,13 @@ export class AdminPage implements OnDestroy, OnInit {
     } as Record<string, string>)[method] ?? method;
   }
 
+  assignedUnitAndDemoPlate(booking: Booking): string {
+    return [
+      booking.vehicle_unit_number ? `Unit ${booking.vehicle_unit_number}` : null,
+      booking.vehicle_plate_number ? `Demo plate ${booking.vehicle_plate_number}` : null,
+    ].filter(Boolean).join(' · ') || '—';
+  }
+
   filteredVehicles(): Vehicle[] {
     const term = this.search().trim().toLowerCase();
     const filter = this.fleetFilter();
@@ -1643,7 +1650,7 @@ export class AdminPage implements OnDestroy, OnInit {
         vehicle.name,
         vehicle.type,
         vehicle.vehicle_id,
-        ...(vehicle.units ?? []).map((unit) => unit.plate_number),
+        ...(vehicle.units ?? []).map((unit) => `unit ${unit.unit_number}`),
       ]
         .some((value) => String(value ?? '').toLowerCase().includes(term))),
     );
@@ -1820,12 +1827,12 @@ export class AdminPage implements OnDestroy, OnInit {
       );
       this.addAdminPdfTable(
         cursor,
-        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Assigned unit plate', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
+        ['Reference', 'Customer / email', 'Vehicle / pickup', 'Assigned unit / booking demo plate', 'Rental dates', 'Payment', 'Booking status', 'Total PHP'],
         bookings.map((booking) => [
           booking.reference_number,
           `${booking.customer_name}\n${booking.customer_email}${booking.customer_phone ? `\n${booking.customer_phone}` : ''}`,
           `${booking.vehicle_name}\n${booking.pickup_location || 'Pickup location not provided'}`,
-          booking.vehicle_plate_number || '—',
+          this.assignedUnitAndDemoPlate(booking),
           `${booking.pickup_date} – ${booking.return_date}\n${booking.rental_days} days`,
           `${this.paymentMethod(booking.payment_method)}\n${booking.payment_status}`,
           booking.booking_status,
@@ -1961,31 +1968,6 @@ export class AdminPage implements OnDestroy, OnInit {
     } finally {
       this.savingVehicleEdit.set(false);
     }
-  }
-
-  async editVehicleUnitPlate(unit: VehicleUnit): Promise<void> {
-    const requested = prompt(`Enter the registration plate for fleet unit ${unit.unit_number}:`, unit.plate_number);
-    if (requested === null) return;
-    const plateNumber = requested.trim().toUpperCase();
-    if (!plateNumber || plateNumber.length > 32) {
-      this.errorMessage.set('Enter a plate number between 1 and 32 characters.');
-      return;
-    }
-
-    const { error } = await this.supabase.client
-      .from('vehicle_units')
-      .update({ plate_number: plateNumber })
-      .eq('id', unit.id);
-    if (error) {
-      this.errorMessage.set(error.message.includes('vehicle_units_plate_number_uidx')
-        ? 'That plate is already assigned to another fleet unit.'
-        : `Could not update the unit plate: ${error.message}`);
-      return;
-    }
-    this.vehicles.update((items) => items.map((vehicle) => ({
-      ...vehicle,
-      units: vehicle.units?.map((item) => item.id === unit.id ? { ...item, plate_number: plateNumber } : item),
-    })));
   }
 
   async archiveVehicle(vehicle: Vehicle): Promise<void> {

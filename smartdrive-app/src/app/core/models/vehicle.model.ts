@@ -1,7 +1,6 @@
 export interface Vehicle {
   id: number;
   vehicle_id: string;
-  plate_number?: string | null;
   units?: VehicleUnit[];
   name: string;
   type: string;
@@ -25,6 +24,5 @@ export interface VehicleUnit {
   id: number;
   vehicle_id: number;
   unit_number: number;
-  plate_number: string;
   is_active: boolean;
 }
