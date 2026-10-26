@@ -54,6 +54,52 @@ describe('PredictiveInsightsService', () => {
     });
   });
 
+  it('uses unit availability instead of an individual overlap to decide whether a fleet is fully booked', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: [{ has_conflict: true, historical_signal_percent: null }],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [{
+          using_count: 0,
+          reserved_count: 1,
+          pending_count: 1,
+          total_quantity: 4,
+          available_quantity: 2,
+        }],
+        error: null,
+      });
+
+    const result = await service.getBookingDateEstimate(4, '2026-10-23', '2026-10-25');
+
+    expect(result.hasConflict).toBe(false);
+    expect(result.availableQuantity).toBe(2);
+  });
+
+  it('treats checkout holds as unavailable when they occupy the last fleet unit', async () => {
+    rpc
+      .mockResolvedValueOnce({
+        data: [{ has_conflict: false, historical_signal_percent: null }],
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: [{
+          using_count: 0,
+          reserved_count: 0,
+          pending_count: 1,
+          total_quantity: 1,
+          available_quantity: 0,
+        }],
+        error: null,
+      });
+
+    const result = await service.getBookingDateEstimate(4, '2026-10-23', '2026-10-25');
+
+    expect(result.hasConflict).toBe(true);
+    expect(result.availableQuantity).toBe(0);
+  });
+
   it('estimates the next 30 days from the previous two periods and excludes cancelled bookings', () => {
     const bookings = [
       makeBooking('2026-09-20'),

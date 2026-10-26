@@ -265,6 +265,8 @@ tbody tr:hover { background: #fafcfb; }
 .vehicle-form input,.vehicle-form select,.edit-card input:not([type="checkbox"]) { width: 100%; min-width: 0; box-sizing: border-box; padding: .67rem .7rem; border: 1px solid #e1e8e4; border-radius: .55rem; outline: 0; background: #fff; color: var(--admin-ink); font: 500 .71rem 'Plus Jakarta Sans',sans-serif; }
 .vehicle-form input:focus,.vehicle-form select:focus,.edit-card input:focus { border-color: #b89be8; box-shadow: 0 0 0 3px rgba(124,58,237,.08); }
 .vehicle-form .primary-action { min-height: 2.45rem; }
+.vehicle-photo-preview { display: block; width: 100%; max-height: 180px; object-fit: cover; border: 1px solid #e1e8e4; border-radius: .55rem; background: #fff; }
+.vehicle-form .primary-action:disabled { cursor: wait; opacity: .65; }
 .vehicle-edit-card { max-height: min(90vh, 850px); overflow-y: auto; }
 .vehicle-edit-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
 .vehicle-edit-grid label { align-content: start; }

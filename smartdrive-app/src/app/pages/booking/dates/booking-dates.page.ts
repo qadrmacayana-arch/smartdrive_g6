@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -16,6 +16,14 @@ import { BookingService } from '../../../core/services/booking.service';
 import { BookingDateEstimate, PredictiveInsightsService } from '../../../core/services/predictive-insights.service';
 import { Vehicle } from '../../../core/models/vehicle.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
+import { RealtimeChannel } from '@supabase/supabase-js';
+
+interface VehicleAvailabilityEvent {
+  vehicle_id: number;
+  pickup_date: string;
+  return_date: string;
+}
 
 @Component({
   selector: 'app-booking-dates',
@@ -34,14 +42,24 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './booking-dates.page.html',
   styleUrl: './booking-dates.page.scss',
 })
-export class BookingDatesPage implements OnInit {
+export class BookingDatesPage implements OnDestroy, OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly vehicleService = inject(VehicleService);
+  private readonly bookingService = inject(BookingService);
+  private readonly insights = inject(PredictiveInsightsService);
+  private readonly auth = inject(AuthService);
+  private readonly supabase = inject(SupabaseService);
   readonly vehicle = signal<Vehicle | null>(null);
   readonly loading = signal(true);
   readonly errorMessage = signal<string | null>(null);
   readonly bookingEstimate = signal<BookingDateEstimate | null>(null);
   readonly bookingEstimateLoading = signal(false);
   readonly bookingEstimateError = signal<string | null>(null);
+  readonly availabilityNotice = signal<string | null>(null);
+  readonly availabilityRealtimeError = signal(false);
   private bookingEstimateRequest = 0;
+  private availabilityChannel: RealtimeChannel | null = null;
 
   readonly pickupDate = signal('');
   readonly returnDate = signal('');
@@ -88,15 +106,6 @@ export class BookingDatesPage implements OnInit {
   readonly displayedMonth = computed(() =>
     this.calendarMonth().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
   );
-
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly vehicleService: VehicleService,
-    private readonly bookingService: BookingService,
-    private readonly insights: PredictiveInsightsService,
-    private readonly auth: AuthService,
-  ) {}
 
   private addDays(date: Date, days: number): string {
     const d = new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
@@ -146,12 +155,21 @@ export class BookingDatesPage implements OnInit {
           return;
         }
         this.vehicle.set(vehicle);
+        this.watchAvailabilityChanges(vehicle.id);
         void this.loadBookingEstimate();
       }
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to load this vehicle.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.bookingEstimateRequest++;
+    if (this.availabilityChannel) {
+      void this.supabase.client.removeChannel(this.availabilityChannel);
+      this.availabilityChannel = null;
     }
   }
 
@@ -182,6 +200,7 @@ export class BookingDatesPage implements OnInit {
   }
 
   selectDate(date: Date): void {
+    this.availabilityNotice.set(null);
     const value = this.formatDate(date);
     if (value < this.today()) return;
 
@@ -302,6 +321,92 @@ export class BookingDatesPage implements OnInit {
 
   refreshBookingEstimate(): void {
     void this.loadBookingEstimate();
+  }
+
+  private watchAvailabilityChanges(vehicleId: number): void {
+    this.availabilityChannel = this.supabase.client
+      .channel(`vehicle-availability-${vehicleId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'vehicle_availability_events',
+          filter: `vehicle_id=eq.${vehicleId}`,
+        },
+        (payload) => {
+          void this.handleAvailabilityEvent(payload.new);
+        },
+      )
+      .subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') {
+          this.availabilityRealtimeError.set(false);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('Live vehicle availability updates are unavailable.', error);
+          this.availabilityRealtimeError.set(true);
+        }
+      });
+  }
+
+  private async handleAvailabilityEvent(payload: unknown): Promise<void> {
+    const event = this.parseAvailabilityEvent(payload);
+    if (!event) {
+      console.error('Received an invalid live vehicle availability event.', payload);
+      this.availabilityRealtimeError.set(true);
+      return;
+    }
+
+    const vehicle = this.vehicle();
+    const pickup = this.pickupDate();
+    const returnDate = this.returnDate();
+    if (
+      !vehicle
+      || event.vehicle_id !== vehicle.id
+      || !pickup
+      || !returnDate
+      || event.pickup_date >= returnDate
+      || event.return_date <= pickup
+    ) return;
+
+    const previousEstimate = this.bookingEstimate();
+    await this.loadBookingEstimate();
+    if (
+      this.vehicle()?.id !== vehicle.id
+      || this.pickupDate() !== pickup
+      || this.returnDate() !== returnDate
+    ) return;
+
+    const updatedEstimate = this.bookingEstimate();
+    if (!updatedEstimate) {
+      this.availabilityNotice.set('A reservation update was received, but availability could not be refreshed. Check again before continuing.');
+      return;
+    }
+    if (previousEstimate?.availableQuantity === updatedEstimate.availableQuantity) return;
+
+    this.availabilityNotice.set(
+      updatedEstimate.hasConflict
+        ? 'Another renter just reserved the vehicle for these dates. Choose a different date range.'
+        : `Availability changed for these dates. ${updatedEstimate.availableQuantity} of ${updatedEstimate.totalQuantity} units remain.`,
+    );
+  }
+
+  private parseAvailabilityEvent(payload: unknown): VehicleAvailabilityEvent | null {
+    if (!payload || typeof payload !== 'object') return null;
+    const record = payload as Record<string, unknown>;
+    if (
+      typeof record['vehicle_id'] !== 'number'
+      || !Number.isSafeInteger(record['vehicle_id'])
+      || typeof record['pickup_date'] !== 'string'
+      || typeof record['return_date'] !== 'string'
+      || !/^\d{4}-\d{2}-\d{2}$/.test(record['pickup_date'])
+      || !/^\d{4}-\d{2}-\d{2}$/.test(record['return_date'])
+      || record['return_date'] <= record['pickup_date']
+    ) return null;
+    return {
+      vehicle_id: Number(record['vehicle_id']),
+      pickup_date: record['pickup_date'],
+      return_date: record['return_date'],
+    };
   }
 
   continue(): void {

@@ -74,6 +74,10 @@ Enable Google in Supabase Authentication, configure the Google OAuth client with
 
 Before users can save a profile photo, run [`supabase/avatar-storage.sql`](./supabase/avatar-storage.sql) in the Supabase SQL Editor for this project. It creates the public `avatars` bucket and limits authenticated uploads and updates to each user's own folder. Profile images are publicly readable so they can appear in the navigation menu.
 
+### Fleet photos
+
+Run [`supabase/vehicle-photo-storage.sql`](./supabase/vehicle-photo-storage.sql) after [`supabase/admin-authorization.sql`](./supabase/admin-authorization.sql). It creates a public-read vehicle photo bucket while restricting uploads, replacements, and deletion to authorized admins. Admins can then upload JPG, PNG, or WebP vehicle photos from fleet management; existing image URLs remain supported. Do not upload identity or registration documents to this public bucket.
+
 ### Signup database trigger
 
 If signup shows “Database error saving new user”, run [`supabase/fix-google-auth-profile-trigger.sql`](./supabase/fix-google-auth-profile-trigger.sql) in the Supabase SQL Editor. It synchronizes the Auth-to-profile trigger, permits optional profile fields to remain empty until registration is completed, derives a first name from Google metadata when available, and prevents stale profile conflicts from rolling back new Auth accounts.
@@ -122,6 +126,8 @@ Keep the PayMongo secret and webhook signing secret in Supabase Edge Function se
 ### Prediction prototype
 
 Vehicle listings have an administrator-managed fleet quantity. For existing Supabase projects, run [`supabase/vehicle-fleet-quantity.sql`](./supabase/vehicle-fleet-quantity.sql) after [`supabase/vehicle-booking-signal.sql`](./supabase/vehicle-booking-signal.sql). This migration shows current and selected-date availability to customers and serializes booking checks so overlapping reservations cannot exceed the configured quantity. The calendar reports remaining units for the full selected period; pending checkouts hold a unit for 10 minutes. For new projects, run the base schema and both SQL scripts.
+
+For live booking-date updates, run [`supabase/vehicle-availability-realtime.sql`](./supabase/vehicle-availability-realtime.sql) after [`supabase/vehicle-demo-plates-booking-snapshot.sql`](./supabase/vehicle-demo-plates-booking-snapshot.sql). It publishes only vehicle IDs and date ranges—not customer or booking details—and lets a customer on the date-selection screen recheck availability when another reservation changes the fleet.
 
 The home page can recommend currently available vehicles using only the signed-in customer's own booking history. The booking calendar also shows a historical weekday-demand signal for the selected vehicle and dates. The signal returns only a coarse aggregate, not other customers' booking details. Run or re-run [`supabase/booking-status-automation.sql`](./supabase/booking-status-automation.sql) to install the scheduled cleanup that marks expired unpaid bookings failed and cancelled. The admin overview also shows a 30-day pickup-demand estimate and a relative vehicle-interest index from recorded bookings. These are transparent, in-app heuristics—not a trained AI model, individual booking probabilities, or guarantees. Estimates are withheld when historical data is too sparse. No external AI provider or customer-data sharing is used.
 

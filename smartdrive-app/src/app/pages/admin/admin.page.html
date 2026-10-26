@@ -551,8 +551,9 @@
             <label><span>Category</span><select [(ngModel)]="newVehicle.main_category" name="vehicleCategory" required><option value="Cars">Cars</option><option value="Motorcycles">Motorcycles</option><option value="Recreational">Recreational Vehicles</option></select></label>
             <label><span>Daily rate (₱)</span><input type="number" min="1" placeholder="2500" [(ngModel)]="newVehicle.price" name="vehiclePrice" required></label>
             <label><span>Fleet units</span><input type="number" min="1" step="1" [(ngModel)]="newVehicle.fleet_quantity" name="vehicleQuantity" required></label>
-            <label class="image-url-field"><span>Image URL</span><input type="url" placeholder="https://..." [(ngModel)]="newVehicle.image" name="vehicleImage"></label>
-            <button class="primary-action" type="submit"><ion-icon name="add-outline"></ion-icon>Add vehicle</button>
+            <label class="image-url-field"><span>Vehicle photo (optional, max 10 MB)</span><input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload a vehicle photo" (change)="onVehiclePhotoSelected($event, 'new')">@if (newVehiclePhotoPreview(); as preview) {<img class="vehicle-photo-preview" [src]="preview" alt="Selected vehicle photo preview">}</label>
+            <label class="image-url-field"><span>Or use an image URL</span><input type="url" placeholder="https://..." [(ngModel)]="newVehicle.image" name="vehicleImage"></label>
+            <button class="primary-action" type="submit" [disabled]="savingNewVehicle()"><ion-icon name="add-outline"></ion-icon>{{ savingNewVehicle() ? 'Adding vehicle…' : 'Add vehicle' }}</button>
           </form>
           <div class="table-scroll"><table><thead><tr><th>Vehicle</th><th>Vehicle ID</th><th>Units</th><th>Category</th><th>Daily rate</th><th>Fleet quantity</th><th>Availability</th><th>Actions</th></tr></thead><tbody>
             @for (vehicle of filteredVehicles(); track vehicle.id) {
@@ -873,7 +874,12 @@
               <label>Seat capacity<input type="number" min="1" step="1" [(ngModel)]="vehicle.seats" name="editVehicleSeats" required></label>
               <label>Transmission<input [(ngModel)]="vehicle.transmission" name="editVehicleTransmission" maxlength="50" placeholder="e.g. Automatic"></label>
               <label>Fuel type<input [(ngModel)]="vehicle.fuel" name="editVehicleFuel" maxlength="50" placeholder="e.g. Gasoline"></label>
-              <label class="vehicle-edit-wide">Image URL<input type="url" [(ngModel)]="vehicle.image" name="editVehicleImage" maxlength="1000" placeholder="https://..."></label>
+              <label class="vehicle-edit-wide">Upload a new photo (optional, max 10 MB)<input type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload a new vehicle photo" (change)="onVehiclePhotoSelected($event, 'edit')">
+                @if (vehicleEditPhotoPreview() || vehicle.image) {
+                  <img class="vehicle-photo-preview" [src]="vehicleEditPhotoPreview() || vehicle.image" [alt]="'Photo of ' + vehicle.name">
+                }
+              </label>
+              <label class="vehicle-edit-wide">Or use an image URL<input type="url" [(ngModel)]="vehicle.image" name="editVehicleImage" maxlength="1000" placeholder="https://..."></label>
               <label class="vehicle-edit-wide">Description<textarea [(ngModel)]="vehicle.description" name="editVehicleDescription" maxlength="1000" rows="3"></textarea></label>
               <label class="vehicle-edit-wide">Features <small>One feature per line</small><textarea [(ngModel)]="vehicle.features" name="editVehicleFeatures" maxlength="1000" rows="4" placeholder="Air conditioning&#10;Bluetooth audio&#10;Backup camera"></textarea></label>
               <label class="checkbox-label vehicle-edit-wide"><input type="checkbox" [(ngModel)]="vehicle.is_featured" name="editVehicleFeatured"> Show as a featured vehicle</label>

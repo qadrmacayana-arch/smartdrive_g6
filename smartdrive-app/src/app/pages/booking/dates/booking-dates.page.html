@@ -172,6 +172,14 @@
               [class.checking]="bookingEstimateLoading()"
               aria-live="polite"
               aria-label="Vehicle availability for selected dates">
+              @if (availabilityNotice()) {
+                <p class="estimate-message" role="alert">{{ availabilityNotice() }}</p>
+              }
+              @if (availabilityRealtimeError()) {
+                <p class="estimate-message" role="status">
+                  Live availability updates are disconnected. Refresh the availability check before continuing.
+                </p>
+              }
               <header class="estimate-header">
                 <span class="estimate-icon">
                   <ion-icon [name]="bookingEstimate()?.hasConflict ? 'close-circle-outline' : 'checkmark-circle-outline'"></ion-icon>

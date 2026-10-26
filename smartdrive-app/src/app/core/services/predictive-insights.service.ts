@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Booking } from '../models/booking.model';
 import { Vehicle } from '../models/vehicle.model';
 import { SupabaseService } from './supabase.service';
@@ -31,7 +31,7 @@ export interface FleetForecast {
 
 @Injectable({ providedIn: 'root' })
 export class PredictiveInsightsService {
-  constructor(private readonly supabase: SupabaseService) {}
+  private readonly supabase = inject(SupabaseService);
 
   async getBookingDateEstimate(
     vehicleId: number,
@@ -107,7 +107,7 @@ export class PredictiveInsightsService {
       throw new Error('Date availability counts returned invalid values.');
     }
     return {
-      hasConflict: result.has_conflict,
+      hasConflict: Number(counts.available_quantity) === 0,
       historicalSignalPercent: result.historical_signal_percent,
       usingCount: Number(counts.using_count),
       reservedCount: Number(counts.reserved_count),

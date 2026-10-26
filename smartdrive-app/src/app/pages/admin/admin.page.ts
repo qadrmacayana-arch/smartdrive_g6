@@ -466,6 +466,11 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly editingVehicle = signal<VehicleEditDraft | null>(null);
   readonly vehicleEditError = signal<string | null>(null);
   readonly savingVehicleEdit = signal(false);
+  readonly savingNewVehicle = signal(false);
+  readonly newVehiclePhotoFile = signal<File | null>(null);
+  readonly newVehiclePhotoPreview = signal<string | null>(null);
+  readonly vehicleEditPhotoFile = signal<File | null>(null);
+  readonly vehicleEditPhotoPreview = signal<string | null>(null);
   readonly newVehicle = {
     vehicle_id: '',
     fleet_quantity: 1,
@@ -477,6 +482,9 @@ export class AdminPage implements OnDestroy, OnInit {
     status: 'available',
   };
   private contactMessageChannel: RealtimeChannel | null = null;
+  private availabilityRefreshInterval: number | null = null;
+  private newVehiclePhotoObjectUrl: string | null = null;
+  private vehicleEditPhotoObjectUrl: string | null = null;
 
   ngOnInit(): void {
     this.contactMessageChannel = this.contactMessageService.watchForNewMessages((message) => {
@@ -497,17 +505,23 @@ export class AdminPage implements OnDestroy, OnInit {
       this.section.set(currentSection);
       void this.loadSection(this.section());
     });
-    window.setInterval(() => {
+    this.availabilityRefreshInterval = window.setInterval(() => {
       if (this.section() === 'tracking') void this.loadLocations();
       if (this.section() === 'availability') this.availabilityClock.set(Date.now());
     }, 10000);
   }
 
   ngOnDestroy(): void {
+    if (this.availabilityRefreshInterval !== null) {
+      window.clearInterval(this.availabilityRefreshInterval);
+      this.availabilityRefreshInterval = null;
+    }
     if (this.contactMessageChannel) {
       void this.supabase.client.removeChannel(this.contactMessageChannel);
       this.contactMessageChannel = null;
     }
+    this.clearVehiclePhotoSelection('new');
+    this.clearVehiclePhotoSelection('edit');
   }
 
   private async loadUnreadContactMessageCount(): Promise<void> {
@@ -1884,6 +1898,7 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   async saveVehicle(): Promise<void> {
+    if (this.savingNewVehicle()) return;
     const vehicle = {
       ...this.newVehicle,
       vehicle_id: this.newVehicle.vehicle_id.trim().toUpperCase(),
@@ -1897,28 +1912,63 @@ export class AdminPage implements OnDestroy, OnInit {
       return;
     }
     this.errorMessage.set(null);
-    const { error } = await this.supabase.client.from('vehicles').insert([vehicle]);
-    if (error) {
-      this.errorMessage.set(error.message.includes('vehicles_vehicle_id_key')
-        ? 'That vehicle ID is already in the fleet. Enter a unique vehicle ID.'
-        : `Could not add this vehicle: ${error.message}`);
-      return;
+    this.savingNewVehicle.set(true);
+    let uploadedPhotoPath: string | null = null;
+    try {
+      let image = vehicle.image.trim() || null;
+      const photo = this.newVehiclePhotoFile();
+      if (photo) {
+        const uploadedPhoto = await this.uploadVehiclePhoto(photo);
+        uploadedPhotoPath = uploadedPhoto.path;
+        image = uploadedPhoto.url;
+      }
+
+      const { error } = await this.supabase.client.from('vehicles').insert([{ ...vehicle, image }]);
+      if (error) {
+        const cleanupError = uploadedPhotoPath
+          ? await this.removeUploadedVehiclePhoto(uploadedPhotoPath)
+          : null;
+        this.errorMessage.set(
+          `${error.message.includes('vehicles_vehicle_id_key')
+            ? 'That vehicle ID is already in the fleet. Enter a unique vehicle ID.'
+            : `Could not add this vehicle: ${error.message}`}${cleanupError ? ` The uploaded photo also could not be removed: ${cleanupError}` : ''}`,
+        );
+        return;
+      }
+
+      this.clearVehiclePhotoSelection('new');
+      Object.assign(this.newVehicle, {
+        vehicle_id: '',
+        fleet_quantity: 1,
+        name: '',
+        type: '',
+        main_category: 'Cars',
+        price: 0,
+        image: '',
+        status: 'available',
+      });
+      try {
+        await this.loadFleet();
+      } catch (error) {
+        this.errorMessage.set(
+          `The vehicle was added, but the fleet could not be refreshed: ${error instanceof Error ? error.message : 'Unknown error.'}`,
+        );
+      }
+    } catch (error) {
+      const cleanupError = uploadedPhotoPath
+        ? await this.removeUploadedVehiclePhoto(uploadedPhotoPath)
+        : null;
+      this.errorMessage.set(
+        `${error instanceof Error ? error.message : 'Unable to add this vehicle.'}${cleanupError ? ` The uploaded photo also could not be removed: ${cleanupError}` : ''}`,
+      );
+    } finally {
+      this.savingNewVehicle.set(false);
     }
-    await this.loadFleet();
-    Object.assign(this.newVehicle, {
-      vehicle_id: '',
-      fleet_quantity: 1,
-      name: '',
-      type: '',
-      main_category: 'Cars',
-      price: 0,
-      image: '',
-      status: 'available',
-    });
   }
 
   openVehicleEditor(vehicle: Vehicle): void {
     this.vehicleEditError.set(null);
+    this.clearVehiclePhotoSelection('edit');
     this.editingVehicle.set({
       id: vehicle.id,
       fleet_quantity: Number(vehicle.fleet_quantity ?? 1),
@@ -1938,6 +1988,7 @@ export class AdminPage implements OnDestroy, OnInit {
 
   closeVehicleEditor(): void {
     if (this.savingVehicleEdit()) return;
+    this.clearVehiclePhotoSelection('edit');
     this.editingVehicle.set(null);
     this.vehicleEditError.set(null);
   }
@@ -1959,14 +2010,23 @@ export class AdminPage implements OnDestroy, OnInit {
 
     this.savingVehicleEdit.set(true);
     this.vehicleEditError.set(null);
+    let uploadedPhotoPath: string | null = null;
+    let saved = false;
     try {
+      let image = draft.image.trim() || null;
+      const photo = this.vehicleEditPhotoFile();
+      if (photo) {
+        const uploadedPhoto = await this.uploadVehiclePhoto(photo, draft.id);
+        uploadedPhotoPath = uploadedPhoto.path;
+        image = uploadedPhoto.url;
+      }
       const updates = {
         fleet_quantity: fleetQuantity,
         name,
         type,
         main_category: mainCategory,
         price,
-        image: draft.image.trim() || null,
+        image,
         description: draft.description.trim() || null,
         features: draft.features.split(/\r?\n/).map((feature) => feature.trim()).filter(Boolean),
         transmission: draft.transmission.trim(),
@@ -1984,13 +2044,106 @@ export class AdminPage implements OnDestroy, OnInit {
         throw new Error(error.message);
       }
       if (!data) throw new Error('The updated vehicle was not returned by the database.');
+      saved = true;
+      this.clearVehiclePhotoSelection('edit');
       await this.loadFleet();
       this.editingVehicle.set(null);
     } catch (error) {
-      this.vehicleEditError.set(error instanceof Error ? error.message : 'Unable to save vehicle details.');
+      const cleanupError = uploadedPhotoPath && !saved
+        ? await this.removeUploadedVehiclePhoto(uploadedPhotoPath)
+        : null;
+      const message = `${error instanceof Error ? error.message : 'Unable to save vehicle details.'}${cleanupError ? ` The uploaded photo also could not be removed: ${cleanupError}` : ''}`;
+      if (saved) {
+        this.editingVehicle.set(null);
+        this.errorMessage.set(`Vehicle saved, but the fleet could not be refreshed: ${message}`);
+      } else {
+        this.vehicleEditError.set(message);
+      }
     } finally {
       this.savingVehicleEdit.set(false);
     }
+  }
+
+  onVehiclePhotoSelected(event: Event, target: 'new' | 'edit'): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+
+    const errorMessage = this.vehiclePhotoValidationError(file);
+    if (errorMessage) {
+      this.clearVehiclePhotoSelection(target);
+      if (target === 'new') this.errorMessage.set(errorMessage);
+      else this.vehicleEditError.set(errorMessage);
+      return;
+    }
+
+    this.clearVehiclePhotoSelection(target);
+    const previewUrl = URL.createObjectURL(file);
+    if (target === 'new') {
+      this.newVehiclePhotoFile.set(file);
+      this.newVehiclePhotoPreview.set(previewUrl);
+      this.newVehiclePhotoObjectUrl = previewUrl;
+      this.errorMessage.set(null);
+    } else {
+      this.vehicleEditPhotoFile.set(file);
+      this.vehicleEditPhotoPreview.set(previewUrl);
+      this.vehicleEditPhotoObjectUrl = previewUrl;
+      this.vehicleEditError.set(null);
+    }
+  }
+
+  private vehiclePhotoValidationError(file: File): string | null {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      return 'Choose a JPG, PNG, or WebP vehicle photo.';
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      return 'Choose a vehicle photo smaller than 10 MB.';
+    }
+    return null;
+  }
+
+  private async uploadVehiclePhoto(
+    file: File,
+    vehicleId?: number,
+  ): Promise<{ path: string; url: string }> {
+    const extensionByType: Record<string, string> = {
+      'image/jpeg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp',
+    };
+    const path = `${vehicleId ?? 'new'}/${crypto.randomUUID()}.${extensionByType[file.type]}`;
+    const { error } = await this.supabase.client.storage
+      .from('vehicle-photos')
+      .upload(path, file, { contentType: file.type, cacheControl: '3600' });
+    if (error) throw new Error(`Could not upload vehicle photo: ${error.message}`);
+
+    const publicUrl = this.supabase.client.storage.from('vehicle-photos').getPublicUrl(path).data.publicUrl;
+    return { path, url: `${publicUrl}?v=${Date.now()}` };
+  }
+
+  private async removeUploadedVehiclePhoto(path: string): Promise<string | null> {
+    try {
+      const { error } = await this.supabase.client.storage.from('vehicle-photos').remove([path]);
+      return error?.message ?? null;
+    } catch (error) {
+      return error instanceof Error ? error.message : 'Unknown storage error.';
+    }
+  }
+
+  private clearVehiclePhotoSelection(target: 'new' | 'edit'): void {
+    if (target === 'new') {
+      if (this.newVehiclePhotoObjectUrl) URL.revokeObjectURL(this.newVehiclePhotoObjectUrl);
+      this.newVehiclePhotoObjectUrl = null;
+      this.newVehiclePhotoFile.set(null);
+      this.newVehiclePhotoPreview.set(null);
+      return;
+    }
+    if (this.vehicleEditPhotoObjectUrl) URL.revokeObjectURL(this.vehicleEditPhotoObjectUrl);
+    this.vehicleEditPhotoObjectUrl = null;
+    this.vehicleEditPhotoFile.set(null);
+    this.vehicleEditPhotoPreview.set(null);
   }
 
   async archiveVehicle(vehicle: Vehicle): Promise<void> {
