@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { BOOKING_SELECT_FIELDS, Booking, BookingDraft } from '../models/booking.model';
 import { DemoTrackingService } from './demo-tracking.service';
@@ -18,13 +18,10 @@ export interface PricingBreakdown {
 
 @Injectable({ providedIn: 'root' })
 export class BookingService {
+  private readonly supabase = inject(SupabaseService);
+  private readonly demoTracking = inject(DemoTrackingService);
   /** Carries the in-progress booking across the dates -> details -> payment -> confirmation steps. */
   readonly draft = signal<BookingDraft | null>(this.readStoredDraft());
-
-  constructor(
-    private readonly supabase: SupabaseService,
-    private readonly demoTracking: DemoTrackingService,
-  ) {}
 
   startDraft(vehicle: BookingDraft['vehicle'], pickupDate: string, returnDate: string, pickupLocation: string): void {
     const rentalDays = this.daysBetween(pickupDate, returnDate);
@@ -323,13 +320,35 @@ export class BookingService {
   }
 
   async listMyBookings(email: string): Promise<Booking[]> {
-    const { data, error } = await this.supabase.client
+    const loadBookings = () => this.supabase.client
       .from('bookings')
       .select(BOOKING_SELECT_FIELDS)
       .eq('customer_email', email)
       .order('created_at', { ascending: false });
+
+    let { data, error } = await loadBookings();
+    if (error && this.isFutureIssuedJwtError(error.message)) {
+      const { error: refreshError } = await this.supabase.client.auth.refreshSession();
+      if (refreshError) {
+        throw new Error(
+          'Your session token was rejected because it appears newer than the database server clock. '
+          + 'Refresh the page and sign in again. If this continues, contact support to check server clock synchronization.',
+        );
+      }
+      ({ data, error } = await loadBookings());
+    }
+    if (error && this.isFutureIssuedJwtError(error.message)) {
+      throw new Error(
+        'Your session token is newer than the database server clock. Please try again later. '
+        + 'If this continues, contact support to check server clock synchronization.',
+      );
+    }
     if (error) throw new Error(error.message);
     return (data ?? []) as Booking[];
+  }
+
+  private isFutureIssuedJwtError(message: string): boolean {
+    return /jwt issued at future|issued at future/i.test(message);
   }
 
   async listMyBookingsForUser(userId: string): Promise<Booking[]> {
