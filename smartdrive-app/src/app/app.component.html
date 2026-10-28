@@ -16,7 +16,7 @@
         <div class="menu-profile">
           @if (currentUser(); as user) {
             <ion-menu-toggle auto-hide="false">
-              <a class="menu-profile-link" routerLink="/tabs/account" aria-label="Open account dashboard">
+              <a class="menu-profile-link" routerLink="/tabs/account" aria-label="Open your account">
                 <div class="menu-avatar">
                   @if (user.avatarUrl && avatarLoadFailedUrl() !== user.avatarUrl) {
                     <img
@@ -52,6 +52,12 @@
             </ion-item>
           </ion-menu-toggle>
           @if (currentUser()) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item routerLink="/tabs/dashboard" routerLinkActive="selected" button detail="false">
+                <ion-icon slot="start" name="grid-outline"></ion-icon>
+                <ion-label>Dashboard</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
             <ion-menu-toggle auto-hide="false">
               <ion-item routerLink="/tabs/favorites" routerLinkActive="selected" button detail="false">
                 <ion-icon slot="start" name="heart-outline"></ion-icon>
@@ -233,6 +239,12 @@
         <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
         <span>Home</span>
       </a>
+      @if (currentUser()) {
+        <a routerLink="/tabs/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
+          <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+          <span>Dashboard</span>
+        </a>
+      }
       <a routerLink="/tabs/rent-a-car" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="tapNavigation()">
         <ion-icon name="car-outline" aria-hidden="true"></ion-icon>
         <span>Rent a Car</span>

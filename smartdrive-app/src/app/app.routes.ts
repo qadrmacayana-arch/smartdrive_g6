@@ -70,6 +70,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tabs/home/home.page').then((m) => m.HomePage),
       },
       {
+        path: 'dashboard',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/tabs/dashboard/dashboard.page').then((m) => m.DashboardPage),
+      },
+      {
         path: 'rent-a-car',
         loadComponent: () => import('./pages/tabs/landing/landing.page').then((m) => m.LandingPage),
       },

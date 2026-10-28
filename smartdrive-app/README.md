@@ -67,6 +67,7 @@ Enable Google in Supabase Authentication, configure the Google OAuth client with
 - Notifications uses a dedicated update banner and easier-to-scan update cards with consistent side gutters, hides the redundant floating bell while open, and reserves additional scroll room above the customer navigation.
 - Admin fleet management can edit a vehicle's description, features, daily rate, seat capacity, transmission, fuel type, category, image, and featured status.
 - The Home screen includes an auto-rotating illustrated promotions carousel with links to the fleet, offers, and Trip Planner. Carousel rotation pauses automatically when reduced motion is preferred and can be paused manually.
+- Signed-in customers can open a dedicated Dashboard from the customer navigation. It summarizes upcoming bookings, paid totals, completed trips, recent reservations, and SR Points; Account is kept focused on profile and preferences. Home remains the post-login landing page.
 - Pickup location and date entered on Home are saved on the device and reused when browsing the fleet; past pickup dates are discarded.
 - Full-screen Android pages reserve space below the status bar and above the home/gesture bar and app navigation, including vehicle-detail booking controls. Insets use Ionic's content padding variables so they are applied inside the actual scroll area.
 

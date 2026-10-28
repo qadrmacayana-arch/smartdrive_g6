@@ -162,4 +162,29 @@
   .next-step-panel { grid-template-columns: 2.1rem minmax(0,1fr) 1.8rem; }
   .next-step-panel > a { grid-column: auto; justify-self: auto; }
 }
+.dashboard-retry { min-height: 2.4rem; padding: 0 .9rem; border: 0; border-radius: .65rem; background: var(--sd-gradient-primary); color: #fff; font-size: .72rem; font-weight: 750; cursor: pointer; }
+.account-profile-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; }
+.account-avatar { display: grid; width: 4.25rem; height: 4.25rem; flex: 0 0 4.25rem; overflow: hidden; place-items: center; border: 2px solid #fff; border-radius: 50%; background: var(--sd-primary-soft); color: var(--sd-primary); font: 800 1.35rem 'Sora',sans-serif; box-shadow: var(--sd-shadow-sm); }
+.account-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.account-profile-copy { min-width: 0; flex: 1 1 auto; }
+.account-profile-copy h2 { overflow: hidden; margin: .2rem 0; color: var(--customer-ink); font: 750 1.1rem 'Sora',sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+.account-profile-copy p { overflow: hidden; margin: 0 0 .45rem; color: var(--customer-muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.account-member-badge { display: inline-flex; padding: .2rem .55rem; border-radius: 999px; background: var(--sd-primary-soft); color: var(--sd-primary); font-size: .61rem; font-weight: 750; }
+.account-edit-link { flex: 0 0 auto; }
+.account-links { display: grid; gap: .65rem; margin-top: .8rem; }
+.account-link-card { display: grid; grid-template-columns: 2.5rem minmax(0,1fr) auto; align-items: center; gap: .8rem; padding: .9rem 1rem; color: inherit; text-decoration: none; transition: transform 160ms ease, box-shadow 160ms ease; }
+.account-link-card:hover { transform: translateY(-1px); box-shadow: var(--sd-shadow-md); }
+.account-link-icon { display: grid; width: 2.35rem; height: 2.35rem; place-items: center; border-radius: .7rem; background: var(--sd-primary-soft); color: var(--sd-primary); }
+.account-link-icon ion-icon { font-size: 1.15rem; }
+.account-link-card > span:nth-child(2) { display: grid; gap: .18rem; }
+.account-link-card strong { color: var(--customer-ink); font-size: .76rem; }
+.account-link-card small { color: var(--customer-muted); font-size: .64rem; }
+.account-link-arrow { color: var(--customer-muted); font-size: 1rem; }
+.account-dashboard-link { display: inline-flex; align-items: center; gap: .45rem; margin-top: 1rem; color: var(--sd-primary); font-size: .72rem; font-weight: 750; text-decoration: none; }
+@media (max-width: 520px) {
+  .account-profile-card { flex-wrap: wrap; gap: .75rem; }
+  .account-avatar { width: 3.5rem; height: 3.5rem; flex-basis: 3.5rem; }
+  .account-edit-link { margin-left: auto; }
+  .account-link-card { grid-template-columns: 2.2rem minmax(0,1fr) auto; gap: .6rem; padding: .8rem; }
+}
 }
