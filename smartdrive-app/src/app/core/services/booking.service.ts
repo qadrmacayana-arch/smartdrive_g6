@@ -378,7 +378,25 @@ export class BookingService {
     const { data, error } = await this.supabase.client.functions.invoke('confirm-checkout', {
       body: { referenceNumber, attemptId },
     });
-    if (error) throw new Error(`Could not confirm checkout status: ${error.message}`);
+    if (error) {
+      let detail = error.message;
+      let status: number | null = null;
+      if ('context' in error && error.context instanceof Response) {
+        status = error.context.status;
+        const body: unknown = await error.context.clone().json().catch(() => null);
+        if (
+          body
+          && typeof body === 'object'
+          && 'error' in body
+          && typeof body.error === 'string'
+        ) {
+          detail = body.error;
+        }
+      }
+      throw new Error(
+        `Could not confirm checkout status: ${detail}${status ? ` (HTTP ${status})` : ''}`,
+      );
+    }
     if (
       data?.status !== 'pending'
       && data?.status !== 'paid'

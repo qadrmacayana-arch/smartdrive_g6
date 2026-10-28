@@ -9,6 +9,7 @@ describe('BookingService', () => {
   let from: ReturnType<typeof vi.fn>;
   let order: ReturnType<typeof vi.fn>;
   let refreshSession: ReturnType<typeof vi.fn>;
+  let invoke: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     responses = [];
@@ -17,11 +18,15 @@ describe('BookingService', () => {
     const select = vi.fn(() => ({ eq }));
     from = vi.fn(() => ({ select }));
     refreshSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
+    invoke = vi.fn();
 
     TestBed.configureTestingModule({
       providers: [
         BookingService,
-        { provide: SupabaseService, useValue: { client: { from, auth: { refreshSession } } } },
+        {
+          provide: SupabaseService,
+          useValue: { client: { from, auth: { refreshSession }, functions: { invoke } } },
+        },
         { provide: DemoTrackingService, useValue: {} },
       ],
     });
@@ -61,5 +66,23 @@ describe('BookingService', () => {
 
     expect(refreshSession).not.toHaveBeenCalled();
     expect(from).toHaveBeenCalledOnce();
+  });
+
+  it('surfaces the checkout confirmation error and HTTP status from the Edge Function', async () => {
+    invoke.mockResolvedValue({
+      data: null,
+      error: {
+        message: 'Edge Function returned a non-2xx status code',
+        context: new Response(JSON.stringify({ error: 'Unable to verify payment with PayMongo.' }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      },
+    });
+
+    await expect(service.confirmReturnedCheckout('SD-2026-ABCDEF123456', 'test-attempt-id'))
+      .rejects.toThrow(
+        'Could not confirm checkout status: Unable to verify payment with PayMongo. (HTTP 502)',
+      );
   });
 });
