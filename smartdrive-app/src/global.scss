@@ -147,7 +147,7 @@ ion-app.android-native ion-router-outlet ion-header.trip-planner-header {
 }
 
 ion-app.android-native ion-router-outlet ion-header.notifications-header {
-  padding-top: 0;
+  padding-top: var(--android-safe-area-top);
 }
 
 ion-app.android-native ion-router-outlet ion-header.trip-planner-header + ion-content.trip-planner-content {
@@ -182,6 +182,24 @@ ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-heade
 ion-app.android-native ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content):is(.notifications-content, .faq-content, .reviews-content),
 ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-header) + ion-content:not(.menu-content):is(.notifications-content, .faq-content, .reviews-content) {
   --padding-top: 0;
+}
+
+@media (max-width: 600px) {
+  ion-app.android-native ion-router-outlet ion-header.mobile-page-header {
+    padding-top: var(--android-safe-area-top);
+  }
+
+  ion-app:not(.android-native) ion-router-outlet ion-header.mobile-page-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  ion-app ion-router-outlet ion-toolbar.mobile-page-toolbar {
+    --min-height: 56px;
+  }
+
+  ion-app ion-router-outlet ion-content.mobile-page-content {
+    --padding-top: 0;
+  }
 }
 
 ion-app.customer-navigation-visible:not(.android-native) ion-router-outlet ion-content:not(.menu-content) {

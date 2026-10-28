@@ -1,5 +1,5 @@
-<ion-header class="ion-no-border notifications-header">
-  <ion-toolbar class="notifications-toolbar">
+<ion-header class="ion-no-border mobile-page-header notifications-header">
+  <ion-toolbar class="notifications-toolbar mobile-page-toolbar">
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
     </ion-buttons>
@@ -12,7 +12,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="notifications-content">
+<ion-content class="notifications-content mobile-page-content">
   <ion-refresher slot="fixed" (ionRefresh)="loadNotifications($event)" aria-label="Refresh notifications">
     <ion-refresher-content pullingText="Check for updates" refreshingSpinner="crescent"></ion-refresher-content>
   </ion-refresher>
