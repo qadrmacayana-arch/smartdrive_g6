@@ -195,6 +195,13 @@ ion-app:not(.android-native) ion-router-outlet ion-header:not(.transparent-heade
 
   ion-app ion-router-outlet ion-toolbar.mobile-page-toolbar {
     --min-height: 56px;
+    --background: var(--sd-background);
+    --border-color: transparent;
+  }
+
+  ion-app ion-router-outlet ion-toolbar.mobile-page-toolbar ion-title {
+    color: var(--sd-heading);
+    font: 700 1rem 'Sora', sans-serif;
   }
 
   ion-app ion-router-outlet ion-content.mobile-page-content {

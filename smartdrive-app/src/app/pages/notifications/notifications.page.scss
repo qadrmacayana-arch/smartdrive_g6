@@ -8,13 +8,8 @@
 }
 
 .notifications-toolbar {
-  --background: var(--sd-card);
+  --background: var(--sd-background);
   --border-color: transparent;
-
-  ion-title {
-    color: var(--sd-heading);
-    font: 750 1rem 'Sora', sans-serif;
-  }
 }
 
 .notifications-page {
