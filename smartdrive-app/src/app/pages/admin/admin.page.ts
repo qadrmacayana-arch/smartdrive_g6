@@ -37,7 +37,7 @@ interface AdminStats {
   vehicles: number;
 }
 
-type AdminSection = 'overview' | 'bookings' | 'availability' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos' | 'cms' | 'settings' | 'notifications' | 'audit';
+type AdminSection = 'overview' | 'bookings' | 'refunds' | 'availability' | 'users' | 'fleet' | 'transactions' | 'reviews' | 'tracking' | 'support' | 'email-concerns' | 'reports' | 'promos' | 'cms' | 'settings' | 'notifications' | 'audit';
 type CmsStatus = 'draft' | 'published' | 'archived';
 interface CmsContentItem {
   id: string;
@@ -85,6 +85,13 @@ interface AdminPdfCursor {
 type GenderCategory = 'male' | 'female' | 'other' | 'preferNotToSay' | 'notProvided';
 interface GenderSegment { key: GenderCategory; label: string; count: number; percent: number; color: string; }
 interface VehiclePerformance { id: number | string; name: string; bookings: number; revenue: number; share: number; }
+interface DailyReport {
+  date: string;
+  bookings: number;
+  cancelled: number;
+  revenue: number;
+  refunded: number;
+}
 interface VehicleAvailability {
   vehicle: Vehicle;
   using: Booking[];
@@ -288,6 +295,31 @@ export class AdminPage implements OnDestroy, OnInit {
   readonly reportPeriod = signal<'all' | '30' | '365'>('all');
   readonly reportBookings = signal<Booking[]>([]);
   readonly activePromoCount = signal(0);
+  readonly cancelledBookings = computed(() => this.bookings()
+    .filter((booking) => booking.booking_status === 'cancelled')
+    .sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? '')));
+  readonly dailyReport = computed<DailyReport[]>(() => {
+    const days = new Map<string, DailyReport>();
+    for (const booking of this.filteredReportBookings()) {
+      if (!booking.created_at) continue;
+      const createdAt = new Date(booking.created_at);
+      if (Number.isNaN(createdAt.getTime())) continue;
+      const date = [
+        createdAt.getFullYear(),
+        String(createdAt.getMonth() + 1).padStart(2, '0'),
+        String(createdAt.getDate()).padStart(2, '0'),
+      ].join('-');
+      const day = days.get(date) ?? { date, bookings: 0, cancelled: 0, revenue: 0, refunded: 0 };
+      day.bookings += 1;
+      if (booking.booking_status === 'cancelled') day.cancelled += 1;
+      if (booking.payment_status === 'completed' && booking.booking_status !== 'cancelled') {
+        day.revenue += Number(booking.total_price ?? 0);
+      }
+      if (booking.payment_status === 'refunded') day.refunded += Number(booking.total_price ?? 0);
+      days.set(date, day);
+    }
+    return [...days.values()].sort((a, b) => b.date.localeCompare(a.date));
+  });
   readonly reportSummary = computed(() => {
     const bookings = this.filteredReportBookings();
     return {
@@ -497,7 +529,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.route.queryParamMap.subscribe((params) => {
       const requested = params.get('section');
       const availableSections: AdminSection[] = [
-        'overview', 'bookings', 'availability', 'users', 'fleet', 'transactions', 'reviews',
+        'overview', 'bookings', 'refunds', 'availability', 'users', 'fleet', 'transactions', 'reviews',
         'tracking', 'support', 'email-concerns', 'reports', 'promos', 'cms', 'settings',
         'notifications', 'audit',
       ];
@@ -538,6 +570,7 @@ export class AdminPage implements OnDestroy, OnInit {
     this.errorMessage.set(null);
     try {
       if (section === 'bookings') await this.loadBookings();
+      if (section === 'refunds') await this.loadBookings();
       if (section === 'availability') await Promise.all([this.loadBookings(), this.loadFleet()]);
       if (section === 'users') await this.loadUsers();
       if (section === 'transactions') await this.loadTransactions();
@@ -1758,6 +1791,36 @@ export class AdminPage implements OnDestroy, OnInit {
       this.bookings.update((items) => items.map((item) => item.id === booking.id ? { ...item, booking_status: status } : item));
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update booking progress.');
+    }
+  }
+
+  async markBookingRefunded(booking: Booking): Promise<void> {
+    if (
+      !booking.id
+      || booking.booking_status !== 'cancelled'
+      || booking.payment_status !== 'completed'
+    ) return;
+    if (!window.confirm(
+      `Confirm you have processed the ₱${Number(booking.total_price).toFixed(2)} refund outside SmartDrive for booking ${booking.reference_number}. This only records the refund status; it does not transfer money.`,
+    )) return;
+
+    this.errorMessage.set(null);
+    try {
+      const { data, error } = await this.supabase.client
+        .from('bookings')
+        .update({ payment_status: 'refunded' })
+        .eq('id', booking.id)
+        .eq('booking_status', 'cancelled')
+        .eq('payment_status', 'completed')
+        .select('id')
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error('This booking changed before the refund could be recorded. Refresh and try again.');
+      this.bookings.update((items) => items.map((item) =>
+        item.id === booking.id ? { ...item, payment_status: 'refunded' } : item,
+      ));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to record the refund.');
     }
   }
 

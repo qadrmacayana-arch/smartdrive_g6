@@ -51,6 +51,9 @@
         <a class="nav-item" [class.active]="section() === 'transactions'" [attr.aria-current]="section() === 'transactions' ? 'page' : null" (click)="openSection('transactions')">
           <ion-icon name="wallet-outline"></ion-icon><span>Transactions</span>
         </a>
+        <a class="nav-item" [class.active]="section() === 'refunds'" [attr.aria-current]="section() === 'refunds' ? 'page' : null" (click)="openSection('refunds')">
+          <ion-icon name="return-down-back-outline"></ion-icon><span>Refunds</span>
+        </a>
         <a class="nav-item" [class.active]="section() === 'reviews'" [attr.aria-current]="section() === 'reviews' ? 'page' : null" (click)="openSection('reviews')">
           <ion-icon name="star-outline"></ion-icon><span>Reviews</span>
         </a>
@@ -322,6 +325,14 @@
             <article class="stat-card"><span class="stat-label">Pending payments</span><strong>{{ reportSummary().pendingPayments }}</strong><small>Awaiting payment</small></article>
             <article class="stat-card"><span class="stat-label">Cancelled bookings</span><strong>{{ reportCancellationCount() }}</strong><small>{{ reportSummary().bookings ? (reportCancellationCount() / reportSummary().bookings * 100 | number:'1.0-1') : 0 }}% of selected period</small></article>
           </div>
+          <section class="data-card overview-table-card">
+            <div class="section-heading"><div><span class="section-kicker">DAILY ACTIVITY</span><h2>Day-by-day report</h2></div></div>
+            <div class="table-scroll"><table><thead><tr><th>Date</th><th>Bookings</th><th>Cancelled</th><th>Collected</th><th>Refunded</th></tr></thead><tbody>
+              @for (day of dailyReport(); track day.date) {
+                <tr><td>{{ day.date | date:'MMM d, y' }}</td><td>{{ day.bookings }}</td><td>{{ day.cancelled }}</td><td class="amount-cell">₱{{ day.revenue | number:'1.2-2' }}</td><td class="amount-cell">₱{{ day.refunded | number:'1.2-2' }}</td></tr>
+              } @empty { <tr><td colspan="5" class="empty">No daily activity in this date range.</td></tr> }
+            </tbody></table></div>
+          </section>
           <div class="tables-grid">
             <section class="data-card overview-table-card">
               <div class="section-heading"><div><span class="section-kicker">OPERATIONS</span><h2>Bookings by status</h2></div></div>
@@ -508,6 +519,35 @@
                 </td>
               </tr>
             } @empty { <tr><td colspan="9" class="empty">No bookings match the current search and filters.</td></tr> }
+          </tbody></table></div>
+        </section>
+      }
+
+      @if (section() === 'refunds') {
+        <section class="data-card admin-module">
+          <div class="module-toolbar">
+            <div class="module-title"><span class="section-kicker">PEOPLE &amp; FINANCE</span><h2>Cancelled bookings &amp; refunds <span class="count-pill">{{ cancelledBookings().length }}</span></h2><p>Review cancelled orders and record refunds after you process them through the original payment method.</p></div>
+          </div>
+          <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Payment method</th><th>Cancelled order</th><th>Amount</th><th>Refund status</th><th>Action</th></tr></thead><tbody>
+            @for (booking of cancelledBookings(); track booking.id ?? booking.reference_number) {
+              <tr>
+                <td><strong>{{ booking.reference_number }}</strong><small class="cell-subtitle">{{ booking.vehicle_name }}</small></td>
+                <td><strong>{{ booking.customer_name }}</strong><small class="cell-subtitle">{{ booking.customer_email }}</small></td>
+                <td>{{ paymentProvider(booking.payment_method) }}<small class="cell-subtitle">{{ paymentMethod(booking.payment_method) }}</small></td>
+                <td>{{ booking.created_at | date:'MMM d, y, h:mm a' }}</td>
+                <td class="amount-cell">₱{{ booking.total_price | number:'1.2-2' }}</td>
+                <td><span class="status-pill" [class.completed]="booking.payment_status === 'refunded'" [class.pending]="booking.payment_status === 'completed'">{{ booking.payment_status === 'refunded' ? 'Refunded' : booking.payment_status === 'completed' ? 'Refund due' : (booking.payment_status | titlecase) }}</span></td>
+                <td>
+                  @if (booking.payment_status === 'completed') {
+                    <button class="table-action booking-action-secondary" type="button" (click)="markBookingRefunded(booking)">Record refund</button>
+                  } @else if (booking.payment_status === 'refunded') {
+                    <span class="booking-action-empty">Recorded</span>
+                  } @else {
+                    <span class="booking-action-empty">No refund due</span>
+                  }
+                </td>
+              </tr>
+            } @empty { <tr><td colspan="7" class="empty">No cancelled bookings found.</td></tr> }
           </tbody></table></div>
         </section>
       }
