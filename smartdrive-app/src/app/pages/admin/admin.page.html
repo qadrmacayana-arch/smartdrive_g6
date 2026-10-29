@@ -52,7 +52,7 @@
           <ion-icon name="wallet-outline"></ion-icon><span>Transactions</span>
         </a>
         <a class="nav-item" [class.active]="section() === 'refunds'" [attr.aria-current]="section() === 'refunds' ? 'page' : null" (click)="openSection('refunds')">
-          <ion-icon name="return-down-back-outline"></ion-icon><span>Refunds</span>
+          <ion-icon name="cash-outline"></ion-icon><span>Refunds</span>
         </a>
         <a class="nav-item" [class.active]="section() === 'reviews'" [attr.aria-current]="section() === 'reviews' ? 'page' : null" (click)="openSection('reviews')">
           <ion-icon name="star-outline"></ion-icon><span>Reviews</span>
@@ -432,7 +432,7 @@
 
       @if (section() === 'bookings') {
         <section class="data-card admin-module">
-          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Update trip progress. Customers manage cancellations from their bookings.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><label class="filter-select"><span>Booking status</span><select aria-label="Filter bookings by status" [ngModel]="bookingStatusFilter()" (ngModelChange)="bookingStatusFilter.set($event)"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="ongoing">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label class="filter-select"><span>Payment</span><select aria-label="Filter bookings by payment status" [ngModel]="paymentStatusFilter()" (ngModelChange)="paymentStatusFilter.set($event)"><option value="all">All payments</option><option value="pending">Pending</option><option value="completed">Paid</option><option value="failed">Failed</option></select></label><button class="secondary-action" type="button" (click)="exportBookingsPdf()"><ion-icon name="download-outline"></ion-icon>Download PDF</button></div>
+          <div class="module-toolbar"><div class="module-title"><span class="section-kicker">RESERVATIONS</span><h2>All bookings <span class="count-pill">{{ filteredBookings().length }}</span></h2><p>Admins may correct a booking’s status. Payment and refund states remain protected.</p></div><label class="search-field"><ion-icon name="search-outline"></ion-icon><input aria-label="Search bookings" placeholder="Search reference, customer, vehicle..." [ngModel]="search()" (ngModelChange)="search.set($event)"></label><label class="filter-select"><span>Booking status</span><select aria-label="Filter bookings by status" [ngModel]="bookingStatusFilter()" (ngModelChange)="bookingStatusFilter.set($event)"><option value="all">All statuses</option><option value="confirmed">Confirmed</option><option value="ongoing">In progress</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label><label class="filter-select"><span>Payment</span><select aria-label="Filter bookings by payment status" [ngModel]="paymentStatusFilter()" (ngModelChange)="paymentStatusFilter.set($event)"><option value="all">All payments</option><option value="pending">Pending</option><option value="completed">Paid</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select></label><button class="secondary-action" type="button" (click)="exportBookingsPdf()"><ion-icon name="download-outline"></ion-icon>Download PDF</button></div>
           <div class="table-scroll"><table><thead><tr><th>Booking</th><th>Customer</th><th>Pickup documents</th><th>Vehicle</th><th>Rental dates</th><th>Payment provider / method</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>
             @for (booking of filteredBookings(); track booking.id ?? booking.reference_number) {
               <tr>
@@ -485,12 +485,21 @@
                     } @else if (booking.booking_status === 'completed') {
                       <small class="cell-subtitle">Vehicle return confirmed</small>
                     } @else if (booking.booking_status === 'cancelled') {
-                      <small class="cell-subtitle">Customer-controlled cancellation</small>
+                      <small class="cell-subtitle">Status changed by customer or admin</small>
                     }
                   </div>
                 </td>
                 <td class="booking-actions-cell">
                   <div class="booking-actions">
+                    <label class="booking-status-control">
+                      <span>Change status</span>
+                      <select [value]="booking.booking_status" [attr.aria-label]="'Change status for booking ' + booking.reference_number" (change)="updateBookingStatusFromSelect(booking, $event)">
+                        <option value="confirmed">Confirmed</option>
+                        <option value="ongoing">In progress</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </label>
                     @if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
                       @if (booking.booking_status === 'ongoing' && booking.payment_status === 'completed') {
                         <button class="table-action booking-return-action booking-action-primary" type="button" [disabled]="!pickupDocumentsComplete(booking)" (click)="reviewPwdSeniorCashback(booking, true)">
@@ -506,14 +515,6 @@
                       }
                     } @else if (booking.pwd_senior_cashback_status === 'credited') {
                       <small class="booking-action-note">Cashback credited to SR Wallet</small>
-                    }
-                    @if (booking.booking_status === 'ongoing') {
-                      <button class="table-action booking-return-action booking-action-secondary" type="button" (click)="updateBookingStatus(booking, 'completed')">
-                        <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
-                        Mark returned
-                      </button>
-                    } @else if (!booking.is_pwd_senior || booking.pwd_senior_cashback_status !== 'pending_verification') {
-                      <span class="booking-action-empty" aria-label="No action required">—</span>
                     }
                   </div>
                 </td>
@@ -558,7 +559,7 @@
           @if (section() === 'users') {
             <div class="table-scroll"><table><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Member since</th><th>Account</th><th>Actions</th></tr></thead><tbody>
               @for (user of filteredUsers(); track user.id) {
-                <tr><td><span class="customer-cell-avatar">{{ (user.full_name || 'U').charAt(0).toUpperCase() }}</span><strong>{{ user.full_name }}</strong></td><td>{{ user.email }}</td><td>{{ user.phone || 'Not provided' }}</td><td>{{ user.created_at | date:'MMM d, y' }}</td><td><span class="status-pill" [class.suspended]="user.is_active === false">{{ user.is_active === false ? 'Suspended' : 'Active' }}</span></td><td><button class="table-action" type="button" (click)="selectedUser.set(user)">Edit</button><button class="table-action danger" type="button" (click)="deleteUser(user)">Delete</button></td></tr>
+                <tr><td><span class="customer-cell-avatar">{{ (user.full_name || 'U').charAt(0).toUpperCase() }}</span><strong>{{ user.full_name }}</strong></td><td>{{ user.email }}</td><td>{{ user.phone || 'Not provided' }}</td><td>{{ user.created_at | date:'MMM d, y' }}</td><td><span class="status-pill" [class.suspended]="user.is_active === false">{{ user.is_active === false ? 'Suspended' : 'Active' }}</span></td><td><button class="table-action" type="button" (click)="selectedUser.set(user)">Edit</button><button class="table-action" type="button" [disabled]="savingUserAccess().has(user.id)" (click)="toggleUserSuspension(user)">{{ savingUserAccess().has(user.id) ? 'Saving…' : user.is_active === false ? 'Reactivate' : 'Suspend' }}</button><button class="table-action danger" type="button" (click)="deleteUser(user)">Delete</button></td></tr>
               } @empty { <tr><td colspan="6" class="empty">No users found. Try a different search.</td></tr> }
             </tbody></table></div>
           } @else {
@@ -885,7 +886,6 @@
             <div class="edit-heading"><span class="section-kicker">CUSTOMER ACCOUNT</span><h2>Edit user</h2><p>Update profile details and account access.</p></div>
             <label>Full name<input [(ngModel)]="user.full_name" name="fullName" required></label>
             <label>Phone number<input [(ngModel)]="user.phone" name="phone"></label>
-            <label class="checkbox-label"><input type="checkbox" [(ngModel)]="user.is_active" name="active"> Account is active</label>
             <div class="edit-actions"><button type="button" class="secondary-action" (click)="selectedUser.set(null)">Cancel</button><button type="submit" class="primary-action">Save changes</button></div>
           </form>
         </div>

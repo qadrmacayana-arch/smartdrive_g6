@@ -279,6 +279,7 @@ export class AdminPage implements OnDestroy, OnInit {
     return { using, reserved, pending, total: using + reserved + pending };
   });
   readonly users = signal<AdminUser[]>([]);
+  readonly savingUserAccess = signal<Set<string>>(new Set());
   readonly vehicles = signal<Vehicle[]>([]);
   readonly reviews = signal<AdminReview[]>([]);
   readonly supportConversations = signal<SupportConversation[]>([]);
@@ -1768,30 +1769,64 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   async updateBookingStatus(booking: Booking, status: Booking['booking_status']): Promise<void> {
-    if (!booking.id) return;
-    if (booking.booking_status === 'cancelled') {
-      this.errorMessage.set('Customers control booking cancellations. Cancelled bookings cannot be changed by admins.');
+    if (!booking.id || booking.booking_status === status) return;
+    if (
+      booking.payment_status === 'refunded' && status !== 'cancelled'
+      || booking.payment_status === 'failed' && status !== 'cancelled'
+    ) {
+      this.errorMessage.set('Bookings with failed or refunded payments can only be marked cancelled.');
       return;
     }
-    if (status !== 'completed' || booking.booking_status !== 'ongoing') {
-      this.errorMessage.set('Bookings become in progress automatically on the pickup date. Admins can mark an in-progress booking completed only after confirming the vehicle was returned.');
+    if (
+      (status === 'ongoing' || status === 'completed')
+      && booking.payment_status !== 'completed'
+    ) {
+      this.errorMessage.set('A booking must have completed payment before it can be marked in progress or completed.');
       return;
     }
-    if (booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
+    if (status === 'completed' && booking.is_pwd_senior && booking.pwd_senior_cashback_status === 'pending_verification') {
       this.errorMessage.set('Verify or decline the PWD/Senior cashback claim at pickup before marking this booking returned.');
       return;
     }
-    if (!window.confirm(`Confirm the vehicle for booking ${booking.reference_number} has been returned? This will mark the booking completed.`)) {
+    const action = status === 'cancelled'
+      ? 'cancel this booking'
+      : booking.booking_status === 'cancelled'
+        ? `restore it as ${status === 'ongoing' ? 'in progress' : status}`
+        : `change it to ${status === 'ongoing' ? 'in progress' : status}`;
+    const paymentNote = status === 'cancelled' && booking.payment_status === 'completed'
+      ? ' Payment remains marked paid until you process and record any refund.'
+      : '';
+    if (!window.confirm(`Confirm you want to ${action} ${booking.reference_number}?${paymentNote}`)) {
       return;
     }
     this.errorMessage.set(null);
     try {
-      const { error } = await this.supabase.client.from('bookings').update({ booking_status: status }).eq('id', booking.id);
+      const { data, error } = await this.supabase.client
+        .from('bookings')
+        .update({ booking_status: status })
+        .eq('id', booking.id)
+        .eq('booking_status', booking.booking_status)
+        .select('id')
+        .maybeSingle();
       if (error) throw new Error(error.message);
-      this.bookings.update((items) => items.map((item) => item.id === booking.id ? { ...item, booking_status: status } : item));
+      if (!data) throw new Error('This booking changed before the status could be updated. Refresh and try again.');
+      const updatedBooking = { ...booking, booking_status: status };
+      this.bookings.update((items) => items.map((item) => item.id === booking.id ? updatedBooking : item));
+      this.recentBookings.update((items) => items.map((item) => item.id === booking.id ? updatedBooking : item));
     } catch (error) {
       this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update booking progress.');
     }
+  }
+
+  async updateBookingStatusFromSelect(booking: Booking, event: Event): Promise<void> {
+    const target = event.target;
+    if (!(target instanceof HTMLSelectElement)) return;
+    const status = target.value;
+    if (status === 'confirmed' || status === 'ongoing' || status === 'completed' || status === 'cancelled') {
+      await this.updateBookingStatus(booking, status);
+    }
+    target.value = this.bookings().find((item) => item.id === booking.id)?.booking_status
+      ?? booking.booking_status;
   }
 
   async markBookingRefunded(booking: Booking): Promise<void> {
@@ -1948,9 +1983,56 @@ export class AdminPage implements OnDestroy, OnInit {
   }
 
   async updateUser(user: AdminUser): Promise<void> {
-    const { error } = await this.supabase.client.from('profiles').update({ full_name: user.full_name, phone: user.phone, is_active: user.is_active }).eq('id', user.id);
-    if (error) throw new Error(error.message);
-    this.selectedUser.set(null);
+    this.errorMessage.set(null);
+    try {
+      const { error } = await this.supabase.client
+        .from('profiles')
+        .update({ full_name: user.full_name, phone: user.phone })
+        .eq('id', user.id);
+      if (error) throw new Error(error.message);
+      this.users.update((items) => items.map((item) =>
+        item.id === user.id ? { ...item, full_name: user.full_name, phone: user.phone } : item,
+      ));
+      this.selectedUser.set(null);
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update the customer profile.');
+    }
+  }
+
+  async toggleUserSuspension(user: AdminUser): Promise<void> {
+    const isActive = user.is_active === false;
+    if (!window.confirm(
+      `${isActive ? 'Reactivate' : 'Suspend'} ${user.email}? ${isActive ? 'They will be able to sign in again.' : 'They will be blocked from signing in.'}`,
+    )) return;
+    this.savingUserAccess.update((current) => new Set(current).add(user.id));
+    this.errorMessage.set(null);
+    try {
+      const { data, error } = await this.supabase.client.functions.invoke('admin-user-access', {
+        body: { userId: user.id, isActive },
+      });
+      if (error) {
+        let detail = error.message;
+        if ('context' in error && error.context instanceof Response) {
+          const body: unknown = await error.context.clone().json().catch(() => null);
+          if (body && typeof body === 'object' && 'error' in body && typeof body.error === 'string') {
+            detail = body.error;
+          }
+        }
+        throw new Error(detail);
+      }
+      if (data?.is_active !== isActive) throw new Error('The account-access update returned an unexpected response.');
+      this.users.update((items) => items.map((item) =>
+        item.id === user.id ? { ...item, is_active: isActive } : item,
+      ));
+    } catch (error) {
+      this.errorMessage.set(error instanceof Error ? error.message : 'Unable to update account access.');
+    } finally {
+      this.savingUserAccess.update((current) => {
+        const next = new Set(current);
+        next.delete(user.id);
+        return next;
+      });
+    }
   }
 
   async deleteUser(user: AdminUser): Promise<void> {

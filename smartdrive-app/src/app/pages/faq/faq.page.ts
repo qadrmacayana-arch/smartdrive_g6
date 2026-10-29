@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@ionic/angular';
 import { chatbubblesOutline, sendOutline } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth.service';
+import { SiteSettingsService } from '../../core/services/site-settings.service';
 import {
   SupportConversation,
   SupportConversationService,
@@ -59,7 +60,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: 'How do I contact support?',
-    a: 'Reach us at contact@smartdrive.com or (+63) 917 123 4567, available 24/7.',
+    a: 'Use the Email Support button below or call (+63) 917 123 4567. Our support team is available 24/7.',
     keywords: ['support', 'help', 'contact', 'email', 'phone', 'call', 'agent', 'staff', 'human'],
   },
 ];
@@ -95,6 +96,8 @@ const SUGGESTED_QUESTIONS = [
 export class FaqPage implements OnInit, OnDestroy {
   @ViewChild('chatMessages') private chatMessages?: ElementRef<HTMLDivElement>;
 
+  private readonly siteSettings = inject(SiteSettingsService);
+  readonly supportEmail = signal('smartdriveteam@smartdrive.com');
   readonly chatIcon = chatbubblesOutline;
   readonly sendIcon = sendOutline;
   readonly currentUser = this.auth.currentUser;
@@ -117,14 +120,21 @@ export class FaqPage implements OnInit, OnDestroy {
   readonly ticketSubject = signal('');
   readonly ticketDescription = signal('');
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
-
-  constructor(
-    private readonly auth: AuthService,
-    private readonly support: SupportConversationService,
-  ) {}
+  private readonly auth = inject(AuthService);
+  private readonly support = inject(SupportConversationService);
 
   async ngOnInit(): Promise<void> {
+    void this.loadPublicContactSettings();
     await this.openOrResumeConversation();
+  }
+
+  private async loadPublicContactSettings(): Promise<void> {
+    try {
+      const settings = await this.siteSettings.getPublicSettings();
+      this.supportEmail.set(settings.supportEmail);
+    } catch (error) {
+      console.error('Unable to load public support email.', error);
+    }
   }
 
   ngOnDestroy(): void {

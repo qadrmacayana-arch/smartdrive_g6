@@ -184,7 +184,7 @@
       <div class="contact-copy">
         <h2>Still need a hand?</h2>
         <p class="sd-muted">Our support team is available 24/7 to help with your trip.</p>
-        <ion-button size="small" fill="outline" href="mailto:contact@smartdrive.com">Email Support</ion-button>
+        <ion-button size="small" fill="outline" [href]="'mailto:' + supportEmail() + '?subject=SmartDrive%20support%20request'">Email Support</ion-button>
       </div>
     </div>
   </main>

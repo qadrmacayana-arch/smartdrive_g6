@@ -219,6 +219,9 @@ export class AuthService {
   async login(email: string, password: string): Promise<void> {
     const { data, error } = await this.supabase.client.auth.signInWithPassword({ email, password });
     if (error) {
+      if (/user.*banned|banned.*user/i.test(error.message)) {
+        throw new Error('This account is suspended. Contact SmartDrive support if you believe this is a mistake.');
+      }
       const localUsers = JSON.parse(localStorage.getItem('users') || '[]') as Array<Record<string, string>>;
       const passwordHash = await this.hashPassword(password);
       const localUser = localUsers.find(

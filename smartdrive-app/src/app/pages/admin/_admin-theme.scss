@@ -189,6 +189,8 @@ tbody tr:hover { background: #fafcfb; }
 .booking-actions-cell { min-width: 14rem; vertical-align: top; }
 .booking-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: start; gap: .4rem; }
 .booking-actions > .booking-action-primary,.booking-actions > .booking-action-note { grid-column: 1 / -1; }
+.booking-status-control { display: grid; grid-column: 1 / -1; gap: .25rem; color: #647478; font-size: .59rem; font-weight: 750; }
+.booking-status-control select { width: 100%; min-height: 2rem; padding: .35rem .5rem; border: 1px solid #e3e9e6; border-radius: .55rem; background: #fff; color: #536366; font: 650 .67rem 'Plus Jakarta Sans',sans-serif; }
 .booking-actions > .danger { width: 100%; min-height: 1.9rem; margin: 0; padding: .38rem .45rem; white-space: nowrap; }
 .booking-action-note { display: block; margin: -.1rem 0 0; color: #879395; font-size: .62rem; line-height: 1.4; }
 .booking-action-secondary { width: 100%; margin: 0; padding: .38rem .4rem; white-space: nowrap; }
