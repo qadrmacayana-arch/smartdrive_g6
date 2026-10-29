@@ -97,6 +97,8 @@ export class FaqPage implements OnInit, OnDestroy {
   @ViewChild('chatMessages') private chatMessages?: ElementRef<HTMLDivElement>;
 
   private readonly siteSettings = inject(SiteSettingsService);
+  private readonly auth = inject(AuthService);
+  private readonly support = inject(SupportConversationService);
   readonly supportEmail = signal('smartdriveteam@smartdrive.com');
   readonly chatIcon = chatbubblesOutline;
   readonly sendIcon = sendOutline;
@@ -120,8 +122,6 @@ export class FaqPage implements OnInit, OnDestroy {
   readonly ticketSubject = signal('');
   readonly ticketDescription = signal('');
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
-  private readonly auth = inject(AuthService);
-  private readonly support = inject(SupportConversationService);
 
   async ngOnInit(): Promise<void> {
     void this.loadPublicContactSettings();
